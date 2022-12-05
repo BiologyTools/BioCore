@@ -1,7 +1,7 @@
 ![alt text](https://github.com/BiologyTools/Bio/blob/master/banner.jpg)
 # BioNETCore
 
-A .NET Core version of Bio library. The difference being no Windows GUI Automation functions. Bio is a application & library for editing & annotating various microscopy image formats. Supports all bioformats supported images. Integrates with ImageJ, running ImageJ filters & macro functions. Download the prebuilt [sample application](https://github.com/BiologyTools/BioSampleApp) Also check out the new wiki for [library usage.](https://github.com/BiologyTools/Bio/wiki/Library-Usage) or check out the [documentation.](https://biologytools.github.io/)
+A .NET Core version of Bio library. The difference being no Windows GUI Automation functions. Bio is a application & library for editing & annotating various microscopy image formats. Supports all bioformats supported images. Integrates with ImageJ, running ImageJ filters & macro functions. Download the [nuget package](https://www.nuget.org/packages/BioCore/2.7.6) for easy usage. Also check out the new wiki for [library usage.](https://github.com/BiologyTools/Bio/wiki/Library-Usage) or check out the [documentation.](https://biologytools.github.io/)
 
 [![NuGet version (BioCore)](https://img.shields.io/nuget/v/BioCore.svg?style=flat-square)](https://www.nuget.org/packages/BioCore/2.7.6)
 
