@@ -3,9 +3,21 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+	<Version>2.7.6</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <ApplicationIcon>Bio.ico</ApplicationIcon>
+    <Authors>ErikRepo</Authors>
+    <PackageIcon>banner.jpg</PackageIcon>
+    <PackageProjectUrl>https://github.com/BiologyTools/BioNETCore</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>biology; bio-formats; microscopy; imagej; whole-slide-image;</PackageTags>
+    <RepositoryUrl>https://github.com/BiologyTools/BioNETCore</RepositoryUrl>
+    <Copyright>GNU GPL-3.0</Copyright>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -30,9 +42,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BioFormats.Net" Version="6.5.1" />
+    <Content Include="Bio.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="CS-Script" Version="4.4.6" />
+    <PackageReference Include="IKVM" Version="8.3.3" />
     <PackageReference Include="InputSimulator" Version="1.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
@@ -41,10 +57,15 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\AForgeCore\AForgeCore\AForgeCore.csproj" />
+    <PackageReference Include="System.Runtime.Serialization.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Serialization.Xml" Version="4.3.0" />
+    <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
+    <PackageReference Include="System.Xml.XDocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath.XDocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath.XmlDocument" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -64,6 +85,26 @@
 
   <ItemGroup>
     <Folder Include="Graphics\Graphics\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Bio\banner.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AForgeCore">
+      <HintPath>..\..\..\AForgeCore\AForgeCore\bin\Release\net6.0-windows\AForgeCore.dll</HintPath>
+    </Reference>
+    <Reference Include="bioformats_package">
+      <HintPath>..\..\..\BioFormats\bioformats_package.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BioCore", "BioCore\BioCore.csproj", "{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCore", "BioCore\BioCore.csproj", "{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AForgeCore", "..\..\AForgeCore\AForgeCore\AForgeCore.csproj", "{89DFD274-5379-4FB5-8742-1243C5331459}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NugetTest", "..\..\NugetTest\NugetTest\NugetTest\NugetTest.csproj", "{038FFD81-A452-4F9F-9BB9-56740B871589}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89DFD274-5379-4FB5-8742-1243C5331459}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89DFD274-5379-4FB5-8742-1243C5331459}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89DFD274-5379-4FB5-8742-1243C5331459}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89DFD274-5379-4FB5-8742-1243C5331459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{038FFD81-A452-4F9F-9BB9-56740B871589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{038FFD81-A452-4F9F-9BB9-56740B871589}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{038FFD81-A452-4F9F-9BB9-56740B871589}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{038FFD81-A452-4F9F-9BB9-56740B871589}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

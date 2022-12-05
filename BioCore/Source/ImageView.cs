@@ -28,10 +28,16 @@ namespace Bio
             tools = App.tools;
             Dock = DockStyle.Fill;
             Images.Add(im);
+            if (HardwareAcceleration)
+            {
+                dx = new Direct2D();
+                dx.Initialize(new Configuration("BioImager", dxPanel.Width, dxPanel.Height), dxPanel.Handle);
+            }
             App.viewer = this;
             if (file == "" || file == null)
                 return;
             SetCoordinate(0, 0, 0);
+            SelectedImage.Coordinate = new ZCT(zBar.Value, SelectedImage.Coordinate.C, SelectedImage.Coordinate.T);
             InitGUI();
             //Buf = image.GetBufByCoord(GetCoordinate());
             MouseWheel += new System.Windows.Forms.MouseEventHandler(ImageView_MouseWheel);
@@ -65,17 +71,15 @@ namespace Bio
                 overlayPictureBox.Width += 18;
                 overlayPictureBox.Height += 18;
             }
-            update = true;
             UpdateImages();
+            UpdateImage();
             GoToImage();
             Mode = ViewMode.Filtered;
             Resolution = im.series;
+            
+            
             UpdateView();
-            if (HardwareAcceleration)
-            {
-                dx = new Direct2D();
-                dx.Initialize(new Configuration("BioImager", dxPanel.Width, dxPanel.Height), dxPanel.Handle);
-            }
+            
         }
         public ImageView()
         {
@@ -100,8 +104,6 @@ namespace Bio
             // Change parent for overlay PictureBox.
             overlayPictureBox.Parent = pictureBox;
             overlayPictureBox.Location = new Point(0, 0);
-
-            update = true;
             UpdateImages();
             GoToImage();
             UpdateView();
@@ -155,9 +157,7 @@ namespace Bio
         private PointD pd;
         public static bool showBounds = true;
         public static bool showText = true;
-        public Image Buf = null;
         public bool init = false;
-        private bool update = false;
         private bool updateOverlay = false;
         public List<BioImage> Images = new List<BioImage>();
         SharpDX.Direct2D1.Bitmap[] dBitmaps;
@@ -363,7 +363,6 @@ namespace Bio
             {
                 viewMode = value;
                 //If view mode is changed we update.
-                update = true;
                 UpdateImages();
                 App.tabsView.UpdateViewMode(viewMode);
                 UpdateView();
@@ -475,7 +474,6 @@ namespace Bio
             set
             {
                 origin = value;
-                update = true;
             }
         }
         public Point PyramidalOrigin
@@ -520,7 +518,6 @@ namespace Bio
             set
             {
                 scale = value;
-                update = true;
                 UpdateView();
             }
         }
@@ -954,27 +951,13 @@ namespace Bio
                 return;
             }
         }
-        public void UpdateView(bool refresh)
-        {
-            UpdateStatus();
-            update = refresh;
-            if (HardwareAcceleration)
-            {
-                //dxPanel.Invalidate();
-            }
-            if (update)
-            {
-                pictureBox.Invalidate();
-                overlayPictureBox.Invalidate();
-            }
-        }
         public void UpdateImages()
         {
             if (SelectedImage == null)
                 return;
             for (int i = 0; i < Bitmaps.Count; i++)
             {
-                Bitmaps[i] = null;
+                Bitmaps[i].Dispose();
             }
             GC.Collect();
             Bitmaps.Clear();
@@ -997,7 +980,6 @@ namespace Bio
                 else
                     dBitmaps = new SharpDX.Direct2D1.Bitmap[Images.Count];
             }
-            GC.Collect();
             dBitmaps = new SharpDX.Direct2D1.Bitmap[Images.Count];
 
             int bi = 0;
@@ -1076,7 +1058,6 @@ namespace Bio
                     Bitmaps.Add(bitmap);
                 bi++;
             }
-            update = true;
             UpdateView();
         }
         Bitmap bitmap;
@@ -1159,17 +1140,12 @@ namespace Bio
                     dBitmaps[SelectedIndex].Dispose();
                     dBitmaps[SelectedIndex] = null;
                 }
-                Clipboard.SetImage(bitmap);
                 dBitmaps[SelectedIndex] = DBitmap.FromImage(dx.RenderTarget2D, bitmap);
             }
-
-
             if (SelectedIndex < Bitmaps.Count)
                 Bitmaps[SelectedIndex] = bitmap;
             else
                 Bitmaps.Add(bitmap);
-
-            update = false;
             UpdateView();
         }
         private void channelBoxR_SelectedIndexChanged(object sender, EventArgs e)
@@ -1177,7 +1153,6 @@ namespace Bio
             if (channelBoxR.SelectedIndex == -1)
                 return;
             SelectedImage.rgbChannels[0] = channelBoxR.SelectedIndex;
-            update = true;
             UpdateView();
         }
         private void channelBoxG_SelectedIndexChanged(object sender, EventArgs e)
@@ -1185,7 +1160,6 @@ namespace Bio
             if (channelBoxG.SelectedIndex == -1)
                 return;
             SelectedImage.rgbChannels[1] = channelBoxG.SelectedIndex;
-            update = true;
             UpdateView();
         }
         private void channelBoxB_SelectedIndexChanged(object sender, EventArgs e)
@@ -1193,7 +1167,6 @@ namespace Bio
             if (channelBoxB.SelectedIndex == -1)
                 return;
             SelectedImage.rgbChannels[2] = channelBoxB.SelectedIndex;
-            update = true;
             UpdateView();
         }
         private void showControlsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1504,7 +1477,6 @@ namespace Bio
             if (SelectedImage == null)
                 return;
             SelectedImage.Coordinate = new ZCT(zBar.Value, SelectedImage.Coordinate.C, SelectedImage.Coordinate.T);
-            update = true;
             UpdateImage();
             UpdateView();
         }
@@ -1513,7 +1485,6 @@ namespace Bio
             if (SelectedImage == null)
                 return;
             SelectedImage.Coordinate = new ZCT(SelectedImage.Coordinate.Z, SelectedImage.Coordinate.C, tBar.Value);
-            update = true;
             UpdateImage();
             UpdateView();
         }
@@ -1522,7 +1493,6 @@ namespace Bio
             if (SelectedImage == null)
                 return;
             SelectedImage.Coordinate = new ZCT(SelectedImage.Coordinate.Z, cBar.Value, SelectedImage.Coordinate.T);
-            update = true;
             UpdateImage();
             UpdateView();
         }
@@ -1847,14 +1817,12 @@ namespace Bio
             }
             blue.Dispose();
             red.Dispose();
-            update = false;
         }
 
         private int resolution;
         private double scaleorig = 0;
         private void pictureBox_Paint(object sender, PaintEventArgs e)
         {
-            update = true;
             DrawView(e.Graphics);
         }
         public double GetScale()
@@ -2613,7 +2581,6 @@ namespace Bio
                     }
                 }
             }
-            update = true;
             UpdateImage();
         }
 
@@ -2646,7 +2613,6 @@ namespace Bio
                     }
                 }
             }
-            update = true;
             UpdateImage();
         }
 
@@ -2668,6 +2634,11 @@ namespace Bio
         {
             if (HardwareAcceleration)
             {
+                if(dx == null)
+                {
+                    dx = new Direct2D();
+                    dx.Initialize(new Configuration("BioImager", dxPanel.Width, dxPanel.Height), dxPanel.Handle);
+                }
                 conf.Width = dxPanel.Width;
                 conf.Height = dxPanel.Height;
                 dx.Update(conf, dxPanel.Handle);

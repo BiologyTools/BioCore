@@ -45,6 +45,7 @@ namespace Bio
         {
             BioImage.Initialize();
             Microscope.Initialize();
+            tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
             tools = new Tools();            
