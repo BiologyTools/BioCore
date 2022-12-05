@@ -34,9 +34,9 @@ A .NET Core version of Bio library. The difference being no Windows GUI Automati
 - `Star this project on Github to help spread the word about Bio!`
 
 ## Dependencies
-- [BioFormats.Net](https://github.com/GDanovski/BioFormats.Net)
+- [BioFormatsNet6](https://github.com/BiologyTools/BioFormatsNET6)
 - [IKVM](http://www.ikvm.net/)
-- [AForge](http://www.aforgenet.com/)
+- [AForgeImagingCore](https://github.com/BiologyTools/AForgeImagingCore)
 - [LibTiff.Net](https://bitmiracle.com/libtiff/)
 - [Cs-script](https://github.com/oleg-shilo/cs-script/blob/master/LICENSE)
 - [ImageJ](https://imagej.nih.gov/ij/) (Only needed when running ImageJ macro commands)
@@ -44,7 +44,7 @@ A .NET Core version of Bio library. The difference being no Windows GUI Automati
 ## Licenses
 - BioImage [GPL3](https://www.gnu.org/licenses/gpl-3.0.en.html)
 - AForge [LGPL](http://www.aforgenet.com/framework/license.html)
-- BioFormats.Net [GPL3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+- BioFormatsNet6 [GPL3](https://www.gnu.org/licenses/gpl-2.0.en.html)
 - [IKVM](https://github.com/gluck/ikvm/blob/master/LICENSE)
 - LibTiff.Net [BSD](https://bitmiracle.com/libtiff/)
 - Cs-script [MIT](https://github.com/oleg-shilo/cs-script/blob/master/LICENSE)
