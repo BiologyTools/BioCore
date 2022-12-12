@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WindowsInput;
-using WindowsInput.Native;
 using System.IO;
 using Newtonsoft.Json;
 

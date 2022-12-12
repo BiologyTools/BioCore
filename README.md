@@ -3,8 +3,8 @@
 
 A .NET6 version of Bio library. The difference being no Windows GUI Automation functions. Bio is a application & library for editing & annotating various microscopy image formats. Supports all bioformats supported images. Integrates with ImageJ, running ImageJ filters & macro functions. Download the [nuget package](https://www.nuget.org/packages/BioCore/2.7.7.2) for easy usage. Also check out the wiki for [library usage.](https://github.com/BiologyTools/Bio/wiki/Library-Usage) or check out the [documentation.](https://biologytools.github.io/)
 
-[![NuGet version (BioCore)](https://img.shields.io/nuget/v/BioCore.svg?style=flat-square)](https://www.nuget.org/packages/BioCore/2.7.7.2)
-[![NuGet version (BioCore)](https://img.shields.io/nuget/dt/BioCore?color=g)](https://www.nuget.org/packages/BioCore/2.7.7.2)
+[![NuGet version (BioCore)](https://img.shields.io/nuget/v/BioCore.svg?style=flat-square)](https://www.nuget.org/packages/BioCore/2.7.8.1)
+[![NuGet version (BioCore)](https://img.shields.io/nuget/dt/BioCore?color=g)](https://www.nuget.org/packages/BioCore/2.7.8.1)
 ## Features
 
 - C# scripting with sample tool-script and other sample scripts in "/Scripts/" folder. [See samples](https://github.com/BioMicroscopy/BioImage-Scripts)
