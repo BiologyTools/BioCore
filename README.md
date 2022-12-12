@@ -42,7 +42,7 @@ A .NET6 version of Bio library. The difference being no Windows GUI Automation f
 - [ImageJ](https://imagej.nih.gov/ij/) (Only needed when running ImageJ macro commands)
 
 ## Licenses
-- BioImage [GPL3](https://www.gnu.org/licenses/gpl-3.0.en.html)
+- Bio [GPL3](https://www.gnu.org/licenses/gpl-3.0.en.html)
 - AForge [LGPL](http://www.aforgenet.com/framework/license.html)
 - BioFormatsNet6 [GPL3](https://www.gnu.org/licenses/gpl-2.0.en.html)
 - [IKVM](https://github.com/gluck/ikvm/blob/master/LICENSE)
