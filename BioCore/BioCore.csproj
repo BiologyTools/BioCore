@@ -13,7 +13,7 @@
     <PackageIcon>banner.jpg</PackageIcon>
     <PackageProjectUrl>https://github.com/BiologyTools/BioCore</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>biology; bio-formats; microscopy; imagej; whole-slide-image;</PackageTags>
+    <PackageTags>biology; bio-formats; microscopy; imagej; whole-slide-image; imagej-roi; roi;</PackageTags>
     <RepositoryUrl>https://github.com/BiologyTools/BioCore</RepositoryUrl>
     <Copyright>GNU GPL-3.0</Copyright>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -25,6 +25,7 @@
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series. Add the latest IKVM &amp; Bioformat.NET packages to use this package.</Description>
     <AssemblyVersion>2.9.0</AssemblyVersion>
     <FileVersion>2.9.0</FileVersion>
+    <PackageReleaseNotes>Added ImageJ ROI Import &amp; Export.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -940,13 +940,14 @@ namespace Bio
         private void exportImageJROIToolStripMenuItem_Click(object sender, EventArgs e)
         {
             saveImageJDialog.Title = "Set Filename for exported ROI's.";
+            saveImageJDialog.FileName = ImageView.SelectedImage.Filename;
             if (saveImageJDialog.ShowDialog() != DialogResult.OK)
                 return;
-            saveImageJDialog.FileName = ImageView.SelectedImage.Filename;
             int i = 1;
             foreach (ROI roi in ImageView.SelectedImage.Annotations)
             {
-                ImageJ.RoiEncoder.save(roi, saveImageJDialog.FileName + "-" + i);
+                string s = Path.GetDirectoryName(saveImageJDialog.FileName) + "//" + Path.GetFileNameWithoutExtension(saveImageJDialog.FileName) + "-" + i + ".roi";
+                ImageJ.RoiEncoder.save(roi, s);
                 i++;
             }
             App.viewer.UpdateView();
