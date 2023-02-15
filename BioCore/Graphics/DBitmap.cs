@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using SharpDX;
+﻿using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;
-
+using System.Drawing.Imaging;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using Bitmap = SharpDX.Direct2D1.Bitmap;
 using PixelFormat = SharpDX.Direct2D1.PixelFormat;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 
 namespace Bio.Graphics
 {
@@ -97,7 +89,7 @@ namespace Bio.Graphics
             {
                 var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
                 var size = new Size2(bitmap.Width, bitmap.Height);
-                return new Bitmap(renderTarget, size, new DataPointer(image.RGBData,bitmap.Width * 4 * bitmap.Height), bitmap.Width * 4, bitmapProperties);
+                return new Bitmap(renderTarget, size, new DataPointer(image.RGBData, bitmap.Width * 4 * bitmap.Height), bitmap.Width * 4, bitmapProperties);
             }
         }
         public unsafe static Bitmap FromImage(RenderTarget renderTarget, System.Drawing.Bitmap image)
@@ -106,17 +98,17 @@ namespace Bio.Graphics
             int h = image.Height;
             Bitmap b = null;
             //For RGB images we switch to BGR
-            if(image.PixelFormat != System.Drawing.Imaging.PixelFormat.Format8bppIndexed && image.PixelFormat != System.Drawing.Imaging.PixelFormat.Format16bppGrayScale)
-            image = BufferInfo.SwitchRedBlue(image);
+            if (image.PixelFormat != System.Drawing.Imaging.PixelFormat.Format8bppIndexed && image.PixelFormat != System.Drawing.Imaging.PixelFormat.Format16bppGrayScale)
+                image = BufferInfo.SwitchRedBlue(image);
             BitmapData d = image.LockBits(new System.Drawing.Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadOnly, image.PixelFormat);
             using (var bitmap = (System.Drawing.Bitmap)image)
             {
-                
+
                 var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
                 var size = new Size2(bitmap.Width, bitmap.Height);
                 if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format32bppArgb)
                 {
-                    
+
                     b = new Bitmap(renderTarget, size, new DataPointer(d.Scan0, bitmap.Width * 4 * bitmap.Height), bitmap.Width * 4, bitmapProperties);
                     return b;
                 }

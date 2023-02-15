@@ -71,9 +71,10 @@
             // 
             this.label3.AutoSize = true;
             this.label3.ForeColor = System.Drawing.Color.White;
-            this.label3.Location = new System.Drawing.Point(42, 38);
+            this.label3.Location = new System.Drawing.Point(49, 44);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(29, 13);
+            this.label3.Size = new System.Drawing.Size(31, 15);
             this.label3.TabIndex = 5;
             this.label3.Text = "Start";
             // 
@@ -81,16 +82,18 @@
             // 
             this.label4.AutoSize = true;
             this.label4.ForeColor = System.Drawing.Color.White;
-            this.label4.Location = new System.Drawing.Point(109, 38);
+            this.label4.Location = new System.Drawing.Point(127, 44);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(26, 13);
+            this.label4.Size = new System.Drawing.Size(27, 15);
             this.label4.TabIndex = 6;
             this.label4.Text = "End";
             // 
             // zEndBox
             // 
             this.zEndBox.ContextMenuStrip = this.zContextMenuStrip;
-            this.zEndBox.Location = new System.Drawing.Point(112, 54);
+            this.zEndBox.Location = new System.Drawing.Point(131, 62);
+            this.zEndBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.zEndBox.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -102,7 +105,7 @@
             0,
             0});
             this.zEndBox.Name = "zEndBox";
-            this.zEndBox.Size = new System.Drawing.Size(71, 20);
+            this.zEndBox.Size = new System.Drawing.Size(83, 23);
             this.zEndBox.TabIndex = 9;
             this.zEndBox.Value = new decimal(new int[] {
             1,
@@ -128,28 +131,31 @@
             // 
             this.label5.AutoSize = true;
             this.label5.ForeColor = System.Drawing.Color.White;
-            this.label5.Location = new System.Drawing.Point(17, 56);
+            this.label5.Location = new System.Drawing.Point(20, 65);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(14, 13);
+            this.label5.Size = new System.Drawing.Size(14, 15);
             this.label5.TabIndex = 8;
             this.label5.Text = "Z";
             // 
             // zStartBox
             // 
-            this.zStartBox.Location = new System.Drawing.Point(37, 54);
+            this.zStartBox.Location = new System.Drawing.Point(43, 62);
+            this.zStartBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.zStartBox.Maximum = new decimal(new int[] {
             10000,
             0,
             0,
             0});
             this.zStartBox.Name = "zStartBox";
-            this.zStartBox.Size = new System.Drawing.Size(69, 20);
+            this.zStartBox.Size = new System.Drawing.Size(80, 23);
             this.zStartBox.TabIndex = 7;
             // 
             // cEndBox
             // 
             this.cEndBox.ContextMenuStrip = this.cContextMenuStrip;
-            this.cEndBox.Location = new System.Drawing.Point(112, 81);
+            this.cEndBox.Location = new System.Drawing.Point(131, 93);
+            this.cEndBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.cEndBox.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -161,7 +167,7 @@
             0,
             0});
             this.cEndBox.Name = "cEndBox";
-            this.cEndBox.Size = new System.Drawing.Size(71, 20);
+            this.cEndBox.Size = new System.Drawing.Size(83, 23);
             this.cEndBox.TabIndex = 12;
             this.cEndBox.Value = new decimal(new int[] {
             1,
@@ -187,28 +193,31 @@
             // 
             this.label6.AutoSize = true;
             this.label6.ForeColor = System.Drawing.Color.White;
-            this.label6.Location = new System.Drawing.Point(17, 83);
+            this.label6.Location = new System.Drawing.Point(20, 96);
+            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(14, 13);
+            this.label6.Size = new System.Drawing.Size(15, 15);
             this.label6.TabIndex = 11;
             this.label6.Text = "C";
             // 
             // cStartBox
             // 
-            this.cStartBox.Location = new System.Drawing.Point(37, 81);
+            this.cStartBox.Location = new System.Drawing.Point(43, 93);
+            this.cStartBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.cStartBox.Maximum = new decimal(new int[] {
             10000,
             0,
             0,
             0});
             this.cStartBox.Name = "cStartBox";
-            this.cStartBox.Size = new System.Drawing.Size(69, 20);
+            this.cStartBox.Size = new System.Drawing.Size(80, 23);
             this.cStartBox.TabIndex = 10;
             // 
             // tEndBox
             // 
             this.tEndBox.ContextMenuStrip = this.tContextMenuStrip;
-            this.tEndBox.Location = new System.Drawing.Point(112, 107);
+            this.tEndBox.Location = new System.Drawing.Point(131, 123);
+            this.tEndBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tEndBox.Maximum = new decimal(new int[] {
             10000,
             0,
@@ -220,7 +229,7 @@
             0,
             0});
             this.tEndBox.Name = "tEndBox";
-            this.tEndBox.Size = new System.Drawing.Size(71, 20);
+            this.tEndBox.Size = new System.Drawing.Size(83, 23);
             this.tEndBox.TabIndex = 15;
             this.tEndBox.Value = new decimal(new int[] {
             1,
@@ -246,29 +255,32 @@
             // 
             this.label7.AutoSize = true;
             this.label7.ForeColor = System.Drawing.Color.White;
-            this.label7.Location = new System.Drawing.Point(17, 109);
+            this.label7.Location = new System.Drawing.Point(20, 126);
+            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(14, 13);
+            this.label7.Size = new System.Drawing.Size(13, 15);
             this.label7.TabIndex = 14;
             this.label7.Text = "T";
             // 
             // tStartBox
             // 
-            this.tStartBox.Location = new System.Drawing.Point(37, 107);
+            this.tStartBox.Location = new System.Drawing.Point(43, 123);
+            this.tStartBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tStartBox.Maximum = new decimal(new int[] {
             10000,
             0,
             0,
             0});
             this.tStartBox.Name = "tStartBox";
-            this.tStartBox.Size = new System.Drawing.Size(69, 20);
+            this.tStartBox.Size = new System.Drawing.Size(80, 23);
             this.tStartBox.TabIndex = 13;
             // 
             // substackBut
             // 
-            this.substackBut.Location = new System.Drawing.Point(112, 133);
+            this.substackBut.Location = new System.Drawing.Point(131, 153);
+            this.substackBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.substackBut.Name = "substackBut";
-            this.substackBut.Size = new System.Drawing.Size(96, 23);
+            this.substackBut.Size = new System.Drawing.Size(112, 27);
             this.substackBut.TabIndex = 16;
             this.substackBut.Text = "Create Substack";
             this.substackBut.UseVisualStyleBackColor = true;
@@ -276,9 +288,10 @@
             // 
             // splitChannelsBut
             // 
-            this.splitChannelsBut.Location = new System.Drawing.Point(12, 133);
+            this.splitChannelsBut.Location = new System.Drawing.Point(14, 153);
+            this.splitChannelsBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.splitChannelsBut.Name = "splitChannelsBut";
-            this.splitChannelsBut.Size = new System.Drawing.Size(96, 23);
+            this.splitChannelsBut.Size = new System.Drawing.Size(112, 27);
             this.splitChannelsBut.TabIndex = 17;
             this.splitChannelsBut.Text = "Split Channels";
             this.splitChannelsBut.UseVisualStyleBackColor = true;
@@ -286,9 +299,10 @@
             // 
             // mergeBut
             // 
-            this.mergeBut.Location = new System.Drawing.Point(112, 191);
+            this.mergeBut.Location = new System.Drawing.Point(131, 220);
+            this.mergeBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.mergeBut.Name = "mergeBut";
-            this.mergeBut.Size = new System.Drawing.Size(96, 23);
+            this.mergeBut.Size = new System.Drawing.Size(112, 27);
             this.mergeBut.TabIndex = 18;
             this.mergeBut.Text = "Merge Channels";
             this.mergeBut.UseVisualStyleBackColor = true;
@@ -297,9 +311,10 @@
             // stackABox
             // 
             this.stackABox.FormattingEnabled = true;
-            this.stackABox.Location = new System.Drawing.Point(68, 12);
+            this.stackABox.Location = new System.Drawing.Point(79, 14);
+            this.stackABox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.stackABox.Name = "stackABox";
-            this.stackABox.Size = new System.Drawing.Size(140, 21);
+            this.stackABox.Size = new System.Drawing.Size(163, 23);
             this.stackABox.TabIndex = 19;
             this.stackABox.SelectedIndexChanged += new System.EventHandler(this.stackABox_SelectedIndexChanged);
             // 
@@ -307,9 +322,10 @@
             // 
             this.label1.AutoSize = true;
             this.label1.ForeColor = System.Drawing.Color.White;
-            this.label1.Location = new System.Drawing.Point(17, 15);
+            this.label1.Location = new System.Drawing.Point(20, 17);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(45, 13);
+            this.label1.Size = new System.Drawing.Size(46, 15);
             this.label1.TabIndex = 20;
             this.label1.Text = "Stack A";
             // 
@@ -317,26 +333,29 @@
             // 
             this.label2.AutoSize = true;
             this.label2.ForeColor = System.Drawing.Color.White;
-            this.label2.Location = new System.Drawing.Point(17, 167);
+            this.label2.Location = new System.Drawing.Point(20, 193);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(45, 13);
+            this.label2.Size = new System.Drawing.Size(45, 15);
             this.label2.TabIndex = 22;
             this.label2.Text = "Stack B";
             // 
             // stackBBox
             // 
             this.stackBBox.FormattingEnabled = true;
-            this.stackBBox.Location = new System.Drawing.Point(68, 164);
+            this.stackBBox.Location = new System.Drawing.Point(79, 189);
+            this.stackBBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.stackBBox.Name = "stackBBox";
-            this.stackBBox.Size = new System.Drawing.Size(140, 21);
+            this.stackBBox.Size = new System.Drawing.Size(163, 23);
             this.stackBBox.TabIndex = 21;
             this.stackBBox.SelectedIndexChanged += new System.EventHandler(this.stackBBox_SelectedIndexChanged);
             // 
             // mergeZBut
             // 
-            this.mergeZBut.Location = new System.Drawing.Point(12, 191);
+            this.mergeZBut.Location = new System.Drawing.Point(14, 220);
+            this.mergeZBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.mergeZBut.Name = "mergeZBut";
-            this.mergeZBut.Size = new System.Drawing.Size(96, 23);
+            this.mergeZBut.Size = new System.Drawing.Size(112, 27);
             this.mergeZBut.TabIndex = 23;
             this.mergeZBut.Text = "Merge Z";
             this.mergeZBut.UseVisualStyleBackColor = true;
@@ -344,9 +363,10 @@
             // 
             // mergeTBut
             // 
-            this.mergeTBut.Location = new System.Drawing.Point(12, 220);
+            this.mergeTBut.Location = new System.Drawing.Point(14, 254);
+            this.mergeTBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.mergeTBut.Name = "mergeTBut";
-            this.mergeTBut.Size = new System.Drawing.Size(96, 23);
+            this.mergeTBut.Size = new System.Drawing.Size(112, 27);
             this.mergeTBut.TabIndex = 24;
             this.mergeTBut.Text = "Merge T";
             this.mergeTBut.UseVisualStyleBackColor = true;
@@ -354,10 +374,10 @@
             // 
             // StackTools
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(95)))), ((int)(((byte)(122)))), ((int)(((byte)(156)))));
-            this.ClientSize = new System.Drawing.Size(224, 251);
+            this.ClientSize = new System.Drawing.Size(261, 290);
             this.Controls.Add(this.mergeTBut);
             this.Controls.Add(this.mergeZBut);
             this.Controls.Add(this.label2);
@@ -380,6 +400,7 @@
             this.Controls.Add(this.label3);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "StackTools";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Stack Tools";

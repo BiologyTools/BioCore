@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class BioConsole : Form
     {
@@ -33,7 +23,7 @@ namespace Bio
             consoleBox.Text += textBox.Text + Environment.NewLine;
             textBox.Text = "";
             string filename = "";
-            
+
             if (ImageView.SelectedImage.ID.EndsWith(".ome.tif"))
             {
                 filename = System.IO.Path.GetFileNameWithoutExtension(ImageView.SelectedImage.ID);
@@ -81,6 +71,11 @@ namespace Bio
         private void biofBox_CheckedChanged(object sender, EventArgs e)
         {
             useBioformats = biofBox.Checked;
+        }
+
+        private void headlessBox_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

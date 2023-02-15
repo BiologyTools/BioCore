@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace Bio
 {
@@ -29,7 +20,7 @@ namespace Bio
             {
                 interBox.Items.Add(item);
             }
-            
+
         }
     }
     public class Lib
@@ -63,7 +54,7 @@ namespace Bio
             public string GUID;
             public void AddMember(MemberInfo inf)
             {
-                if(Members.ContainsKey(inf.ToString()))
+                if (Members.ContainsKey(inf.ToString()))
                 {
                     Members[inf.ToString()].Add(inf);
                 }
@@ -89,11 +80,11 @@ namespace Bio
             }
             public void AddField(FieldInfo inf)
             {
-                Fields.Add(inf.ToString(),inf);
+                Fields.Add(inf.ToString(), inf);
             }
             public void AddProperty(PropertyInfo inf)
             {
-                    Properties.Add(inf.ToString(),inf);
+                Properties.Add(inf.ToString(), inf);
             }
             public object Invoke(string name, object o, object[] args)
             {
@@ -112,7 +103,7 @@ namespace Bio
         public class ObjectInfo
         {
             public TypeInfo type;
-            
+
         }
         public Lib(string file)
         {
@@ -164,8 +155,8 @@ namespace Bio
             Array ar = Enum.GetValues(type.type);
             foreach (var item in ar)
             {
-                if(!type.Enums.ContainsKey(item.ToString()))
-                type.Enums.Add(item.ToString(), (Enum)item);
+                if (!type.Enums.ContainsKey(item.ToString()))
+                    type.Enums.Add(item.ToString(), (Enum)item);
             }
         }
         private void GetInterfaces(TypeInfo type)

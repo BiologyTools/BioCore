@@ -1,6 +1,4 @@
-﻿using System.Windows.Forms;
-
-namespace Bio.Graphics
+﻿namespace Bio.Graphics
 {
     public class DSystemConfiguration                   // 52 lines
     {

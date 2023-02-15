@@ -1,19 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
-using Bio.Graphics;
-using Pen = System.Drawing.Pen;
-using System.Threading;
+﻿using Bio.Graphics;
 using SharpDX.Mathematics.Interop;
+using System.ComponentModel;
+using System.Drawing.Imaging;
+using Pen = System.Drawing.Pen;
 
 namespace Bio
 {
@@ -23,6 +12,11 @@ namespace Bio
         {
             string file = im.ID.Replace("\\", "/");
             InitializeComponent();
+            if (Win32.RunningOnWine())
+            {
+                Console.WriteLine("Running on Wine.");
+                HardwareAcceleration = false;
+            }
             serie = im.series;
             selectedImage = im;
             tools = App.tools;
@@ -76,14 +70,19 @@ namespace Bio
             GoToImage();
             Mode = ViewMode.Filtered;
             Resolution = im.series;
-            
-            
+
+
             UpdateView();
-            
+
         }
         public ImageView()
         {
             InitializeComponent();
+            if (Win32.RunningOnWine())
+            {
+                Console.WriteLine("Running on Wine.");
+                HardwareAcceleration = false;
+            }
             tools = App.tools;
             Dock = DockStyle.Fill;
             App.viewer = this;
@@ -107,6 +106,7 @@ namespace Bio
             UpdateImages();
             GoToImage();
             UpdateView();
+            
             if (HardwareAcceleration)
             {
                 dx = new Direct2D();
@@ -532,7 +532,13 @@ namespace Bio
             }
             set
             {
-                hardwareAcceleration = value;
+                if (Win32.RunningOnWine())
+                {
+                    hardwareAcceleration = false;
+                    return;
+                }
+                else
+                    hardwareAcceleration = value;
                 if (value)
                 {
                     GoToImage(0);
@@ -2634,7 +2640,7 @@ namespace Bio
         {
             if (HardwareAcceleration)
             {
-                if(dx == null)
+                if (dx == null)
                 {
                     dx = new Direct2D();
                     dx.Initialize(new Configuration("BioImager", dxPanel.Width, dxPanel.Height), dxPanel.Handle);

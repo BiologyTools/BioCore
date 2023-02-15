@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Drawing.Imaging;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class ChannelsTool : Form
     {
@@ -120,9 +114,9 @@ namespace Bio
 
         private void maxUintBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            int i = int.Parse((string)maxUintBox.SelectedItem,System.Globalization.CultureInfo.InvariantCulture);
-            if(i<=maxBox.Maximum)
-            maxBox.Value = i;
+            int i = int.Parse((string)maxUintBox.SelectedItem, System.Globalization.CultureInfo.InvariantCulture);
+            if (i <= maxBox.Maximum)
+                maxBox.Value = i;
 
         }
 
@@ -178,8 +172,8 @@ namespace Bio
         private void maxUintBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             int i = int.Parse((string)maxUintBox2.SelectedItem, System.Globalization.CultureInfo.InvariantCulture);
-            if(i <= maxGraphBox.Maximum)
-            maxGraphBox.Value = i;
+            if (i <= maxGraphBox.Maximum)
+                maxGraphBox.Value = i;
             if (i == 255)
             {
                 maxGraphBox.Value = 255;
@@ -215,7 +209,7 @@ namespace Bio
 
         private void ChannelsTool_MouseDown(object sender, MouseEventArgs e)
         {
-            
+
         }
         private bool pressedX1 = false;
         private bool pressedX2 = false;
@@ -223,7 +217,7 @@ namespace Bio
         {
             if (e.Button == MouseButtons.XButton1)
             {
-                if (channelsBox.SelectedIndex < channelsBox.Items.Count-1)
+                if (channelsBox.SelectedIndex < channelsBox.Items.Count - 1)
                 {
                     if (pressedX1 == false)
                     {

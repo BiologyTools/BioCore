@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class HistogramControl : UserControl
     {
@@ -46,9 +36,9 @@ namespace Bio
         public float Min
         {
             get { return min; }
-            set 
-            { 
-                if(channel!=null)
+            set
+            {
+                if (channel != null)
                     channel.range[App.channelsTool.SelectedSample].Min = (int)value;
                 min = (int)value;
             }
@@ -124,7 +114,7 @@ namespace Bio
         private bool axisNumbers = true;
         public bool AxisNumbers
         {
-            get { return axisNumbers;}
+            get { return axisNumbers; }
             set { axisNumbers = value; }
         }
 
@@ -266,7 +256,7 @@ namespace Bio
                         bininds++;
 
                     }
-                    
+
                     g.DrawLine(pend, new PointF((fx * channel.range[i].Max), 0), new PointF((fx * channel.range[i].Max), this.Height));
                     g.DrawLine(pend, new PointF(fx * channel.range[i].Min, 0), new PointF(fx * channel.range[i].Min, this.Height));
 
@@ -275,7 +265,7 @@ namespace Bio
                     pen.Dispose();
                     pend.Dispose();
                 }
-                
+
             }
 
             float tick = 6;
@@ -286,7 +276,7 @@ namespace Bio
                     for (float x = 0; x < graphMax; x += 2000)
                     {
                         SizeF s = g.MeasureString(x.ToString(), SystemFonts.DefaultFont);
-                        g.DrawString(x.ToString(), SystemFonts.DefaultFont, Brushes.Black, (fx * x) - (s.Width/2), tick + 6);
+                        g.DrawString(x.ToString(), SystemFonts.DefaultFont, Brushes.Black, (fx * x) - (s.Width / 2), tick + 6);
                         g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick + 3));
                     }
                     for (float x = 0; x < graphMax; x += 1000)
@@ -295,10 +285,10 @@ namespace Bio
                     }
                 }
                 if (graphMax <= 16383)
-                for (float x = 0; x < graphMax; x += 100)
-                {
-                    g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick));
-                }
+                    for (float x = 0; x < graphMax; x += 100)
+                    {
+                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick));
+                    }
                 if (graphMax <= 255)
                 {
                     for (float x = 0; x < graphMax; x += 50)

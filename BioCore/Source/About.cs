@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class About : Form
     {
         public About()
         {
             InitializeComponent();
-            #if DEBUG
+#if DEBUG
             MessageBox.Show("Application is running in Debug mode.");
-            #endif
+#endif
             versionLabel.Text = "Version: " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         }
 

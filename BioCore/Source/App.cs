@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public class App
     {
@@ -25,7 +18,7 @@ namespace Bio
 
         public static BioImage Image
         {
-            get 
+            get
             {
                 if (ImageView.SelectedImage == null)
                     return tabsView.Image;
@@ -48,7 +41,7 @@ namespace Bio
             tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
-            tools = new Tools();            
+            tools = new Tools();
             manager = new ROIManager();
             runner = new Scripting();
             recorder = new Recorder();

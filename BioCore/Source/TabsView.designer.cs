@@ -81,6 +81,8 @@ namespace Bio
             this.exportCSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importCSVToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportROIsOfFolderOfImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importImageJROIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportImageJROIToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.channelsToolToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.autoThresholdToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.channelsToolToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -104,6 +106,8 @@ namespace Bio
             this.scriptRunnerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scriptRecorderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openImageJDialog = new System.Windows.Forms.OpenFileDialog();
+            this.saveImageJDialog = new System.Windows.Forms.SaveFileDialog();
             this.panel.SuspendLayout();
             this.tabContextMenuStrip.SuspendLayout();
             this.menuStrip.SuspendLayout();
@@ -462,7 +466,9 @@ namespace Bio
             this.rOIManagerToolStripMenuItem,
             this.exportCSVToolStripMenuItem,
             this.importCSVToolStripMenuItem,
-            this.exportROIsOfFolderOfImagesToolStripMenuItem});
+            this.exportROIsOfFolderOfImagesToolStripMenuItem,
+            this.importImageJROIToolStripMenuItem,
+            this.exportImageJROIToolStripMenuItem});
             this.rOIToolStripMenuItem.Name = "rOIToolStripMenuItem";
             this.rOIToolStripMenuItem.Size = new System.Drawing.Size(38, 20);
             this.rOIToolStripMenuItem.Text = "ROI";
@@ -470,30 +476,44 @@ namespace Bio
             // rOIManagerToolStripMenuItem
             // 
             this.rOIManagerToolStripMenuItem.Name = "rOIManagerToolStripMenuItem";
-            this.rOIManagerToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.rOIManagerToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
             this.rOIManagerToolStripMenuItem.Text = "ROI Manager";
             this.rOIManagerToolStripMenuItem.Click += new System.EventHandler(this.rOIManagerToolStripMenuItem_Click);
             // 
             // exportCSVToolStripMenuItem
             // 
             this.exportCSVToolStripMenuItem.Name = "exportCSVToolStripMenuItem";
-            this.exportCSVToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.exportCSVToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
             this.exportCSVToolStripMenuItem.Text = "Export ROI\'s to CSV";
             this.exportCSVToolStripMenuItem.Click += new System.EventHandler(this.exportCSVToolStripMenuItem_Click);
             // 
             // importCSVToolStripMenuItem
             // 
             this.importCSVToolStripMenuItem.Name = "importCSVToolStripMenuItem";
-            this.importCSVToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.importCSVToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
             this.importCSVToolStripMenuItem.Text = "Import ROI\'s from CSV";
             this.importCSVToolStripMenuItem.Click += new System.EventHandler(this.importCSVToolStripMenuItem_Click);
             // 
             // exportROIsOfFolderOfImagesToolStripMenuItem
             // 
             this.exportROIsOfFolderOfImagesToolStripMenuItem.Name = "exportROIsOfFolderOfImagesToolStripMenuItem";
-            this.exportROIsOfFolderOfImagesToolStripMenuItem.Size = new System.Drawing.Size(243, 22);
+            this.exportROIsOfFolderOfImagesToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
             this.exportROIsOfFolderOfImagesToolStripMenuItem.Text = "Export ROI\'s of Folder of Images";
             this.exportROIsOfFolderOfImagesToolStripMenuItem.Click += new System.EventHandler(this.exportROIsOfFolderOfImagesToolStripMenuItem_Click);
+            // 
+            // importImageJROIToolStripMenuItem
+            // 
+            this.importImageJROIToolStripMenuItem.Name = "importImageJROIToolStripMenuItem";
+            this.importImageJROIToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
+            this.importImageJROIToolStripMenuItem.Text = "Import ImageJ ROI to Selected Image";
+            this.importImageJROIToolStripMenuItem.Click += new System.EventHandler(this.importImageJROIToolStripMenuItem_Click);
+            // 
+            // exportImageJROIToolStripMenuItem
+            // 
+            this.exportImageJROIToolStripMenuItem.Name = "exportImageJROIToolStripMenuItem";
+            this.exportImageJROIToolStripMenuItem.Size = new System.Drawing.Size(282, 22);
+            this.exportImageJROIToolStripMenuItem.Text = "Export ImageJ ROI from Selected Image";
+            this.exportImageJROIToolStripMenuItem.Click += new System.EventHandler(this.exportImageJROIToolStripMenuItem_Click);
             // 
             // channelsToolToolStripMenuItem
             // 
@@ -685,6 +705,19 @@ namespace Bio
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
+            // openImageJDialog
+            // 
+            this.openImageJDialog.DefaultExt = "roi";
+            this.openImageJDialog.Filter = "ROI Files (*.roi)|*.roi|All files (*.*)|*.*";
+            this.openImageJDialog.Multiselect = true;
+            this.openImageJDialog.Title = "Import ROI from CSV";
+            // 
+            // saveImageJDialog
+            // 
+            this.saveImageJDialog.DefaultExt = "roi";
+            this.saveImageJDialog.Filter = "ROI Files (*.roi)|*.roi|All files (*.*)|*.*";
+            this.saveImageJDialog.Title = "Save ROIs to CSV";
+            // 
             // TabsView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -788,5 +821,9 @@ namespace Bio
         private System.Windows.Forms.ToolStripSeparator sepToolStripMenuItem2;
         private System.Windows.Forms.ToolStripSeparator sepToolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem _3dToolStripMenuItem;
+        private ToolStripMenuItem importImageJROIToolStripMenuItem;
+        private ToolStripMenuItem exportImageJROIToolStripMenuItem;
+        private OpenFileDialog openImageJDialog;
+        private SaveFileDialog saveImageJDialog;
     }
 }

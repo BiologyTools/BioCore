@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class Recorder : Form
     {
@@ -49,8 +39,8 @@ namespace Bio
 
         private void textBox_TextChanged(object sender, EventArgs e)
         {
-           // update = true;
-           // log = textBox.Text;
+            // update = true;
+            // log = textBox.Text;
         }
 
         private void topMostBox_CheckedChanged(object sender, EventArgs e)

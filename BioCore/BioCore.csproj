@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	<Version>2.7.8.1</Version>
+	<Version>2.9.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -20,10 +20,18 @@
     <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
     <Title>BioCore</Title>
     <AnalysisLevel>6.0-recommended</AnalysisLevel>
-    <PackageId></PackageId>
+    <PackageId>BioCore</PackageId>
+    <Platforms>AnyCPU;x86</Platforms>
+    <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series. Add the latest IKVM &amp; Bioformat.NET packages to use this package.</Description>
+    <AssemblyVersion>2.9.0</AssemblyVersion>
+    <FileVersion>2.9.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Optimize>False</Optimize>
   </PropertyGroup>
 
@@ -41,7 +49,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="banner.jpg" />
     <None Remove="Source\avr5q1sl.vlz~" />
   </ItemGroup>
 
@@ -58,8 +65,12 @@
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="CS-Script" Version="4.4.6" />
     <PackageReference Include="H.InputSimulator" Version="1.3.0" />
-    <PackageReference Include="IKVM" Version="8.3.3" />
+    <PackageReference Include="IKVM" Version="8.4.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.4.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
@@ -86,6 +97,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="banner.jpg">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

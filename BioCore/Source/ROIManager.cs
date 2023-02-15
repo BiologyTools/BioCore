@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class ROIManager : Form
     {
@@ -36,7 +26,7 @@ namespace Bio
         }
         public void UpdateOverlay()
         {
-            if(App.viewer != null)
+            if (App.viewer != null)
                 App.viewer.UpdateOverlay();
         }
         public void updateROI(int index, ROI an)
@@ -64,7 +54,7 @@ namespace Bio
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            if(anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
+            if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
                 anno.W = (double)wBox.Value;
             UpdateOverlay();
         }
@@ -155,16 +145,16 @@ namespace Bio
                 imageNameLabel.Text = n;
             UpdateAnnotationList();
         }
-        
+
         private void roiView_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
             ListViewItem it = roiView.SelectedItems[0];
             anno = (ROI)it.Tag;
-            if(App.viewer!=null)
-            App.viewer.SetCoordinate(anno.coord.Z, anno.coord.C, anno.coord.T);
-            if(anno.type == ROI.Type.Line || anno.type == ROI.Type.Polygon ||
+            if (App.viewer != null)
+                App.viewer.SetCoordinate(anno.coord.Z, anno.coord.C, anno.coord.T);
+            if (anno.type == ROI.Type.Line || anno.type == ROI.Type.Polygon ||
                anno.type == ROI.Type.Polyline)
             {
                 xBox.Enabled = false;
@@ -179,7 +169,7 @@ namespace Bio
                 wBox.Enabled = true;
                 hBox.Enabled = true;
             }
-            if(anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
+            if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
             {
                 pointIndexBox.Enabled = false;
                 pointXBox.Enabled = false;
@@ -237,7 +227,7 @@ namespace Bio
                 return;
             if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
                 return;
-            anno.UpdatePoint(new PointD((double)pointXBox.Value, (double)pointYBox.Value),(int)pointIndexBox.Value);
+            anno.UpdatePoint(new PointD((double)pointXBox.Value, (double)pointYBox.Value), (int)pointIndexBox.Value);
             UpdateOverlay();
         }
         private void pointYBox_ValueChanged(object sender, EventArgs e)

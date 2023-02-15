@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using AForge;
+﻿using AForge;
 using Bio.Graphics;
 using SharpDX;
 
@@ -65,12 +56,12 @@ namespace Bio
             sys.Configuration.Title = "3D View";
             sys.Configuration.Width = dxPanel.Width;
             sys.Configuration.Height = dxPanel.Height;
-         
+
             rot = Matrix.RotationX(r.X) * Matrix.RotationY(r.Y) * Matrix.RotationZ(r.Z);
             world = rot;// * Matrix.Scaling(Scale.Width, Scale.Height, 1);
             sys.Graphics.D3D.WorldMatrix = world;
             sys.Graphics.Initialize(sys.Configuration, dxPanel.Handle, ImageView.SelectedImage);
-            sys.Graphics.Frame(RRange,GRange,BRange,(float)frameIntervalBox.Value,(float)transparencyBox.Value);
+            sys.Graphics.Frame(RRange, GRange, BRange, (float)frameIntervalBox.Value, (float)transparencyBox.Value);
         }
         public void UpdateView()
         {
@@ -80,7 +71,7 @@ namespace Bio
             world = rot * Matrix.Scaling(Scale.Width, Scale.Height, 1);
             sys.Graphics.D3D.WorldMatrix = world;
             sys.Graphics.Camera.SetPosition(Origin.X, Origin.Y, Origin.Z);
-            sys.Graphics.Frame(RRange, GRange, BRange,(float)frameIntervalBox.Value,(float)transparencyBox.Value);
+            sys.Graphics.Frame(RRange, GRange, BRange, (float)frameIntervalBox.Value, (float)transparencyBox.Value);
         }
 
         private void View3D_Resize(object sender, EventArgs e)
@@ -126,7 +117,7 @@ namespace Bio
         {
             dxPanel.Focus();
             float moveAmount = 0.1f;
-            if(e.KeyCode == Keys.Up)
+            if (e.KeyCode == Keys.Up)
             {
                 Origin.Y += moveAmount;
             }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace Bio
 {
@@ -175,7 +169,7 @@ namespace Bio
         private static double maxZ = 25000;
         private static double minZ = -25000;
         public static string File = "";
-        public static void SetLimits(double pminX,double pmaxX,double pminY,double pmaxY,double pminZ,double pmaxZ)
+        public static void SetLimits(double pminX, double pmaxX, double pminY, double pmaxY, double pminZ, double pmaxZ)
         {
             minX = pminX;
             minY = pminY;
@@ -309,14 +303,14 @@ namespace Bio
             return true;
         }
 
-        public Point3D(double xd, double yd,double zd)
+        public Point3D(double xd, double yd, double zd)
         {
             x = xd;
             y = yd;
             z = zd;
         }
 
-        public Point3D(double xd, double yd, double zd,string f)
+        public Point3D(double xd, double yd, double zd, string f)
         {
             x = xd;
             y = yd;
@@ -341,7 +335,7 @@ namespace Bio
                 return X.ToString() + ", " + Y.ToString() + ", " + Z.ToString() + ", " + File;
         }
 
-        public static double Distance(Point3D p0,Point3D p1)
+        public static double Distance(Point3D p0, Point3D p1)
         {
             double deltaX = p1.X - p0.X;
             double deltaY = p1.Y - p0.Y;

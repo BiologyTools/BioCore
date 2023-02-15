@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Globalization;
-using System.Drawing;
-using System.Diagnostics;
-using System.Threading;
-using System.Reflection;
-using System.IO;
+﻿using System.Reflection;
 
 namespace Bio
 {
@@ -103,7 +92,7 @@ namespace Bio
         }
         public void UpdateSWLimit()
         {
-            
+
         }
         public void SetSWLimit(double xmin, double xmax, double ymin, double ymax)
         {
@@ -130,7 +119,7 @@ namespace Bio
         }
         public double GetFocus()
         {
-        return z;
+            return z;
         }
         public PointD GetSWLimit()
         {
@@ -309,7 +298,7 @@ namespace Bio
         public static Point3D GetPosition()
         {
             if (Stage == null)
-                return new Point3D(0,0,0);
+                return new Point3D(0, 0, 0);
             PointD p = Stage.GetPosition();
             double f = Focus.GetFocus();
             return new Point3D(p.X, p.Y, f);
@@ -317,7 +306,7 @@ namespace Bio
 
         public static void SetPosition(Point3D p)
         {
-            Stage.SetPosition(p.X,p.Y);
+            Stage.SetPosition(p.X, p.Y);
             Focus.SetFocus(p.Z);
             Microscope.redraw = true;
         }

@@ -1,7 +1,4 @@
 ﻿using AForge;
-using System;
-using System.Drawing;
-using System.Windows.Forms;
 
 namespace Bio.Graphics
 {
@@ -39,7 +36,7 @@ namespace Bio.Graphics
             if (Input.IsKeyDown(Keys.Escape))
                 return false;
             // Do the frame processing for the graphics object.
-            return Graphics.Frame(r,g,b,interval,alpha);
+            return Graphics.Frame(r, g, b, interval, alpha);
         }
         public void ShutDown()
         {

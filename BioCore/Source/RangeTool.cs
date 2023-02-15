@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class RangeTool : Form
     {
-        public RangeTool(bool timeEnabled,bool cEnabled,int zmin,int zmax,int timeMin, int timeMax,int cmin,int cmax)
+        public RangeTool(bool timeEnabled, bool cEnabled, int zmin, int zmax, int timeMin, int timeMax, int cmin, int cmax)
         {
             InitializeComponent();
             zMinBox.Value = zmin;
@@ -23,7 +13,7 @@ namespace Bio
                 timeMaxBox.Enabled = false;
                 return;
             }
-            if(!cEnabled)
+            if (!cEnabled)
             {
                 cMinBox.Enabled = false;
                 cMaxBox.Enabled = false;

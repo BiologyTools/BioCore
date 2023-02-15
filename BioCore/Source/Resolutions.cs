@@ -1,26 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using loci.common.services;
-using loci.formats;
-using loci.formats.services;
-using ome.xml.model.primitives;
-using loci.formats.meta;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class Resolutions : Form
     {
         private int res;
         public int Resolution
         {
-            get{return res;}
+            get { return res; }
         }
 
         public Resolutions(List<Resolution> res)

@@ -7,20 +7,40 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCore", "BioCore\BioCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCoreApp", "..\BioCoreApp\BioCoreApp\BioCoreApp.csproj", "{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BioCoreSetup", "..\BioCoreSetup\BioCoreSetup\BioCoreSetup.vdproj", "{ED77FDEF-D7A5-459C-9215-895EAD346E3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Debug|x86.ActiveCfg = Debug|x86
+		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Debug|x86.Build.0 = Debug|x86
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|x86.ActiveCfg = Release|x86
+		{9A5177C9-401B-44C3-8F2E-D4327A25DDCC}.Release|x86.Build.0 = Release|x86
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Debug|x86.ActiveCfg = Debug|x86
+		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Debug|x86.Build.0 = Debug|x86
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|x86.ActiveCfg = Release|x86
+		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|x86.Build.0 = Release|x86
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|Any CPU.ActiveCfg = Debug
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|Any CPU.Build.0 = Debug
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|x86.ActiveCfg = Debug
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|x86.Build.0 = Debug
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|Any CPU.ActiveCfg = Release
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|Any CPU.Build.0 = Release
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x86.ActiveCfg = Release
+		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x86.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

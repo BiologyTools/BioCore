@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class StackTools : Form
     {
@@ -23,7 +13,7 @@ namespace Bio
             if (stackABox.Items.Count == Images.images.Count)
                 return;
             stackABox.Items.Clear();
-            stackBBox.Items.Clear();    
+            stackBBox.Items.Clear();
             foreach (BioImage b in Images.images)
             {
                 stackABox.Items.Add(b);
@@ -110,8 +100,8 @@ namespace Bio
 
         private void setMaxToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(ImageA!=null)
-            zEndBox.Value = ImageA.SizeZ;
+            if (ImageA != null)
+                zEndBox.Value = ImageA.SizeZ;
         }
 
         private void setMaxCToolStripMenuItem_Click(object sender, EventArgs e)

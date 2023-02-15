@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
-
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class NodeView : Form
     {
@@ -36,7 +24,7 @@ namespace Bio
                 get { return obj; }
                 set { obj = value; }
             }
-            public Node(object data,DataType typ)
+            public Node(object data, DataType typ)
             {
                 type = typ;
                 obj = data;
@@ -98,7 +86,7 @@ namespace Bio
                 {
                     Node plane = new Node(buf, Node.DataType.buf);
                     plane.Text = buf.ID + ", " + buf.Coordinate.ToString();
-                   
+
                     implanes.node.Nodes.Add(plane.node);
                 }
                 tree.node.Nodes.Add(implanes.node);
@@ -133,7 +121,7 @@ namespace Bio
                 BioImage im = (BioImage)node.Object;
 
                 TreeNode rois = node.node.Nodes[1];
-                if(im.Annotations.Count != rois.Nodes.Count)
+                if (im.Annotations.Count != rois.Nodes.Count)
                 {
                     //If ROI count is not same as node count we refresh annotations.
                     rois.Nodes.Clear();
@@ -144,13 +132,13 @@ namespace Bio
                     }
                 }
                 else
-                for (int i = 0; i < im.Annotations.Count; i++)
-                {
-                    TreeNode roi = rois.Nodes[i];
-                    Node n = (Node)roi.Tag;  
-                    ROI an = (ROI)n.Object;
-                    roi.Text = an.ToString();
-                }
+                    for (int i = 0; i < im.Annotations.Count; i++)
+                    {
+                        TreeNode roi = rois.Nodes[i];
+                        Node n = (Node)roi.Tag;
+                        ROI an = (ROI)n.Object;
+                        roi.Text = an.ToString();
+                    }
             }
         }
 
@@ -204,7 +192,7 @@ namespace Bio
             Node node = (Node)treeView.SelectedNode.Tag;
             if (node == null)
                 return;
-            if(node.Type == Node.DataType.roi)
+            if (node.Type == Node.DataType.roi)
             {
                 ROI an = (ROI)node.Object;
                 Node nod = (Node)treeView.SelectedNode.Parent.Tag;

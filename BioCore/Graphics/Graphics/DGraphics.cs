@@ -1,6 +1,4 @@
 ﻿using AForge;
-using System;
-using System.Windows.Forms;
 
 namespace Bio.Graphics
 {
@@ -23,7 +21,7 @@ namespace Bio.Graphics
             {
                 // Create the Direct3D object.
                 D3D = new DDX11();
-                
+
                 // I nitialize the Direct3D object.
                 if (!D3D.Initialize(configuration, windowHandle))
                     return false;
@@ -82,7 +80,7 @@ namespace Bio.Graphics
         public bool Frame(IntRange r, IntRange g, IntRange b, float interval, float alpha)
         {
             // Render the graphics scene.
-            return Render(r,g,b,interval,alpha);
+            return Render(r, g, b, interval, alpha);
         }
         private bool Render(IntRange r, IntRange g, IntRange b, float interval, float alpha)
         {

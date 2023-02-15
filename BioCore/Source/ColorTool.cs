@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class ColorTool : Form
     {
@@ -46,7 +36,7 @@ namespace Bio
         {
             InitializeComponent();
             this.bitsPerPixel = bitPerPixel;
-            if(bitsPerPixel == 8)
+            if (bitsPerPixel == 8)
             {
                 rBar.Maximum = 255;
                 gBar.Maximum = 255;

@@ -2,9 +2,7 @@
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
-using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
 namespace Bio.Graphics
 {
@@ -43,7 +41,7 @@ namespace Bio.Graphics
         public bool Initialize(Device device, IntPtr windowsHandle, int bitsPerPixel)
         {
             // Initialize the vertex and pixel shaders.
-            return InitializeShader(device, windowsHandle,"Color-vs.hlsl", "Color-ps.hlsl", "Color-gs.hlsl", bitsPerPixel);
+            return InitializeShader(device, windowsHandle, "Color-vs.hlsl", "Color-ps.hlsl", "Color-gs.hlsl", bitsPerPixel);
         }
         private bool InitializeShader(Device device, IntPtr windowsHandle, string vsFileName, string psFileName, string geoFileName, int bitsPerPixel)
         {
@@ -68,7 +66,7 @@ namespace Bio.Graphics
 
             // Now setup the layout of the data that goes into the shader.
             // This setup needs to match the VertexType structure in the Model and in the shader.
-            InputElement[] inputElements = new InputElement[] 
+            InputElement[] inputElements = new InputElement[]
             {
                 new InputElement()
                 {
@@ -80,7 +78,7 @@ namespace Bio.Graphics
                     Classification = InputClassification.PerVertexData,
                     InstanceDataStepRate = 0
                 },
-                new InputElement() 
+                new InputElement()
                 {
                     SemanticName = "COLOR",
                     SemanticIndex = 0,
@@ -101,7 +99,7 @@ namespace Bio.Graphics
             geoShaderByteCode.Dispose();
 
             // Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-            BufferDescription matrixBufDesc = new BufferDescription() 
+            BufferDescription matrixBufDesc = new BufferDescription()
             {
                 Usage = ResourceUsage.Dynamic,
                 SizeInBytes = Utilities.SizeOf<DMatrixBuffer>(),
@@ -138,7 +136,7 @@ namespace Bio.Graphics
         public bool Render(DeviceContext deviceContext, int indexCount, Matrix worldMatrix, Matrix viewMatrix, Matrix projectionMatrix, IntRange r, IntRange g, IntRange b, float interval, float alpha)
         {
             // Set the shader parameters that it will use for rendering.
-            if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, r, g, b,interval, alpha))
+            if (!SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, r, g, b, interval, alpha))
                 return false;
 
             // Now render the prepared buffers with the shader.
@@ -154,17 +152,17 @@ namespace Bio.Graphics
                 worldMatrix.Transpose();
                 viewMatrix.Transpose();
                 projectionMatrix.Transpose();
-                
+
                 // Lock the constant buffer so it can be written to.
                 DataStream mappedResource;
                 deviceContext.MapSubresource(ConstantMatrixBuffer, MapMode.WriteDiscard, MapFlags.None, out mappedResource);
 
                 float f;
-                if(BitsPerPixel > 8)
+                if (BitsPerPixel > 8)
                     f = ushort.MaxValue;
                 else
                     f = byte.MaxValue;
-                
+
                 // Copy the matrices into the constant buffer.
                 DMatrixBuffer matrixBuffer = new DMatrixBuffer()
                 {

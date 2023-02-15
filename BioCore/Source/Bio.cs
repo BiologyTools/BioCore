@@ -3,30 +3,20 @@ using AForge.Imaging.Filters;
 using BitMiracle.LibTiff.Classic;
 using loci.common.services;
 using loci.formats;
-using loci.formats.services;
-using ome.xml.model.primitives;
 using loci.formats.meta;
-using java;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using loci.formats.services;
 using Newtonsoft.Json;
+using ome.xml.model.primitives;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
-using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Windows.Forms;
-using System.Runtime.Serialization;
-using System.Text;
 
 namespace Bio
 {
     public static class Images
     {
-        public static List<BioImage> images = new List<BioImage>();
+        internal static List<BioImage> images = new List<BioImage>();
         public static BioImage GetImage(string ids)
         {
             for (int i = 0; i < images.Count; i++)
@@ -103,7 +93,9 @@ namespace Bio
     }
     public struct ZCT
     {
-        public int Z, C, T;
+        public int Z { get; set; }
+        public int C { get; set; }
+        public int T { get; set; }
         public ZCT(int z, int c, int t)
         {
             Z = z;
@@ -131,7 +123,11 @@ namespace Bio
     }
     public struct ZCTXY
     {
-        public int Z, C, T, X, Y;
+        public int Z { get; set; }
+        public int C { get; set; }
+        public int T { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
         public ZCTXY(int z, int c, int t, int x, int y)
         {
             Z = z;
@@ -229,7 +225,7 @@ namespace Bio
     }
     public struct ColorS : IDisposable
     {
-        public byte[] bytes;
+        internal byte[] bytes;
         public ColorS(ushort s)
         {
             bytes = new byte[6];
@@ -304,6 +300,7 @@ namespace Bio
                 bytes[5] = bt[1];
             }
         }
+        public byte[] Bytes { get { return bytes; } }
         public static ColorS FromColor(System.Drawing.Color col)
         {
             float r = (((float)col.R) / 255) * ushort.MaxValue;
@@ -644,12 +641,18 @@ namespace Bio
         public string roiName = "";
         public int serie = 0;
         private string text = "";
-
+        public string properties;
         public double strokeWidth = 1;
         public int shapeIndex = 0;
         public bool closed = false;
         public bool selected = false;
-
+        public PointD[] PointsImage
+        {
+            get
+            {
+                return ImageView.SelectedImage.ToImageSpace(PointsD);
+            }
+        }
         public ROI Copy()
         {
             ROI copy = new ROI();
@@ -835,6 +838,28 @@ namespace Bio
         public void AddPoints(PointD[] p)
         {
             Points.AddRange(p);
+            UpdateBoundingBox();
+        }
+        /// > Adds a range of float points to the Points collection and updates the bounding box
+        /// 
+        /// @param p The points to add to the polygon
+        public void AddPoints(float[] xp, float[] yp)
+        {
+            for (int i = 0; i < xp.Length; i++)
+            {
+                Points.Add(new PointD(xp[i], yp[i]));
+            }
+            UpdateBoundingBox();
+        }
+        /// > Adds a range of float points to the Points collection and updates the bounding box
+        /// 
+        /// @param p The points to add to the polygon
+        public void AddPoints(int[] xp, int[] yp)
+        {
+            for (int i = 0; i < xp.Length; i++)
+            {
+                Points.Add(new PointD(xp[i], yp[i]));
+            }
             UpdateBoundingBox();
         }
         public void RemovePoints(int[] indexs)
@@ -4276,7 +4301,7 @@ namespace Bio
     }
     public class ImageInfo
     {
-        bool HasPhysicalXY = false;
+        bool HasPhysicalXY;
         bool HasPhysicalXYZ = false;
         private double physicalSizeX = -1;
         private double physicalSizeY = -1;

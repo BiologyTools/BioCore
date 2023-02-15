@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class Filter : Form
     {
@@ -55,7 +45,7 @@ namespace Bio
 
         private void ApplyFilter(bool inPlace)
         {
-            if (filterView.SelectedNode==null)
+            if (filterView.SelectedNode == null)
                 return;
             Node n = (Node)filterView.SelectedNode.Tag;
             if (n == null)
@@ -63,7 +53,7 @@ namespace Bio
             if (n.filt.type == Filt.Type.Base)
             {
                 Filters.Base(ImageView.SelectedImage.ID, n.filt.name, false);
-                
+
             }
             if (n.filt.type == Filt.Type.Base2)
             {
@@ -71,7 +61,7 @@ namespace Bio
                 if (two.ShowDialog() != DialogResult.OK)
                     return;
                 Filters.Base2(two.ImageA.ID, two.ImageB.ID, n.filt.name, false);
-                
+
             }
             else
             if (n.filt.type == Filt.Type.InPlace)
@@ -85,13 +75,13 @@ namespace Bio
                 if (two.ShowDialog() != DialogResult.OK)
                     return;
                 Filters.InPlace2(two.ImageA.ID, two.ImageB.ID, n.filt.name, false);
-                
+
             }
             else
             if (n.filt.type == Filt.Type.InPlacePartial)
             {
                 Filters.InPlacePartial(ImageView.SelectedImage.ID, n.filt.name, false);
-                
+
             }
             else
             if (n.filt.type == Filt.Type.Resize)
@@ -99,7 +89,7 @@ namespace Bio
                 ApplyFilter two = new ApplyFilter(false);
                 if (two.ShowDialog() != DialogResult.OK)
                     return;
-                Filters.Resize(ImageView.SelectedImage.ID, n.filt.name, false, two.W,two.H);
+                Filters.Resize(ImageView.SelectedImage.ID, n.filt.name, false, two.W, two.H);
             }
             else
             if (n.filt.type == Filt.Type.Rotate)

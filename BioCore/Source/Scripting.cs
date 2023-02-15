@@ -1,18 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.IO;
-using System.Threading;
-using CSScripting;
-using csscript;
-using CSScriptLib;
+﻿using CSScriptLib;
 
 namespace Bio
 {
@@ -72,7 +58,7 @@ namespace Bio
                     try
                     {
                         rn.done = false;
-                        ImageJ.RunString(rn.scriptString,"", false);
+                        ImageJ.RunString(rn.scriptString, "", false);
                         rn.done = true;
                     }
                     catch (Exception e)
@@ -139,8 +125,8 @@ namespace Bio
             }
             public void Stop()
             {
-                if(thread!=null)
-                thread.Abort();
+                if (thread != null)
+                    thread.Abort();
             }
             public override string ToString()
             {
@@ -155,7 +141,7 @@ namespace Bio
         public class State
         {
             public Event type;
-            public static State GetUp(PointD pf,MouseButtons mb)
+            public static State GetUp(PointD pf, MouseButtons mb)
             {
                 State st = new State();
                 st.type = Event.Up;
@@ -226,7 +212,7 @@ namespace Bio
                 state.processed = true;
             }
             else
-            state = s;
+                state = s;
         }
         public void RefreshItems()
         {
@@ -282,7 +268,7 @@ namespace Bio
                         er.Tag = s.ex;
                         errorView.Items.Add(er);
                     }
-                    
+
                 }
             }
             foreach (ListViewItem item in scriptView.SelectedItems)
@@ -322,7 +308,7 @@ namespace Bio
         public void RunScriptFile(string file)
         {
             Script sc = new Script(file);
-            Scripts.Add(sc.name,sc);
+            Scripts.Add(sc.name, sc);
             RefreshItems();
             RunByName(sc.name);
         }
@@ -342,7 +328,7 @@ namespace Bio
             outputBox.Text = "";
             logBox.Text = "";
             if (scriptView.SelectedItems.Count == 0)
-                    return;
+                return;
             foreach (ListViewItem item in scriptView.SelectedItems)
             {
                 //We run this script
@@ -463,7 +449,7 @@ namespace Bio
 
         private void Scripting_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.S && e.Modifiers == Keys.Control)
+            if (e.KeyCode == Keys.S && e.Modifiers == Keys.Control)
             {
                 saveButton.PerformClick();
             }
@@ -479,7 +465,7 @@ namespace Bio
         {
             Exception ex = (Exception)errorView.SelectedItems[0].Tag;
             string exs = ex.Message.Substring(ex.Message.IndexOf('('), ex.Message.IndexOf(')'));
-            string ls = exs.Substring(1, exs.IndexOf(',')-1);
+            string ls = exs.Substring(1, exs.IndexOf(',') - 1);
             int line = int.Parse(ls);
             string c = exs.Substring(exs.IndexOf(',') + 1, exs.IndexOf(")") - exs.IndexOf(',') - 1);
             int cr = int.Parse(c);

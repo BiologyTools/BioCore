@@ -1,17 +1,5 @@
-﻿using Bio.Properties;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using Newtonsoft.Json;
 using WindowsInput;
-using System.IO;
-using Newtonsoft.Json;
 
 namespace Bio
 {
@@ -125,7 +113,7 @@ namespace Bio
         {
             func.Name = nameBox.Text;
             this.DialogResult = DialogResult.OK;
-            if(!Function.Functions.ContainsKey(func.Name))
+            if (!Function.Functions.ContainsKey(func.Name))
             {
                 Function.Functions.Add(func.Name, func);
             }
@@ -152,12 +140,12 @@ namespace Bio
             func.Save();
             Init();
         }
-       
+
         private void setMacroFileBut_Click(object sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() != DialogResult.OK)
                 return;
-            Func.File = openFileDialog.FileName;    
+            Func.File = openFileDialog.FileName;
             Func.FuncType = Function.FunctionType.ImageJ;
         }
         private void setScriptFileBut_Click(object sender, EventArgs e)
@@ -191,8 +179,8 @@ namespace Bio
 
         private void bioRadioBut_CheckedChanged(object sender, EventArgs e)
         {
-            if(bioRadioBut.Checked)
-            func.FuncType = Function.FunctionType.Script;
+            if (bioRadioBut.Checked)
+                func.FuncType = Function.FunctionType.Script;
         }
 
         private void imageJRadioBut_CheckedChanged(object sender, EventArgs e)
@@ -320,8 +308,8 @@ namespace Bio
         public string Script
         {
             get { return script; }
-            set 
-            { 
+            set
+            {
                 script = value;
             }
         }
@@ -355,11 +343,11 @@ namespace Bio
         {
             get
             {
-                return menuPath;
+                return contextPath;
             }
             set
             {
-                menuPath = value;
+                contextPath = value;
             }
         }
 
@@ -406,13 +394,13 @@ namespace Bio
         public static InputSimulator input = new InputSimulator();
         public object PerformFunction(bool imagej)
         {
-            if(FuncType == FunctionType.Key && Script!="")
-            if(imagej)
-            {
-                FuncType = FunctionType.ImageJ;
-            }
-            else
-                FuncType = FunctionType.Script;
+            if (FuncType == FunctionType.Key && Script != "")
+                if (imagej)
+                {
+                    FuncType = FunctionType.ImageJ;
+                }
+                else
+                    FuncType = FunctionType.Script;
             if (FuncType == Function.FunctionType.Script)
             {
                 Scripting.RunString(script);
@@ -421,7 +409,7 @@ namespace Bio
             {
                 ImageJ.RunOnImage(script, false, BioConsole.onTab, BioConsole.useBioformats);
             }
-            
+
             if (FuncType == Function.FunctionType.Key)
             {
                 if (Modifier != VirtualKeyCode.NONAME)
@@ -455,14 +443,14 @@ namespace Bio
         public void Save()
         {
             string st = Application.StartupPath;
-            
-            if(!Directory.Exists(st + "/Functions"))
+
+            if (!Directory.Exists(st + "/Functions"))
             {
                 Directory.CreateDirectory(st + "/Functions");
             }
             foreach (Function f in Functions.Values)
             {
-                System.IO.File.WriteAllText(st + "/Functions/" + f.Name + ".func",f.Serialize());
+                System.IO.File.WriteAllText(st + "/Functions/" + f.Name + ".func", f.Serialize());
             }
         }
     }

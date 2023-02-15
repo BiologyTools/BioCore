@@ -1,11 +1,10 @@
 ﻿using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-using System;
 
 namespace Bio.Graphics
 {
-    public class DModel                 
+    public class DModel
     {
         // Properties
         private SharpDX.Direct3D11.Buffer VertexBuffer { get; set; }
@@ -43,18 +42,18 @@ namespace Bio.Graphics
             ColorS col;
             for (int z = 0; z < im.SizeZ; z++)
             {
-                for (int y = im.SizeY-1; y >= 0; y--)
+                for (int y = im.SizeY - 1; y >= 0; y--)
                 {
-                    for (int x = im.SizeX-1; x >= 0; x--)
+                    for (int x = im.SizeX - 1; x >= 0; x--)
                     {
-                        col = im.Buffers[im.Coords[z,0,0]].GetPixel(x, y);
-                        int ind = (im.SizeX * y + x)*(z+1);
+                        col = im.Buffers[im.Coords[z, 0, 0]].GetPixel(x, y);
+                        int ind = (im.SizeX * y + x) * (z + 1);
                         Vector4 vec = col.ToVector();
                         float f = (float)ushort.MaxValue;
                         vec.W = 0.5f;
                         vertices[ind] = new DColorShader.DVertex()
                         {
-                            position = new Vector3((float)x / (float)im.SizeX, (float)y / (float)im.SizeY, (z / (float)im.SizeZ)*(float)im.physicalSizeZ),
+                            position = new Vector3((float)x / (float)im.SizeX, (float)y / (float)im.SizeY, (z / (float)im.SizeZ) * (float)im.physicalSizeZ),
                             color = vec
                         };
                     }

@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml;
+﻿using System.Xml;
 
 namespace Bio
 {
@@ -20,7 +11,7 @@ namespace Bio
             tree = new XmlTreeDisplay(xml);
             tree.Dock = DockStyle.Fill;
             this.Controls.Add(tree);
-            
+
         }
     }
     public class XmlTreeDisplay : System.Windows.Forms.UserControl

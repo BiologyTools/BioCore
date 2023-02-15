@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class Series : Form
     {
@@ -20,7 +10,7 @@ namespace Bio
 
         public void UpdateItems()
         {
-           imagesBox.Items.Clear();
+            imagesBox.Items.Clear();
             foreach (BioImage item in Images.images)
             {
                 imagesBox.Items.Add(item);
@@ -64,7 +54,7 @@ namespace Bio
                 item.series = i;
                 i++;
             }
-            BioImage.SaveOMESeries(sts.ToArray() , saveFileDialog.FileName, Properties.Settings.Default.Planes);
+            BioImage.SaveOMESeries(sts.ToArray(), saveFileDialog.FileName, Properties.Settings.Default.Planes);
         }
 
         private void addAllBut_Click(object sender, EventArgs e)

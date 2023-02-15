@@ -50,12 +50,13 @@ namespace Bio
             // 
             this.textBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(49)))), ((int)(((byte)(91)))), ((int)(((byte)(138)))));
             this.textBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.textBox.ForeColor = System.Drawing.Color.White;
             this.textBox.Location = new System.Drawing.Point(0, 0);
+            this.textBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.textBox.Multiline = true;
             this.textBox.Name = "textBox";
-            this.textBox.Size = new System.Drawing.Size(429, 69);
+            this.textBox.Size = new System.Drawing.Size(500, 80);
             this.textBox.TabIndex = 18;
             // 
             // runBut
@@ -63,9 +64,10 @@ namespace Bio
             this.runBut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.runBut.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(49)))), ((int)(((byte)(91)))), ((int)(((byte)(138)))));
             this.runBut.ForeColor = System.Drawing.Color.White;
-            this.runBut.Location = new System.Drawing.Point(378, 258);
+            this.runBut.Location = new System.Drawing.Point(441, 298);
+            this.runBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.runBut.Name = "runBut";
-            this.runBut.Size = new System.Drawing.Size(56, 23);
+            this.runBut.Size = new System.Drawing.Size(65, 27);
             this.runBut.TabIndex = 21;
             this.runBut.Text = "Run";
             this.runBut.UseVisualStyleBackColor = false;
@@ -75,12 +77,13 @@ namespace Bio
             // 
             this.consoleBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(49)))), ((int)(((byte)(91)))), ((int)(((byte)(138)))));
             this.consoleBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.consoleBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.consoleBox.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.consoleBox.ForeColor = System.Drawing.Color.White;
             this.consoleBox.Location = new System.Drawing.Point(0, 0);
+            this.consoleBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.consoleBox.Multiline = true;
             this.consoleBox.Name = "consoleBox";
-            this.consoleBox.Size = new System.Drawing.Size(429, 159);
+            this.consoleBox.Size = new System.Drawing.Size(500, 183);
             this.consoleBox.TabIndex = 22;
             // 
             // splitContainer
@@ -88,7 +91,8 @@ namespace Bio
             this.splitContainer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.splitContainer.Location = new System.Drawing.Point(6, 3);
+            this.splitContainer.Location = new System.Drawing.Point(7, 3);
+            this.splitContainer.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.splitContainer.Name = "splitContainer";
             this.splitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -99,8 +103,9 @@ namespace Bio
             // splitContainer.Panel2
             // 
             this.splitContainer.Panel2.Controls.Add(this.textBox);
-            this.splitContainer.Size = new System.Drawing.Size(429, 232);
-            this.splitContainer.SplitterDistance = 159;
+            this.splitContainer.Size = new System.Drawing.Size(500, 268);
+            this.splitContainer.SplitterDistance = 183;
+            this.splitContainer.SplitterWidth = 5;
             this.splitContainer.TabIndex = 23;
             // 
             // imagejBut
@@ -108,9 +113,10 @@ namespace Bio
             this.imagejBut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.imagejBut.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(49)))), ((int)(((byte)(91)))), ((int)(((byte)(138)))));
             this.imagejBut.ForeColor = System.Drawing.Color.White;
-            this.imagejBut.Location = new System.Drawing.Point(299, 258);
+            this.imagejBut.Location = new System.Drawing.Point(349, 298);
+            this.imagejBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.imagejBut.Name = "imagejBut";
-            this.imagejBut.Size = new System.Drawing.Size(73, 23);
+            this.imagejBut.Size = new System.Drawing.Size(85, 27);
             this.imagejBut.TabIndex = 24;
             this.imagejBut.Text = "Run ImageJ";
             this.imagejBut.UseVisualStyleBackColor = false;
@@ -120,20 +126,23 @@ namespace Bio
             // 
             this.headlessBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.headlessBox.AutoSize = true;
-            this.headlessBox.Location = new System.Drawing.Point(88, 262);
+            this.headlessBox.Location = new System.Drawing.Point(112, 303);
+            this.headlessBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.headlessBox.Name = "headlessBox";
-            this.headlessBox.Size = new System.Drawing.Size(70, 17);
+            this.headlessBox.Size = new System.Drawing.Size(73, 19);
             this.headlessBox.TabIndex = 25;
             this.headlessBox.Text = "Headless";
             this.headlessBox.UseVisualStyleBackColor = true;
+            this.headlessBox.CheckedChanged += new System.EventHandler(this.headlessBox_CheckedChanged);
             // 
             // topMostBox
             // 
             this.topMostBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.topMostBox.AutoSize = true;
-            this.topMostBox.Location = new System.Drawing.Point(11, 261);
+            this.topMostBox.Location = new System.Drawing.Point(13, 302);
+            this.topMostBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.topMostBox.Name = "topMostBox";
-            this.topMostBox.Size = new System.Drawing.Size(71, 17);
+            this.topMostBox.Size = new System.Drawing.Size(75, 19);
             this.topMostBox.TabIndex = 26;
             this.topMostBox.Text = "Top Most";
             this.topMostBox.UseVisualStyleBackColor = true;
@@ -143,9 +152,10 @@ namespace Bio
             // 
             this.selRadioBut.AutoSize = true;
             this.selRadioBut.Checked = true;
-            this.selRadioBut.Location = new System.Drawing.Point(164, 261);
+            this.selRadioBut.Location = new System.Drawing.Point(191, 301);
+            this.selRadioBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.selRadioBut.Name = "selRadioBut";
-            this.selRadioBut.Size = new System.Drawing.Size(67, 17);
+            this.selRadioBut.Size = new System.Drawing.Size(69, 19);
             this.selRadioBut.TabIndex = 27;
             this.selRadioBut.TabStop = true;
             this.selRadioBut.Text = "Selected";
@@ -154,9 +164,10 @@ namespace Bio
             // tabRadioBut
             // 
             this.tabRadioBut.AutoSize = true;
-            this.tabRadioBut.Location = new System.Drawing.Point(241, 261);
+            this.tabRadioBut.Location = new System.Drawing.Point(281, 301);
+            this.tabRadioBut.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.tabRadioBut.Name = "tabRadioBut";
-            this.tabRadioBut.Size = new System.Drawing.Size(44, 17);
+            this.tabRadioBut.Size = new System.Drawing.Size(43, 19);
             this.tabRadioBut.TabIndex = 28;
             this.tabRadioBut.Text = "Tab";
             this.tabRadioBut.UseVisualStyleBackColor = true;
@@ -168,9 +179,10 @@ namespace Bio
             this.biofBox.AutoSize = true;
             this.biofBox.Checked = true;
             this.biofBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.biofBox.Location = new System.Drawing.Point(88, 241);
+            this.biofBox.Location = new System.Drawing.Point(103, 279);
+            this.biofBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.biofBox.Name = "biofBox";
-            this.biofBox.Size = new System.Drawing.Size(97, 17);
+            this.biofBox.Size = new System.Drawing.Size(106, 19);
             this.biofBox.TabIndex = 29;
             this.biofBox.Text = "Use Bioformats";
             this.biofBox.UseVisualStyleBackColor = true;
@@ -178,10 +190,10 @@ namespace Bio
             // 
             // BioConsole
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(95)))), ((int)(((byte)(122)))), ((int)(((byte)(156)))));
-            this.ClientSize = new System.Drawing.Size(439, 283);
+            this.ClientSize = new System.Drawing.Size(512, 327);
             this.Controls.Add(this.biofBox);
             this.Controls.Add(this.tabRadioBut);
             this.Controls.Add(this.selRadioBut);
@@ -192,6 +204,7 @@ namespace Bio
             this.Controls.Add(this.runBut);
             this.ForeColor = System.Drawing.Color.White;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.Name = "BioConsole";
             this.Text = "Bio & ImageJ Console";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.BioConsole_FormClosing);

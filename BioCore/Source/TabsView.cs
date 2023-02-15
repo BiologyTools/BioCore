@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Drawing;
-using System.IO;
-using System.Threading;
+﻿using System.Diagnostics;
 
 namespace Bio
 {
@@ -62,7 +56,7 @@ namespace Bio
             if (arg.Length == 0)
                 return;
             else
-            {             
+            {
                 for (int i = 0; i < arg.Length; i++)
                 {
                     if (arg[i].EndsWith(".cs"))
@@ -70,7 +64,7 @@ namespace Bio
                         App.runner.RunScriptFile(arg[0]);
                         return;
                     }
-                    if(arg[i].EndsWith(".ijm"))
+                    if (arg[i].EndsWith(".ijm"))
                     {
                         ImageJ.RunMacro(arg[i], "");
                         return;
@@ -92,7 +86,7 @@ namespace Bio
             ImageView v = new ImageView(b);
             v.Dock = DockStyle.Fill;
             t.Controls.Add(v);
-            if(Width < b.SizeX || Height < b.SizeY)
+            if (Width < b.SizeX || Height < b.SizeY)
             {
                 Width = b.SizeX;
                 Height = b.SizeY + 190;
@@ -114,7 +108,7 @@ namespace Bio
             if (Image == null)
                 return;
             System.Drawing.Size s;
-            if(SelectedImage.isPyramidal)
+            if (SelectedImage.isPyramidal)
                 s = new System.Drawing.Size(ImageView.SelectedImage.Resolutions[ImageView.Resolution].SizeX + 42, ImageView.SelectedImage.Resolutions[ImageView.Resolution].SizeY + 206);
             else
                 s = new System.Drawing.Size(ImageView.SelectedImage.SizeX + 20, ImageView.SelectedImage.SizeY + 180);
@@ -132,13 +126,13 @@ namespace Bio
 
         public BioImage Image
         {
-            get 
+            get
             {
                 if (Viewer == null)
                     return null;
                 if (ImageView.SelectedImage == null)
                     return null;
-                return ImageView.SelectedImage; 
+                return ImageView.SelectedImage;
             }
         }
 
@@ -191,7 +185,7 @@ namespace Bio
             string s = "";
             for (int i = 0; i < App.recent.Count; i++)
             {
-                 s += "$"+App.recent[i];
+                s += "$" + App.recent[i];
             }
             Properties.Settings.Default["Recent"] = s;
             Properties.Settings.Default.Save();
@@ -204,7 +198,7 @@ namespace Bio
             string[] sts = s.Split('$');
             foreach (string item in sts)
             {
-                if(item!="")
+                if (item != "")
                     App.recent.Add(item);
             }
         }
@@ -231,7 +225,7 @@ namespace Bio
 
         private void ImageViewer_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            if(e.KeyCode == Keys.S && e.Control)
+            if (e.KeyCode == Keys.S && e.Control)
             {
                 saveToolStripMenuItem.PerformClick();
             }
@@ -343,7 +337,7 @@ namespace Bio
                 rGBToolStripMenuItem.Checked = true;
             if (v == ImageView.ViewMode.Filtered)
                 filteredToolStripMenuItem.Checked = true;
-            if(v == ImageView.ViewMode.Raw)
+            if (v == ImageView.ViewMode.Raw)
                 rawToolStripMenuItem.Checked = true;
         }
 
@@ -373,7 +367,7 @@ namespace Bio
                 return;
             foreach (string file in saveOMEFileDialog.FileNames)
             {
-                BioImage.SaveOME(file,Image.ID);
+                BioImage.SaveOME(file, Image.ID);
             }
         }
 
@@ -718,7 +712,7 @@ namespace Bio
                     AddTab(BioImage.OpenOME(openFilesDialog.FileNames[0]));
                 }
                 else
-                App.viewer.AddImage(BioImage.OpenOME(openFilesDialog.FileNames[i]));
+                    App.viewer.AddImage(BioImage.OpenOME(openFilesDialog.FileNames[i]));
             }
             App.viewer.GoToImage();
         }
@@ -754,11 +748,11 @@ namespace Bio
             if (convert)
             {
                 string mes;
-                if(ImageView.SelectedImage.bitsPerPixel > 8)
+                if (ImageView.SelectedImage.bitsPerPixel > 8)
                     mes = "Saving Series as OME only supports 8 bit & 16 bit images. Convert 16 bit?";
                 else
                     mes = "Saving Series as OME only supports 8 bit & 16 bit images. Convert 8 bit?";
-                if (MessageBox.Show(this, mes,"Convert to supported format?", MessageBoxButtons.OKCancel) == DialogResult.OK)
+                if (MessageBox.Show(this, mes, "Convert to supported format?", MessageBoxButtons.OKCancel) == DialogResult.OK)
                 {
                     foreach (BioImage b in ImageView.Images)
                     {
@@ -771,7 +765,7 @@ namespace Bio
                 else
                     return;
             }
-            
+
             string[] sts = new string[App.viewer.Images.Count];
             for (int i = 0; i < sts.Length; i++)
             {
@@ -807,7 +801,7 @@ namespace Bio
                         AddTab(bms[i]);
                     }
                     else
-                    App.viewer.AddImage(bms[i]);
+                        App.viewer.AddImage(bms[i]);
                 }
             }
             App.viewer.GoToImage();
@@ -815,9 +809,9 @@ namespace Bio
 
         private void TabsView_Load(object sender, EventArgs e)
         {
-            if(App.viewer != null)
-            App.viewer.GoToImage();
-            
+            if (App.viewer != null)
+                App.viewer.GoToImage();
+
             Function.Initialize();
         }
 
@@ -891,7 +885,7 @@ namespace Bio
             runToolStripMenuItem.DropDownItems.Clear();
             foreach (var item in Function.Functions)
             {
-                runToolStripMenuItem.DropDownItems.Add(item.Value.Name,null, DropDownItemClicked);
+                runToolStripMenuItem.DropDownItems.Add(item.Value.Name, null, DropDownItemClicked);
             }
         }
 
@@ -930,6 +924,32 @@ namespace Bio
                 return;
             View3D d = new View3D(ImageView.SelectedImage);
             d.Show();
+        }
+
+        private void importImageJROIToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (openImageJDialog.ShowDialog() != DialogResult.OK)
+                return;
+            foreach (string item in openImageJDialog.FileNames)
+            {
+                ImageView.SelectedImage.Annotations.Add(ImageJ.RoiDecoder.open(item));
+            }
+            App.viewer.UpdateView();
+        }
+
+        private void exportImageJROIToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveImageJDialog.Title = "Set Filename for exported ROI's.";
+            if (saveImageJDialog.ShowDialog() != DialogResult.OK)
+                return;
+            saveImageJDialog.FileName = ImageView.SelectedImage.Filename;
+            int i = 1;
+            foreach (ROI roi in ImageView.SelectedImage.Annotations)
+            {
+                ImageJ.RoiEncoder.save(roi, saveImageJDialog.FileName + "-" + i);
+                i++;
+            }
+            App.viewer.UpdateView();
         }
     }
 }

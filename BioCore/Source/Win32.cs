@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace Bio
 {
@@ -45,14 +41,14 @@ namespace Bio
         public const int MOUSEEVENTF_LEFTDOWN = 0x0002;//The left button is down.
         public const int MOUSEEVENTF_LEFTUP = 0x0004;//The left button is up.
         public const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;//The middle button is down.
-        public const int MOUSEEVENTF_MIDDLEUP=0x0040;//The middle button is up.
-        public const int MOUSEEVENTF_MOVE=0x0001;//Movement occurred.
-        public const int MOUSEEVENTF_RIGHTDOWN=0x0008;//The right button is down.
-        public const int MOUSEEVENTF_RIGHTUP=0x0010;//The right button is up.
+        public const int MOUSEEVENTF_MIDDLEUP = 0x0040;//The middle button is up.
+        public const int MOUSEEVENTF_MOVE = 0x0001;//Movement occurred.
+        public const int MOUSEEVENTF_RIGHTDOWN = 0x0008;//The right button is down.
+        public const int MOUSEEVENTF_RIGHTUP = 0x0010;//The right button is up.
         public const int MOUSEEVENTF_WHEEL = 0x0800;//The wheel has been moved, if the mouse has a wheel.The amount of movement is specified in dwData
-        public const int MOUSEEVENTF_XDOWN=0x0080;//An X button was pressed.
-        public const int MOUSEEVENTF_XUP=0x0100;//An X button was released.
-        public const int MOUSEEVENTF_HWHEEL=0x01000; //The wheel button is tilted.
+        public const int MOUSEEVENTF_XDOWN = 0x0080;//An X button was pressed.
+        public const int MOUSEEVENTF_XUP = 0x0100;//An X button was released.
+        public const int MOUSEEVENTF_HWHEEL = 0x01000; //The wheel button is tilted.
 
         [DllImport("user32.dll")]
         public static extern bool GetWindowRect(IntPtr hwnd, ref Rect rectangle);
@@ -70,7 +66,15 @@ namespace Bio
             Process pr = Process.GetProcessesByName(process)[0];
             SetForegroundWindow(pr.MainWindowHandle);
         }
-
+        public static bool RunningOnWine()
+        {
+            //We see if winlogon is running indicating if we are on windows
+            Process[] pr = Process.GetProcessesByName("winlogon");
+            if (pr.Length != 0)
+                return true;
+            else
+                return false;
+        }
         public static string GetActiveWindowTitle()
         {
             const int nChars = 256;

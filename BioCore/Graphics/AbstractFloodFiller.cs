@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Drawing;
 using System.Diagnostics;
 
 namespace Bio.Graphics
@@ -48,7 +44,7 @@ namespace Bio.Graphics
             {
                 this.Bitmap = configSource.Bitmap;
                 this.FillColor = configSource.FillColor;
-                this.FillDiagonally = configSource.FillDiagonally;;
+                this.FillDiagonally = configSource.FillDiagonally; ;
                 this.Tolerance = configSource.Tolerance;
             }
         }
@@ -74,8 +70,8 @@ namespace Bio.Graphics
         public BufferInfo Bitmap
         {
             get { return bitmap; }
-            set 
-            { 
+            set
+            {
                 bitmap = value;
             }
         }
@@ -85,8 +81,8 @@ namespace Bio.Graphics
         {
             startColor = bitmap.GetPixel(pt.X, pt.Y);
             byteFillColor = new ColorS(fillColor.B, fillColor.G, fillColor.R);
-            bitmapStride=bitmap.Stride;
-            bitmapPixelFormatSize=bitmap.PixelFormatSize;
+            bitmapStride = bitmap.Stride;
+            bitmapPixelFormatSize = bitmap.PixelFormatSize;
             pixelFormat = bitmap.PixelFormat;
             bitmapBits = bitmap.Bytes;
             bitmapWidth = bitmap.SizeX;

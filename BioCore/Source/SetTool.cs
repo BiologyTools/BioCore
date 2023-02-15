@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class SetTool : Form
     {
@@ -30,7 +20,7 @@ namespace Bio
         }
         public Scripting.Script Script
         {
-            get { return (Scripting.Script)toolView.SelectedItems[0].Tag;}
+            get { return (Scripting.Script)toolView.SelectedItems[0].Tag; }
         }
         private void setToolBut_Click(object sender, EventArgs e)
         {

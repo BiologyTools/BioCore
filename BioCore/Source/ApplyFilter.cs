@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Bio
+﻿namespace Bio
 {
     public partial class ApplyFilter : Form
     {
@@ -17,7 +7,7 @@ namespace Bio
             InitializeComponent();
             UpdateStacks();
             if (!two)
-            { 
+            {
                 stackBBox.Enabled = false;
                 if (stackBBox.Items.Count > 1)
                     stackBBox.SelectedIndex = 1;
@@ -95,7 +85,7 @@ namespace Bio
             roiBox.Items.AddRange(ImageA.Annotations.ToArray());
             if (stackBBox.SelectedIndex == -1)
                 return;
-            if(stackABox.SelectedItem == stackBBox.SelectedItem)
+            if (stackABox.SelectedItem == stackBBox.SelectedItem)
             {
                 //Same image selected for A & B
                 MessageBox.Show("Same image selected for A & B. Change either A stack or B stack.");
