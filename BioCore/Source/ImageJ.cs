@@ -951,7 +951,7 @@ namespace Bio
             int[] y = new int[roi.PointsD.Count];
             for (int i = 0; i < roi.PointsD.Count; i++)
             {
-                PointF pd = ImageView.SelectedImage.ToImageSpace(roi.PointsD[i]);
+                PointF pd = ImageView.SelectedImage.ToImageSpace(roi.PointsD[i]).ToPointF();
                 x[i] = (int)pd.X;
                 y[i] = (int)pd.Y;
             }
@@ -967,7 +967,7 @@ namespace Bio
         /// @param y The y-coordinate of the ROI.
         static void GetXY(ROI roi, out float x, out float y)
         {
-            PointF pd = ImageView.SelectedImage.ToImageSpace(new PointD(roi.X, roi.Y));
+            PointF pd = ImageView.SelectedImage.ToImageSpace(new PointD(roi.X, roi.Y)).ToPointF();
             x = pd.X;
             y = pd.Y;
         }

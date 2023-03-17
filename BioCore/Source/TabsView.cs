@@ -511,7 +511,7 @@ namespace Bio
             {
                 if(Image.isPyramidal)
                 {
-                    PointF p = Image.ToImageSpace(new PointD(-ImageView.Origin.X,-ImageView.Origin.Y));
+                    PointF p = Image.ToImageSpace(new PointD(-ImageView.Origin.X,-ImageView.Origin.Y)).ToPointF();
                     Image = BioImage.OpenOME(Image.file,Image.resolution,false,true,(int)p.X,(int)p.Y,ImageView.ViewWidth,ImageView.ViewHeight);
                 }
                 BioImage.SaveOME(file, Image.ID);

@@ -547,14 +547,18 @@ namespace Bio
             get { return SelectedImage.resolution; }
             set
             {
-                float dx = SelectedImage.Resolutions[value].SizeX / SelectedImage.Resolution.SizeX;
-                float dy = SelectedImage.Resolutions[value].SizeY / SelectedImage.Resolution.SizeY;
-                PyramidalOrigin = new PointF(PyramidalOrigin.X * dx,PyramidalOrigin.Y * dy);
-                SelectedImage.resolution = value;
-                Scale = new SizeF(1, 1);
-                UpdateScrollBars();
-                UpdateTile();
-                UpdateView();
+                int r = GetOverviewResolution();
+                if (r > 0)
+                {
+                    float dx = SelectedImage.Resolutions[value].SizeX / SelectedImage.Resolution.SizeX;
+                    float dy = SelectedImage.Resolutions[value].SizeY / SelectedImage.Resolution.SizeY;
+                    PyramidalOrigin = new PointF(PyramidalOrigin.X * dx, PyramidalOrigin.Y * dy);
+                    SelectedImage.resolution = value;
+                    Scale = new SizeF(1, 1);
+                    UpdateScrollBars();
+                    UpdateTile();
+                    UpdateView();
+                }
             }
         }
         void UpdateScrollBars()
@@ -763,7 +767,7 @@ namespace Bio
                     return i - 1;
                 i++;
             }
-            return 0;
+            return -1;
         }
         bool showPreview;
         Rectangle overview;
@@ -1224,7 +1228,6 @@ namespace Bio
         Bitmap previewImage;
         Bitmap tile;
         bool tileShown;
-        float tileScale = 1;
         /* A property that is used to set the tileShown variable. */
         public bool TileShown
         {
@@ -1545,7 +1548,6 @@ namespace Bio
                 return;
             float dx = Scale.Width / 50;
             float dy = Scale.Height / 50;
-            float ds = tileScale / 50;
             if (Ctrl && SelectedImage.isPyramidal)
             {
                 float dsx = dSize.Width / 50;
@@ -1555,14 +1557,12 @@ namespace Bio
                     Scale = new SizeF(Scale.Width + dx, Scale.Height + dy);
                     dSize.Width += dsx;
                     dSize.Height += dsy;
-                    tileScale += ds;
                 }
                 else
                 {
                     Scale = new SizeF(Scale.Width - dx, Scale.Height - dy);
                     dSize.Width -= dsx;
                     dSize.Height -= dsy;
-                    tileScale -= ds;
                 }
                 UpdateView();
             }
@@ -2167,7 +2167,7 @@ namespace Bio
             {
                 return;
             }
-            PointF ip = SelectedImage.ToImageSpace(p);
+            PointF ip = SelectedImage.ToImageSpace(p).ToPointF();
             mousePoint = "(" + (p.X) + ", " + (p.Y) + ")";
 
             if (e.Button == MouseButtons.XButton1 && !x1State && !Ctrl && Mode != ViewMode.RGBImage)
@@ -2324,9 +2324,9 @@ namespace Bio
                 return;
             PointF ip;
             if (HardwareAcceleration)
-                ip = SelectedImage.ToImageSpace(new PointD(SelectedImage.Volume.Width - p.X, SelectedImage.Volume.Height - p.Y));
+                ip = SelectedImage.ToImageSpace(new PointD(SelectedImage.Volume.Width - p.X, SelectedImage.Volume.Height - p.Y)).ToPointF();
             else
-                ip = SelectedImage.ToImageSpace(p);
+                ip = SelectedImage.ToImageSpace(p).ToPointF();
             tools.BringToFront();
             int ind = 0;
             foreach (BioImage b in Images)
@@ -3147,7 +3147,7 @@ namespace Bio
                 {
                     if (item.type == ROI.Type.Line)
                     {
-                        g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)), SelectedImage.ToImageSpace(item.GetPoint(1)));
+                        g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)).ToPointF(), SelectedImage.ToImageSpace(item.GetPoint(1)).ToPointF());
                     }
                     else
                     if (item.type == ROI.Type.Rectangle)
@@ -3166,15 +3166,15 @@ namespace Bio
                         {
                             for (int i = 0; i < item.GetPointCount() - 1; i++)
                             {
-                                g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(i)), SelectedImage.ToImageSpace(item.GetPoint(i + 1)));
+                                g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(i)).ToPointF(), SelectedImage.ToImageSpace(item.GetPoint(i + 1)).ToPointF());
                             }
-                            g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)), SelectedImage.ToImageSpace(item.GetPoint(item.GetPointCount() - 1)));
+                            g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)).ToPointF(), SelectedImage.ToImageSpace(item.GetPoint(item.GetPointCount() - 1)).ToPointF());
                         }
                         else
                         {
                             for (int i = 0; i < item.GetPointCount() - 1; i++)
                             {
-                                g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(i)), SelectedImage.ToImageSpace(item.GetPoint(i + 1)));
+                                g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(i)).ToPointF(), SelectedImage.ToImageSpace(item.GetPoint(i + 1)).ToPointF());
                             }
                         }
                     }
@@ -3197,7 +3197,7 @@ namespace Bio
                 {
                     if (item.type == ROI.Type.Line)
                     {
-                        g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)), SelectedImage.ToImageSpace(item.GetPoint(1)));
+                        g.DrawLine(SelectedImage.ToImageSpace(item.GetPoint(0)).ToPointF(), SelectedImage.ToImageSpace(item.GetPoint(1)).ToPointF());
                     }
                     else
                     if (item.type == ROI.Type.Rectangle)

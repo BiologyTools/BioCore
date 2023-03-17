@@ -5186,15 +5186,13 @@ namespace Bio
                 return Buffers.Count;
             }
         }
-        public double physicalSizeX
+        public double PhysicalSizeX
         {
-            get { return imageInfo.PhysicalSizeX; }
-            set { imageInfo.PhysicalSizeX = value; }
+            get { return Resolutions[resolution].PxPerMicronX; }
         }
-        public double physicalSizeY
+        public double PhysicalSizeY
         {
-            get { return imageInfo.PhysicalSizeY; }
-            set { imageInfo.PhysicalSizeY = value; }
+            get { return Resolutions[resolution].PxPerMicronY; }
         }
         public double physicalSizeZ
         {
@@ -6173,7 +6171,10 @@ namespace Bio
         /// @return The value of d divided by the physicalSizeX.
         public double ToImageSizeX(double d)
         {
-            return d / physicalSizeX;
+            if (isPyramidal)
+                return d;
+            else
+                return d / Resolution.PxPerMicronX;
         }
         /// Convert a physical distance to an image distance
         /// 
@@ -6182,7 +6183,10 @@ namespace Bio
         /// @return The image size in the Y direction.
         public double ToImageSizeY(double d)
         {
-            return d / physicalSizeY;
+            if (isPyramidal)
+                return d;
+            else
+                return d / PhysicalSizeY;
         }
         /// > Convert a stage coordinate to an image coordinate
         /// 
@@ -6191,7 +6195,10 @@ namespace Bio
         /// @return The return value is a double.
         public double ToImageSpaceX(double x)
         {
-            return (float)((x - stageSizeX) / physicalSizeX);
+            if (isPyramidal)
+                return x;
+            else
+                return (float)((x - stageSizeX) / Resolution.PxPerMicronX);
         }
         /// > Convert a Y coordinate from stage space to image space
         /// 
@@ -6200,21 +6207,22 @@ namespace Bio
         /// @return The return value is the y-coordinate of the image.
         public double ToImageSpaceY(double y)
         {
-            return (float)((y - stageSizeY) / physicalSizeY);
+            if (isPyramidal)
+                return y;
+            else
+                return (float)((y - stageSizeY) / PhysicalSizeY);
         }
         /// > The function takes a point in the stage coordinate system and returns a point in the image
         /// coordinate system
         /// 
         /// @param PointD a class that contains two double values, X and Y.
         /// 
-        /// @return A PointF object.
-        public System.Drawing.PointF ToImageSpace(PointD p)
+        /// @return A PointD object.
+        public PointD ToImageSpace(PointD p)
         {
-            System.Drawing.PointF pp = new System.Drawing.Point();
-            pp.X = (float)((p.X - stageSizeX) / physicalSizeX);
-            pp.Y = (float)((p.Y - stageSizeY) / physicalSizeY);
-            return pp;
+            return new PointD((float)ToImageSpaceX(p.X), (float)ToImageSpaceY(p.Y));
         }
+
         /// It takes a list of points in physical space and returns a list of points in image space
         /// 
         /// @param p List of points in stage space
@@ -6225,10 +6233,7 @@ namespace Bio
             PointD[] ps = new PointD[p.Count];
             for (int i = 0; i < p.Count; i++)
             {
-                PointD pp = new PointD();
-                pp.X = ((p[i].X - stageSizeX) / physicalSizeX);
-                pp.Y = ((p[i].Y - stageSizeY) / physicalSizeY);
-                ps[i] = pp;
+                ps[i] = ToImageSpace(p[i]);
             }
             return ps;
         }
@@ -6244,9 +6249,7 @@ namespace Bio
             for (int i = 0; i < p.Length; i++)
             {
                 PointF pp = new PointF();
-                pp.X = (float)((p[i].X - stageSizeX) / physicalSizeX);
-                pp.Y = (float)((p[i].Y - stageSizeY) / physicalSizeY);
-                ps[i] = pp;
+                ps[i] = ToImageSpace(new PointD(p[i].X, p[i].Y)).ToPointF();
             }
             return ps;
         }
@@ -6259,10 +6262,10 @@ namespace Bio
         {
             System.Drawing.RectangleF r = new RectangleF();
             System.Drawing.Point pp = new System.Drawing.Point();
-            r.X = (int)((p.X - stageSizeX) / physicalSizeX);
-            r.Y = (int)((p.Y - stageSizeY) / physicalSizeY);
-            r.Width = (int)(p.W / physicalSizeX);
-            r.Height = (int)(p.H / physicalSizeY);
+            r.X = (int)((p.X - stageSizeX) / Resolution.PxPerMicronX);
+            r.Y = (int)((p.Y - stageSizeY) / PhysicalSizeY);
+            r.Width = (int)(p.W / Resolution.PxPerMicronX);
+            r.Height = (int)(p.H / PhysicalSizeY);
             return r;
         }
         /// > The function takes a point in the volume space and returns a point in the stage space
@@ -6273,8 +6276,8 @@ namespace Bio
         public PointD ToStageSpace(PointD p)
         {
             PointD pp = new PointD();
-            pp.X = ((p.X * physicalSizeX) + Volume.Location.X);
-            pp.Y = ((p.Y * physicalSizeY) + Volume.Location.Y);
+            pp.X = ((p.X * Resolution.PxPerMicronX) + Volume.Location.X);
+            pp.Y = ((p.Y * PhysicalSizeY) + Volume.Location.Y);
             return pp;
         }
         /// > The function takes a point in the volume space and converts it to a point in the stage
@@ -6303,10 +6306,10 @@ namespace Bio
         public RectangleD ToStageSpace(RectangleD p)
         {
             RectangleD r = new RectangleD();
-            r.X = ((p.X * physicalSizeX) + Volume.Location.X);
-            r.Y = ((p.Y * physicalSizeY) + Volume.Location.Y);
-            r.W = (p.W * physicalSizeX);
-            r.H = (p.H * physicalSizeY);
+            r.X = ((p.X * PhysicalSizeX) + Volume.Location.X);
+            r.Y = ((p.Y * PhysicalSizeY) + Volume.Location.Y);
+            r.W = (p.W * Resolution.PxPerMicronX);
+            r.H = (p.H * PhysicalSizeY);
             return r;
         }
         /// > This function takes a rectangle in the coordinate space of the image and converts it to the
@@ -6340,8 +6343,8 @@ namespace Bio
             for (int i = 0; i < p.Length; i++)
             {
                 PointD pp = new PointD();
-                pp.X = ((p[i].X * physicalSizeX) + Volume.Location.X);
-                pp.Y = ((p[i].Y * physicalSizeY) + Volume.Location.Y);
+                pp.X = ((p[i].X * Resolution.PxPerMicronX) + Volume.Location.X);
+                pp.Y = ((p[i].Y * PhysicalSizeY) + Volume.Location.Y);
                 ps[i] = pp;
             }
             return ps;
@@ -7240,10 +7243,10 @@ namespace Bio
                             image.SetField(TiffTag.PLANARCONFIG, PlanarConfig.CONTIG);
                             image.SetField(TiffTag.PHOTOMETRIC, Photometric.MINISBLACK);
                             image.SetField(TiffTag.ROWSPERSTRIP, image.DefaultStripSize(0));
-                            if (b.physicalSizeX != -1 && b.physicalSizeY != -1)
+                            if (b.PhysicalSizeX != -1 && b.PhysicalSizeY != -1)
                             {
-                                image.SetField(TiffTag.XRESOLUTION, (b.physicalSizeX * b.SizeX) / ((b.physicalSizeX * b.SizeX) * b.physicalSizeX));
-                                image.SetField(TiffTag.YRESOLUTION, (b.physicalSizeY * b.SizeY) / ((b.physicalSizeY * b.SizeY) * b.physicalSizeY));
+                                image.SetField(TiffTag.XRESOLUTION, (b.PhysicalSizeX * b.SizeX) / ((b.PhysicalSizeX * b.SizeX) * b.PhysicalSizeX));
+                                image.SetField(TiffTag.YRESOLUTION, (b.PhysicalSizeY * b.SizeY) / ((b.PhysicalSizeY * b.SizeY) * b.PhysicalSizeY));
                                 image.SetField(TiffTag.RESOLUTIONUNIT, ResUnit.NONE);
                             }
                             else
@@ -7422,18 +7425,20 @@ namespace Bio
                     PixelFormat = PixelFormat.Format32bppArgb;
                     stride = SizeX * 4;
                 }
+                double pxs = 0;
+                double pys = 0;
                 string unit = (string)image.GetField(TiffTag.RESOLUTIONUNIT)[0].ToString();
                 if (unit == "CENTIMETER")
                 {
                     if (image.GetField(TiffTag.XRESOLUTION) != null)
                     {
                         double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                        b.physicalSizeX = (1000 / x);
+                        pxs = (1000 / x);
                     }
                     if (image.GetField(TiffTag.YRESOLUTION) != null)
                     {
                         double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                        b.physicalSizeY = (1000 / y);
+                        pys = (1000 / y);
                     }
                 }
                 else
@@ -7442,12 +7447,12 @@ namespace Bio
                     if (image.GetField(TiffTag.XRESOLUTION) != null)
                     {
                         double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                        b.physicalSizeX = (2.54 / x) / 2.54;
+                        pxs = (2.54 / x) / 2.54;
                     }
                     if (image.GetField(TiffTag.YRESOLUTION) != null)
                     {
                         double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                        b.physicalSizeY = (2.54 / y) / 2.54;
+                        pys = (2.54 / y) / 2.54;
                     }
                 }
                 else
@@ -7458,12 +7463,12 @@ namespace Bio
                         if (image.GetField(TiffTag.XRESOLUTION) != null)
                         {
                             double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                            b.physicalSizeX = (2.54 / x) / 2.54;
+                            pxs = (2.54 / x) / 2.54;
                         }
                         if (image.GetField(TiffTag.YRESOLUTION) != null)
                         {
                             double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                            b.physicalSizeY = (2.54 / y) / 2.54;
+                            pys = (2.54 / y) / 2.54;
                         }
                     }
                 }
@@ -7517,6 +7522,7 @@ namespace Bio
                 {
                     b.imageInfo = new ImageInfo();
                 }
+                b.Resolutions.Add(new Resolution(SizeX, SizeY, PixelFormat, pxs, pys));
                 b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
 
                 //If this is a tiff file not made by Bio we init channels based on RGBChannels.
@@ -7603,9 +7609,8 @@ namespace Bio
                 try
                 {
                     Image im = Image.FromFile(file);
-                    b.physicalSizeX = 2.54 / im.HorizontalResolution;
-                    b.physicalSizeY = 2.54 / im.VerticalResolution;
                     b.physicalSizeZ = 1;
+                    b.Resolutions.Add(new Resolution(im.Width, im.Height, im.PixelFormat, 2.54 / im.HorizontalResolution, 2.54 / im.VerticalResolution));
                     inf = new BufferInfo(file, Image.FromFile(file), new ZCT(0, 0, 0), 0);
                     Statistics.CalcStatistics(inf);
                 }
@@ -7629,7 +7634,7 @@ namespace Bio
                 b.stageSizeZ = 0;
                 b.physicalSizeZ = 1;
             }
-            b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.physicalSizeX * b.SizeX, b.physicalSizeY * b.SizeY, b.physicalSizeZ * b.SizeZ));
+            b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.PhysicalSizeX * b.SizeX, b.PhysicalSizeY * b.SizeY, b.physicalSizeZ * b.SizeZ));
             //We wait for histogram image statistics calculation
             do
             {
@@ -7775,9 +7780,9 @@ namespace Bio
                     omexml.setPixelsBigEndian(java.lang.Boolean.FALSE, serie);
                 else
                     omexml.setPixelsBigEndian(java.lang.Boolean.TRUE, serie);
-                ome.units.quantity.Length p1 = new ome.units.quantity.Length(java.lang.Double.valueOf(b.physicalSizeX), ome.units.UNITS.MICROMETER);
+                ome.units.quantity.Length p1 = new ome.units.quantity.Length(java.lang.Double.valueOf(b.PhysicalSizeX), ome.units.UNITS.MICROMETER);
                 omexml.setPixelsPhysicalSizeX(p1, serie);
-                ome.units.quantity.Length p2 = new ome.units.quantity.Length(java.lang.Double.valueOf(b.physicalSizeY), ome.units.UNITS.MICROMETER);
+                ome.units.quantity.Length p2 = new ome.units.quantity.Length(java.lang.Double.valueOf(b.PhysicalSizeY), ome.units.UNITS.MICROMETER);
                 omexml.setPixelsPhysicalSizeY(p2, serie);
                 ome.units.quantity.Length p3 = new ome.units.quantity.Length(java.lang.Double.valueOf(b.physicalSizeZ), ome.units.UNITS.MICROMETER);
                 omexml.setPixelsPhysicalSizeZ(p3, serie);
@@ -8344,19 +8349,6 @@ namespace Bio
             try
             {
                 bool hasPhysical = false;
-                if (b.meta.getPixelsPhysicalSizeX(b.resolution) != null)
-                {
-                    b.physicalSizeX = b.meta.getPixelsPhysicalSizeX(b.resolution).value().doubleValue();
-                    hasPhysical = true;
-                }
-                else
-                    b.physicalSizeX = (96 / 2.54) / 1000;
-                if (b.meta.getPixelsPhysicalSizeY(b.resolution) != null)
-                {
-                    b.physicalSizeY = b.meta.getPixelsPhysicalSizeY(b.resolution).value().doubleValue();
-                }
-                else
-                    b.physicalSizeY = (96 / 2.54) / 1000;
                 if (b.meta.getPixelsPhysicalSizeZ(b.resolution) != null)
                 {
                     b.physicalSizeZ = b.meta.getPixelsPhysicalSizeZ(b.resolution).value().doubleValue();
@@ -8380,18 +8372,18 @@ namespace Bio
                 b.stageSizeX = 0;
                 b.stageSizeY = 0;
                 b.stageSizeZ = 0;
-                Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + b.physicalSizeX + "," + b.physicalSizeY + "," + b.physicalSizeZ + ")");
+                Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + b.PhysicalSizeX + "," + b.PhysicalSizeY + "," + b.physicalSizeZ + ")");
             }
 
             if(tile)
             {
                 //since this is a tile we need to update the stage coordinates based on tile location
-                b.stageSizeX = b.stageSizeX + (b.physicalSizeX * tilex);
-                b.stageSizeY = b.stageSizeY + (b.physicalSizeY * tiley);
-                b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.physicalSizeX * sx, b.physicalSizeY * sy, b.physicalSizeZ * SizeZ));
+                b.stageSizeX = b.stageSizeX + (b.PhysicalSizeX * tilex);
+                b.stageSizeY = b.stageSizeY + (b.PhysicalSizeY * tiley);
+                b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.PhysicalSizeX * sx, b.PhysicalSizeY * sy, b.physicalSizeZ * SizeZ));
             }
             else
-                b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.physicalSizeX * SizeX, b.physicalSizeY * SizeY, b.physicalSizeZ * SizeZ));
+                b.Volume = new VolumeD(new Point3D(b.stageSizeX, b.stageSizeY, b.stageSizeZ), new Point3D(b.PhysicalSizeX * SizeX, b.PhysicalSizeY * SizeY, b.physicalSizeZ * SizeZ));
 
 
 
@@ -8838,7 +8830,7 @@ namespace Bio
                 stageSizeX = 0;
                 stageSizeY = 0;
                 stageSizeZ = 0;
-                Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + physicalSizeX + "," + physicalSizeY + "," + physicalSizeZ + ")");
+                Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + PhysicalSizeX + "," + PhysicalSizeY + "," + physicalSizeZ + ")");
             }
             
 
@@ -8851,9 +8843,9 @@ namespace Bio
             }
 
             //since this is a tile we need to update the stage coordinates based on tile location
-            stageSizeX = stageSizeX + (physicalSizeX * tilex);
-            stageSizeY = stageSizeY + (physicalSizeY * tiley);
-            Volume = new VolumeD(new Point3D(stageSizeX,stageSizeY,stageSizeZ),new Point3D(physicalSizeX * sx, physicalSizeY * sy, physicalSizeZ * sizeZ));
+            stageSizeX = stageSizeX + (PhysicalSizeX * tilex);
+            stageSizeY = stageSizeY + (PhysicalSizeY * tiley);
+            Volume = new VolumeD(new Point3D(stageSizeX,stageSizeY,stageSizeZ),new Point3D(PhysicalSizeX * sx, PhysicalSizeY * sy, physicalSizeZ * sizeZ));
             byte[] bytesr = imRead.openBytes(Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
             bool interleaved = imRead.isInterleaved();
             if (!interleaved)
@@ -9129,7 +9121,7 @@ namespace Bio
                 }
             }
             b.UpdateCoords(z + 1, c + 1, t + 1);
-            b.Volume = new VolumeD(bs[0].Volume.Location, new Point3D(bs[0].SizeX * bs[0].physicalSizeX, bs[0].SizeY * bs[0].physicalSizeY, (z + 1) * bs[0].physicalSizeZ));
+            b.Volume = new VolumeD(bs[0].Volume.Location, new Point3D(bs[0].SizeX * bs[0].PhysicalSizeX, bs[0].SizeY * bs[0].PhysicalSizeY, (z + 1) * bs[0].physicalSizeZ));
             return b;
         }
         /// The function takes a BioImage object, opens the file, and returns a new BioImage object
