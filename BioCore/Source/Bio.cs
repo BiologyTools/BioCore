@@ -749,7 +749,6 @@ namespace Bio
         public int shapeIndex = 0;
         public bool closed = false;
         public bool selected = false;
-
         public PointD[] PointsImage
         {
             get

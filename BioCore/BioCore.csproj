@@ -24,7 +24,7 @@
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
     <AssemblyVersion>3.0.0</AssemblyVersion>
     <FileVersion>3.0.0</FileVersion>
-    <PackageReleaseNotes>Big performance boost for tile opening, and upper left corner slide overview for ImageViewer. As well as ROI drawing for pyramidal images.</PackageReleaseNotes>
+    <PackageReleaseNotes>Slide overview for ImageViewer.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

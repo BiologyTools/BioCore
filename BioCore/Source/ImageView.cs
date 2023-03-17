@@ -56,6 +56,7 @@ namespace Bio
                 Resolution = r;
                 UpdateScrollBars();
                 InitPreview();
+                preview.Dispose();
                 hScrollBar.Visible = true;
                 vScrollBar.Visible = true;
             }
@@ -533,6 +534,7 @@ namespace Bio
                 }
                 else
                     pyramidalOrigin.Y = value.Y;
+                origin = SelectedImage.ToStageSpace(new PointD((double)pyramidalOrigin.X, (double)pyramidalOrigin.Y));
                 hScrollBar.Value = (int)pyramidalOrigin.X;
                 vScrollBar.Value = (int)pyramidalOrigin.Y;
                 UpdateTile();
@@ -545,7 +547,11 @@ namespace Bio
             get { return SelectedImage.resolution; }
             set
             {
+                float dx = SelectedImage.Resolutions[value].SizeX / SelectedImage.Resolution.SizeX;
+                float dy = SelectedImage.Resolutions[value].SizeY / SelectedImage.Resolution.SizeY;
+                PyramidalOrigin = new PointF(PyramidalOrigin.X * dx,PyramidalOrigin.Y * dy);
                 SelectedImage.resolution = value;
+                Scale = new SizeF(1, 1);
                 UpdateScrollBars();
                 UpdateTile();
                 UpdateView();
@@ -555,6 +561,7 @@ namespace Bio
         {
             hScrollBar.Maximum = SelectedImage.Resolution.SizeX - pictureBox.Width;
             vScrollBar.Maximum = SelectedImage.Resolution.SizeY - pictureBox.Height;
+            
         }
         /* A property that is used to set the scale of the view. */
         public new SizeF Scale
@@ -743,6 +750,7 @@ namespace Bio
         {
             //We will find the first Resolution small enough in bytes to use as a preview image.
             int i = 0;
+            //Also the macro && label resolutions are often in a different pixel format
             PixelFormat format = SelectedImage.Resolutions[0].PixelFormat;
             foreach (Resolution res in SelectedImage.Resolutions)
             {
@@ -750,7 +758,7 @@ namespace Bio
                 {
                     if (res.SizeInBytes < 1e+9 * 0.05f)
                         return i;
-                }//Also the macro && label resolutions are often in a different pixel format
+                }
                 else
                     return i - 1;
                 i++;
@@ -1533,10 +1541,12 @@ namespace Bio
        /// @param e the mouse event
         private void ImageView_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            if (SelectedImage == null)
+                return;
             float dx = Scale.Width / 50;
             float dy = Scale.Height / 50;
             float ds = tileScale / 50;
-            if (Ctrl)
+            if (Ctrl && SelectedImage.isPyramidal)
             {
                 float dsx = dSize.Width / 50;
                 float dsy = dSize.Height / 50;
@@ -1556,7 +1566,6 @@ namespace Bio
                 }
                 UpdateView();
             }
-            else
             if (e.Delta > 0)
             {
                 if (zBar.Value + 1 <= zBar.Maximum)
@@ -1567,7 +1576,7 @@ namespace Bio
                 if (zBar.Value - 1 >= zBar.Minimum)
                     zBar.Value -= 1;
             }
-            if (SelectedImage != null)
+            
             if (Ctrl && SelectedImage.isPyramidal)
             if (e.Delta > 0)
             {
@@ -2014,10 +2023,13 @@ namespace Bio
         private void overlayPictureBox_Paint(object sender, PaintEventArgs e)
         {
             System.Drawing.Graphics g = e.Graphics;
-            g.TranslateTransform(pictureBox.Width / 2, pictureBox.Height / 2);
-            if (Scale.Width == 0)
-                Scale = new SizeF(0.00001f, 0.00001f);
-            g.ScaleTransform(Scale.Width, Scale.Height);
+            if (!SelectedImage.isPyramidal)
+            {
+                g.TranslateTransform(pictureBox.Width / 2, pictureBox.Height / 2);
+                if (Scale.Width == 0)
+                    Scale = new SizeF(0.00001f, 0.00001f);
+                g.ScaleTransform(Scale.Width, Scale.Height);
+            }
             DrawOverlay(g);
             TabsView.graphics = g;
             Point3D p = Microscope.GetPosition();
@@ -2652,6 +2664,10 @@ namespace Bio
         /// @return A PointD object.
         public PointD ToViewSpace(double x, double y)
         {
+            if(SelectedImage.isPyramidal)
+            {
+                return new PointD(PyramidalOrigin.X + x, PyramidalOrigin.Y + y);
+            }
             double dx = (ToViewSizeW(x - (pictureBox.Width / 2)) / Scale.Width) - Origin.X;
             double dy = (ToViewSizeH(y - (pictureBox.Height / 2)) / Scale.Height) - Origin.Y;
             return new PointD(dx, dy);
@@ -2704,13 +2720,16 @@ namespace Bio
         /// @return A PointD object.
         public PointD ToScreenSpace(double x, double y)
         {
+            if(SelectedImage.isPyramidal)
+            {
+                return new PointD(x, y);
+            }
             if (HardwareAcceleration)
             {
                 RectangleF f = ToScreenRectF(x, y, 1, 1);
                 RawRectangleF rf = ToRawRectF(f.X, f.Y, f.Width, f.Height);
                 return new PointD(rf.Left, rf.Top);
             }
-
             double fx = ToScreenScaleW(Origin.X + x);
             double fy = ToScreenScaleH(Origin.Y + y);
             return new PointD(fx, fy);
@@ -2807,6 +2826,10 @@ namespace Bio
         /// @return A RectangleF object.
         public RectangleF ToScreenRectF(double x, double y, double w, double h)
         {
+            if(SelectedImage.isPyramidal)
+            {
+                return new RectangleF((float)x - pyramidalOrigin.X,(float)y - pyramidalOrigin.Y, (float)w, (float)h);
+            }
             PointD pf;
             if (HardwareAcceleration)
             {
