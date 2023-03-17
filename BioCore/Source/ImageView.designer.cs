@@ -53,6 +53,7 @@ namespace Bio
             this.controlsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hideControlsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.hideStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.hidePreviewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyViewToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zPlayMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.playZToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -282,7 +283,8 @@ namespace Bio
             // 
             this.controlsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.hideControlsToolStripMenuItem1,
-            this.hideStatusToolStripMenuItem});
+            this.hideStatusToolStripMenuItem,
+            this.hidePreviewToolStripMenuItem});
             this.controlsToolStripMenuItem.Name = "controlsToolStripMenuItem";
             this.controlsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
             this.controlsToolStripMenuItem.Text = "Controls";
@@ -290,16 +292,23 @@ namespace Bio
             // hideControlsToolStripMenuItem1
             // 
             this.hideControlsToolStripMenuItem1.Name = "hideControlsToolStripMenuItem1";
-            this.hideControlsToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
+            this.hideControlsToolStripMenuItem1.Size = new System.Drawing.Size(151, 22);
             this.hideControlsToolStripMenuItem1.Text = "Hide Controls";
             this.hideControlsToolStripMenuItem1.Click += new System.EventHandler(this.hideControlsToolStripMenuItem_Click);
             // 
             // hideStatusToolStripMenuItem
             // 
             this.hideStatusToolStripMenuItem.Name = "hideStatusToolStripMenuItem";
-            this.hideStatusToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.hideStatusToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.hideStatusToolStripMenuItem.Text = "Hide Status";
             this.hideStatusToolStripMenuItem.Click += new System.EventHandler(this.HideStatusMenuItem_Click);
+            // 
+            // hidePreviewToolStripMenuItem
+            // 
+            this.hidePreviewToolStripMenuItem.Name = "hidePreviewToolStripMenuItem";
+            this.hidePreviewToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.hidePreviewToolStripMenuItem.Text = "Hide Overview";
+            this.hidePreviewToolStripMenuItem.Click += new System.EventHandler(this.hidePreviewToolStripMenuItem_Click);
             // 
             // copyViewToClipboardToolStripMenuItem
             // 
@@ -687,6 +696,7 @@ namespace Bio
             this.pictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_MouseDown);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.rgbPictureBox_MouseMove);
             this.pictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox_MouseUp);
+            this.pictureBox.Resize += new System.EventHandler(this.overlayPictureBox_Resize);
             // 
             // overlayPictureBox
             // 
@@ -711,25 +721,25 @@ namespace Bio
             // 
             this.hScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.hScrollBar.Location = new System.Drawing.Point(0, 318);
+            this.hScrollBar.Location = new System.Drawing.Point(0, 320);
             this.hScrollBar.Name = "hScrollBar";
             this.hScrollBar.Size = new System.Drawing.Size(499, 18);
             this.hScrollBar.SmallChange = 10;
             this.hScrollBar.TabIndex = 24;
             this.hScrollBar.Visible = false;
-            this.hScrollBar.ValueChanged += new System.EventHandler(this.vScrollBar_ValueChanged);
+            this.hScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollBar_Scroll);
             // 
             // vScrollBar
             // 
             this.vScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.vScrollBar.Location = new System.Drawing.Point(479, 29);
+            this.vScrollBar.Location = new System.Drawing.Point(482, 29);
             this.vScrollBar.Name = "vScrollBar";
             this.vScrollBar.Size = new System.Drawing.Size(17, 290);
             this.vScrollBar.SmallChange = 10;
             this.vScrollBar.TabIndex = 23;
             this.vScrollBar.Visible = false;
-            this.vScrollBar.ValueChanged += new System.EventHandler(this.vScrollBar_ValueChanged);
+            this.vScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollBar_Scroll);
             // 
             // saveCSVFileDialog
             // 
@@ -860,5 +870,6 @@ namespace Bio
         private System.Windows.Forms.ToolStripMenuItem drawToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fillToolStripMenuItem;
         private System.Windows.Forms.Panel dxPanel;
+        private ToolStripMenuItem hidePreviewToolStripMenuItem;
     }
 }

@@ -9,6 +9,7 @@ namespace Bio
 {
     public partial class Recordings : Form
     {
+       /* Creating a new directory called Recordings. */
         public Recordings()
         {
             InitializeComponent();
@@ -27,6 +28,7 @@ namespace Bio
             }
 
         }
+        /// It's a function that adds nodes to a treeview
         public void InitElements()
         {
             view.Nodes.Clear();
@@ -87,6 +89,7 @@ namespace Bio
                 propView.Nodes.Add(tr);
             }
         }
+        /// It clears the nodes of the treeview, then adds the nodes back in.
         public void UpdateElements()
         {
             foreach (TreeNode rec in view.Nodes)
@@ -132,6 +135,8 @@ namespace Bio
                 }
             }
         }
+        /* It's a class that contains a recording and an action, and it's used to store the data in the
+        treeview */
         public class Node
         {
             public Automation.Recording recording;
@@ -144,6 +149,7 @@ namespace Bio
             }
 
             public TreeNode node;
+            /* Creating a new node in the tree. */
             public Node(Automation.Action el,TreeNode n,Type t)
             {
                 action = el;
@@ -153,6 +159,7 @@ namespace Bio
                 recording.List.Add(el);
                 //items = Automation.AutomationHelpers.GetAllChildren(el.element);
             }
+            /* Creating a new node in the tree. */
             public Node(Automation.Recording rec, TreeNode n, Type t)
             {
                 recording = rec;
@@ -166,12 +173,21 @@ namespace Bio
             }
         }
 
+        /// It runs a recording
+        /// 
+        /// @param act The name of the recording you want to run.
         public static void Perform(string act)
         {
             Automation.Recording rec = (Automation.Recording)Automation.Recordings[act];
             rec.Run();
             Recorder.AddLine("Recordings.Perform(" + rec.Name + ");");
         }
+        /// It gets the value of a property from the automation object
+        /// 
+        /// @param automation This is the automation object that is passed to the function.
+        /// @param pro The name of the property you want to get.
+        /// 
+        /// @return The value of the property.
         public static object GetProperty(Automation.Action.ValueType automation,string pro)
         {
             Automation.Recording rec = null;
@@ -183,11 +199,21 @@ namespace Bio
             return rec.Get();
         }
 
+        /// The function is called after a node is selected in the tree view
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param TreeViewEventArgs 
         private void view_AfterSelect(object sender, TreeViewEventArgs e)
         {
             
         }
 
+        /// The function starts recording the user's actions on the screen
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The return value is the result of the ShowDialog method.
         private void startBut_Click(object sender, EventArgs e)
         {
             TextInput ti = new TextInput("Property" + propBox.Items.Count);
@@ -200,6 +226,12 @@ namespace Bio
             Automation.StartRecording();
         }
 
+        /// The function stops the recording and initializes the elements
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs 
+        /// 
+        /// @return The actions that are being recorded.
         private void stopBut_Click(object sender, EventArgs e)
         {
             recordStatusLabel.Text = "Recording: Stopped";
@@ -213,6 +245,13 @@ namespace Bio
             }
         }
 
+        /// If the user clicks the play button, and the selected node is not null, and the selected node
+        /// is not an action, then play the recording
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The recording is being returned.
         private void playBut_Click(object sender, EventArgs e)
         {
             if (view.SelectedNode == null)
@@ -233,6 +272,11 @@ namespace Bio
             this.Hide();
             e.Cancel = true;
         }
+        /// When the user clicks on the "Perform" menu item, the selected node is retrieved and the
+        /// action or recording is performed
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void performToolStripMenuItem_Click(object sender, EventArgs e)
         {
             TreeNode tr = view.SelectedNode;
@@ -242,12 +286,23 @@ namespace Bio
             else
                 no.recording.Run();
         }
+        /// If the user clicks the save button, then open a dialog box to save the file.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The file name of the file that was saved.
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (saveRecDialog.ShowDialog() != DialogResult.OK)
                 return;
             SaveRecording(saveRecDialog.FileName);
         }
+        /// It saves the recording to a file
+        /// 
+        /// @param file the file path
+        /// 
+        /// @return The file name of the file being saved.
         private void SaveRecording(string file)
         {
             Automation.Recording n;
@@ -263,6 +318,12 @@ namespace Bio
             File.WriteAllText(file, j);
             InitElements();
         }
+        /// The function takes a file name as a parameter and saves the property of the selected node in
+        /// the tree view to the file
+        /// 
+        /// @param file the file path
+        /// 
+        /// @return The file name of the file being saved.
         private void SaveProperty(string file)
         {
             Automation.Recording n;
@@ -279,6 +340,11 @@ namespace Bio
             File.WriteAllText(file, j);
             InitElements();
         }
+        /// It reads a JSON file and converts it into a list of actions
+        /// 
+        /// @param file the file path of the recording
+        /// 
+        /// @return A list of Automation.Recording objects.
         private Automation.Recording OpenRec(string file)
         {
             string st = File.ReadAllText(file);
@@ -312,12 +378,18 @@ namespace Bio
             }
             return rec;
         }
+        /// This function opens a recording file and adds it to the Automation.Recordings dictionary
+        /// 
+        /// @param file The file path to the recording
         public void OpenRecording(string file)
         {
             Automation.Recording rec = OpenRec(file);
             Automation.Recordings.Add(rec.Name,rec);
             InitElements();
         }
+        /// This function opens a recording file and adds it to the Properties collection
+        /// 
+        /// @param file The file path of the recording
         public void OpenProperty(string file)
         {
             Automation.Recording rec = OpenRec(file);
@@ -325,6 +397,12 @@ namespace Bio
             InitElements();
         }
 
+        /// It opens a file dialog box and if the user selects a file, it opens the file
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The file name of the recording.
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             openRecDialog.InitialDirectory = Application.StartupPath + "\\Recordings";
@@ -333,6 +411,10 @@ namespace Bio
             OpenRecording(openRecDialog.FileName);
         }
 
+/// It deletes the selected node
+/// 
+/// @param sender The object that raised the event.
+/// @param EventArgs The event arguments.
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Node n = (Node)view.SelectedNode.Tag;
@@ -349,11 +431,21 @@ namespace Bio
             }
         }
 
+        /// It's a function that refreshes the elements in the listbox
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void refreshToolStripMenuItem_Click(object sender, EventArgs e)
         {
             InitElements();
         }
 
+        /// The function starts the property recording by calling the StartPropertyRecording() function
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
+        /// 
+        /// @return The return value is a string.
         private void startPropBut_Click(object sender, EventArgs e)
         {
             TextInput ti = new TextInput("Property" + propBox.Items.Count);
@@ -364,6 +456,14 @@ namespace Bio
             Automation.StartPropertyRecording();
         }
 
+/// If the user clicks the stop button, the label will change to "Property Recording: Stopped" and if
+/// the recording is not stopped, it will stop the recording. If the recording has more than 0
+/// properties, it will initialize the elements
+/// 
+/// @param sender The object that raised the event.
+/// @param EventArgs 
+/// 
+/// @return The return value is a list of the properties that were recorded.
         private void stopPropBut_Click(object sender, EventArgs e)
         {
             propRecStatusLabel.Text = "Property Recording: Stopped";
@@ -377,6 +477,13 @@ namespace Bio
             }
         }
 
+        /// If the selected node is not an action, then get the property of the node and put it on the
+        /// clipboard
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The value of the property.
         private void getPropBut_Click(object sender, EventArgs e)
         {
             if (propView.SelectedNode == null)
@@ -392,6 +499,12 @@ namespace Bio
                 MessageBox.Show(s);
             }
         }
+        /// It takes the text from the textbox and sets the property of the selected node to that text
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The text value of the textbox in the form.
         private void setPropBut_Click(object sender, EventArgs e)
         {
             TextInput ti = new TextInput("Property" + propBox.Items.Count);
@@ -403,6 +516,12 @@ namespace Bio
                 return;
             Automation.SetProperty(n.recording.Name, ti.TextValue);
         }
+        /// It saves the selected property to a file
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The file name of the file that was selected.
         private void saveSelectedValueToolStripMenuItem_Click(object sender, EventArgs e)
         {
             savePropDialog.InitialDirectory = Application.StartupPath + "\\Recordings";
@@ -411,6 +530,12 @@ namespace Bio
             SaveProperty(savePropDialog.FileName);
         }
 
+/// It opens a file dialog box and then opens the file that the user selected
+/// 
+/// @param sender The object that raised the event.
+/// @param EventArgs The event arguments.
+/// 
+/// @return The file name of the selected file.
         private void openPropertyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             openPropDialog.InitialDirectory = Application.StartupPath + "\\Recordings";
@@ -419,11 +544,19 @@ namespace Bio
             OpenProperty(openPropDialog.FileName);
         }
 
+        /// The function is called when the user clicks on the "Get" menu item in the context menu
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void getMenuItem_Click(object sender, EventArgs e)
         {
             getPropBut.PerformClick();
         }
 
+        /// It deletes the selected node from the tree view
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void deletePropMenuItem_Click(object sender, EventArgs e)
         {
             Node n = (Node)propView.SelectedNode.Tag;
@@ -442,6 +575,14 @@ namespace Bio
         }
 
         
+        /// If the selected node is not a recording, set the selected index of the property box to the
+        /// value of the selected node's action
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param TreeViewEventArgs
+        /// https://msdn.microsoft.com/en-us/library/system.windows.forms.treevieweventargs(v=vs.110).aspx
+        /// 
+        /// @return The selected node's tag.
         private void propView_AfterSelect(object sender, TreeViewEventArgs e)
         {
             if (propView.SelectedNode == null)
@@ -452,6 +593,13 @@ namespace Bio
             propBox.SelectedIndex = (int)n.action.Value;
         }
 
+        /// When the user changes the value of the dropdown box, the value of the selected node's action
+        /// is changed to the value of the dropdown box
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs e
+        /// 
+        /// @return The selected item in the ComboBox.
         private void propBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (propView.SelectedNode == null)
@@ -462,6 +610,12 @@ namespace Bio
             n.action.Value = (Automation.Action.ValueType)propBox.SelectedItem;
         }
 
+        /// It moves the selected node up one position in the list
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The index of the selected node.
         private void moveUpToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (view.SelectedNode == null)
@@ -478,6 +632,13 @@ namespace Bio
             UpdateElements();
         }
 
+        /// It removes the selected node from the list, then inserts it back into the list at the index
+        /// above it
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
+        /// 
+        /// @return The index of the selected node.
         private void moveDownToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (view.SelectedNode == null)
@@ -493,6 +654,13 @@ namespace Bio
             UpdateElements();
         }
 
+        /// It removes the selected action from the list of actions, then inserts it back into the list
+        /// at the index above the original index
+        /// 
+        /// @param sender System.Object
+        /// @param EventArgs 
+        /// 
+        /// @return The selected node.
         private void moveUpToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (propView.SelectedNode == null)
@@ -508,6 +676,12 @@ namespace Bio
             UpdateElements();
         }
 
+        /// It moves the selected action down one position in the list of actions.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs e
+        /// 
+        /// @return The selected node.
         private void moveDownToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (propView.SelectedNode == null)
@@ -523,6 +697,13 @@ namespace Bio
             UpdateElements();
         }
 
+        /// If the selected node is not null, and the node is not a recording, then set the action value
+        /// to the selected item in the property box
+        /// 
+        /// @param sender System.Object
+        /// @param EventArgs 
+        /// 
+        /// @return The selected item in the property box.
         private void renameToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (propView.SelectedNode == null)

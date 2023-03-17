@@ -2,6 +2,7 @@
 {
     public partial class RangeTool : Form
     {
+        /* A constructor. */
         public RangeTool(bool timeEnabled, bool cEnabled, int zmin, int zmax, int timeMin, int timeMax, int cmin, int cmax)
         {
             InitializeComponent();
@@ -73,6 +74,10 @@
             }
         }
 
+        /// When the form is closing, set the dialog result to OK
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param FormClosingEventArgs 
         private void RangeTool_FormClosing(object sender, FormClosingEventArgs e)
         {
             this.DialogResult = DialogResult.OK;

@@ -18,8 +18,10 @@ namespace Bio
     public class Automation
     {
         public static InputSimulator input;
+        /* Creating a new hashtable called Recordings. */
         public static Hashtable Recordings = new Hashtable();
         public static Hashtable Properties = new Hashtable();
+        /* It's a class that represents an action that can be performed on an automation element */
         public class Action
         {
             private KeyEventArgs key;
@@ -276,6 +278,8 @@ namespace Bio
                     return Name + ", " + AutomationID + ", " + ClassName + ", " + ActionType + ", " + Index + ", " + mouse.Delta;
             }
         }
+        /* It's a class that represents a recording of a series of actions that can be performed on a
+        Windows application. */
         public class Recording
         {
             private string name;
@@ -362,6 +366,7 @@ namespace Bio
         private static bool recording = false;
         private static bool move = false;
         public static Recording rec = new Recording();
+        /* Hooking into the mouse and keyboard events. */
         public Automation()
         {
             m_GlobalHook = Hook.GlobalEvents();
@@ -391,40 +396,57 @@ namespace Bio
                 return null;
             }
         }
+        /// It starts recording.
         public static void StartRecording()
         {
             recording = true;
             rec = new Recording();
         }
+        /// It stops the recording and adds it to the list of recordings
         public static void StopRecording()
         {
             recording=false;
             rec.Name = "Recording" + (Recordings.Count + 1);
             Recordings.Add(rec.Name,rec);
         }
+        /// > Start recording the properties of the current object
         public static void StartPropertyRecording()
         {
             recording = true;
             rec = new Recording();
         }
+        /// Stop recording the property and add it to the list of properties
         public static void StopPropertyRecording()
         {
             recording = false;
             rec.Name = "Property" + (Properties.Count+1);
             Properties.Add(rec.Name,rec);
         }
+        /// It takes a string as an argument, and returns an object
+        /// 
+        /// @param prop The name of the property to get.
+        /// 
+        /// @return The value of the property.
         public static object GetProperty(string prop)
         {
             Recording rec = (Recording)Properties[prop];
             Recorder.AddLine("Automation.GetProperty(" + '"' + prop + '"' + ");");
             return rec.Get();
         }
+        /// It takes a property name and a value, and sets the property to the value
+        /// 
+        /// @param prop The name of the property you want to set.
+        /// @param val The value to set the property to.
         public static void SetProperty(string prop, string val)
         {
             Recording rec = (Recording)Properties[prop];
             rec.Set(val);
             Recorder.AddLine("Automation.SetProperty(" + '"' + prop + '"' + "," + '"' + val + '"' + ");");
         }
+        /// If the dictionary contains the key, then update the value. Otherwise, add the key and value
+        /// to the dictionary
+        /// 
+        /// @param Recording 
         public static void AddProperty(Recording rec)
         {
             if (Properties.ContainsKey(rec.Name))
@@ -432,12 +454,23 @@ namespace Bio
             else
                 Properties.Add(rec.Name, rec);
         }
+        /// Runs a recording from the Properties collection
+        /// 
+        /// @param prop The name of the recording you want to run.
         public static void RunRecording(string prop)
         {
             Recording rec = (Recording)Properties[prop];
             rec.Run();
             Recorder.AddLine("Automation.RunRecording(" + '"' + prop + '"' + ");");
         }
+        /// If the user is recording, and the mouse is clicked, then add a new action to the list of
+        /// actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param MouseEventExtArgs
+        /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
+        /// 
+        /// @return The AutomationElement is being returned.
         private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
         {
             if (!recording)
@@ -447,6 +480,14 @@ namespace Bio
                 return;
             rec.List.Add(new Action(Action.Type.mousedown, el.Current.ProcessId, e));
         }
+        /// If the user is recording, then get the current element and add a mouse up action to the list
+        /// of actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param MouseEventExtArgs
+        /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/GlobalMouseKeyHook/MouseEventExtArgs.cs
+        /// 
+        /// @return The AutomationElement is being returned.
         private void GlobalHookMouseUpExt(object sender, MouseEventExtArgs e)
         {
             if (!recording)
@@ -456,6 +497,14 @@ namespace Bio
                 return;
             rec.List.Add(new Action(Action.Type.mouseup, el.Current.ProcessId, e));
         }
+        /// If the mouse wheel is being used, and the mouse is over a window, then add the action to the
+        /// list of actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param MouseEventArgs
+        /// https://msdn.microsoft.com/en-us/library/system.windows.forms.mouseeventargs(v=vs.110).aspx
+        /// 
+        /// @return The return value is the AutomationElement that is currently under the mouse.
         private void GlobalHookMouseWheel(object sender, MouseEventArgs e)
         {
             if (!recording)
@@ -468,6 +517,14 @@ namespace Bio
             else
                 rec.List.Add(new Action(Action.Type.wheeldown, el.Current.ProcessId, e));
         }
+        /// If the mouse is moving, and we're recording, and we have an element, then add a mousemove
+        /// action to the recording.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param MouseEventExtArgs
+        /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
+        /// 
+        /// @return The return value is the current mouse position.
         private void GlobalHookMouseMoveExt(object sender, MouseEventExtArgs e)
         {
             if (!move)
@@ -480,6 +537,14 @@ namespace Bio
             rec.List.Add(new Action(Action.Type.mousemove, el.Current.ProcessId, e));
 
         }
+        /// If the user is recording, and the element is not null, then add a new action to the list of
+        /// actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param KeyPressEventArgs
+        /// https://msdn.microsoft.com/en-us/library/system.windows.forms.keypresseventargs(v=vs.110).aspx
+        /// 
+        /// @return The current process ID.
         private void GlobalHookKeyPress(object sender, KeyPressEventArgs e)
         {
             if (!recording)
@@ -489,6 +554,14 @@ namespace Bio
                 return;
             rec.List.Add(new Action(Action.Type.keypress, el.Current.ProcessId, e));
         }
+        /// If the user is recording, and the user has selected an element, then add a new action to the
+        /// list of actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param KeyEventArgs
+        /// https://msdn.microsoft.com/en-us/library/system.windows.input.keyeventargs(v=vs.110).aspx
+        /// 
+        /// @return The AutomationElement is being returned.
         private void GlobalHookKeyUp(object sender, KeyEventArgs e)
         {
             if (!recording)
@@ -498,6 +571,13 @@ namespace Bio
                 return;
             rec.List.Add(new Action(Action.Type.keyup, el.Current.ProcessId, e));
         }
+       /// If we're recording, and we have a valid element, then add a new action to the list of actions
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param KeyEventArgs
+       /// https://msdn.microsoft.com/en-us/library/system.windows.input.keyeventargs(v=vs.110).aspx
+       /// 
+       /// @return The AutomationElement is being returned.
         private void GlobalHookKeyDown(object sender, KeyEventArgs e)
         {
             if (!recording)
@@ -510,6 +590,11 @@ namespace Bio
 
         public static class AutomationHelpers
         {
+            /// It returns a list of all the children of the parent element
+            /// 
+            /// @param AutomationElement The parent element
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetChildren(AutomationElement parent)
             {
                 if (parent == null)
@@ -531,6 +616,11 @@ namespace Bio
                     return null;
                 }
             }
+            /// It returns a list of all the children of the parent element
+            /// 
+            /// @param AutomationElement The parent element
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetAllChildren(AutomationElement parent)
             {
                 if (parent == null)
@@ -557,6 +647,13 @@ namespace Bio
                     return null;
                 }
             }
+            /// It takes a parent element and a name, and returns a list of all the child elements that
+            /// have that name
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param name The name of the element you want to find.
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetName(AutomationElement parent, string name)
             {
                 if (parent == null)
@@ -585,6 +682,13 @@ namespace Bio
                     return null;
                 }
             }
+            /// It takes a parent element and an automation id and returns a list of all the elements
+            /// that have that automation id
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param id The ID of the element you want to find.
+            /// 
+            /// @return A list of AutomationElements that have the AutomationID of "id"
             public static List<AutomationElement> GetAutomationID(AutomationElement parent, string id)
             {
                 if (parent == null)
@@ -613,6 +717,13 @@ namespace Bio
                     return null;
                 }
             }
+            /// It takes a parent element and a class name as parameters, and returns a list of all the
+            /// child elements that have the specified class name
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param name The name of the class you want to find.
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetClassName(AutomationElement parent, string name)
             {
                 if (parent == null)
@@ -641,6 +752,18 @@ namespace Bio
                     return null;
                 }
             }
+            /// It finds the process, finds the window, finds the element, and returns the element
+            /// 
+            /// @param process The name of the process you want to get the element from.
+            /// @param title The title of the window you want to get the element from.
+            /// @param id The AutomationId of the element
+            /// @param name The name of the element.
+            /// @param classname The class name of the element.
+            /// @param index The index of the element you want to get. If you want the first element,
+            /// set this to 0. If you want the second element, set this to 1. If you want the last
+            /// element, set this to -1.
+            /// 
+            /// @return The AutomationElement object.
             public static AutomationElement GetElementByProcess(string process, string title, string id, string name, string classname, int index)
             {
                 Process[] procs = Process.GetProcessesByName(process);
@@ -690,6 +813,16 @@ namespace Bio
                     return result[0];
                 return result[index];
             }
+            /// It finds the index of the element that is clicked on
+            /// 
+            /// @param process The name of the process you want to find the element in.
+            /// @param title The title of the window.
+            /// @param id The AutomationId of the element
+            /// @param name The name of the element.
+            /// @param classname The class name of the element.
+            /// @param Point The point on the screen where the element is located.
+            /// 
+            /// @return The index of the element.
             public static int GetIndex(string process, string title, string id, string name, string classname, Point p)
             {
                 //For elements which have the same name, tittle, & id we also find the index of the item.
@@ -742,6 +875,11 @@ namespace Bio
                 }
                 return index;
             }
+            /// It takes a string like "1,2,3" and returns an array of integers like [1,2,3]
+            /// 
+            /// @param s The string to convert to a runtime ID.
+            /// 
+            /// @return An array of integers.
             public static int[] StringToRuntimeID(string s)
             {
                 int[] r = new int[3];
@@ -752,6 +890,12 @@ namespace Bio
                 }
                 return r;
             }
+            /// It returns a list of AutomationElements that have the same AutomationId and Name
+            /// 
+            /// @param id The AutomationId of the element
+            /// @param name The name of the element you want to find.
+            /// 
+            /// @return A list of AutomationElements.
             public static List<AutomationElement> GetElement(string id, string name)
             {
                 AutomationElement parent = AutomationElement.RootElement;
@@ -776,6 +920,14 @@ namespace Bio
                     return null;
                 }
             }
+            /// It returns a list of AutomationElements that have a LocalizedControlType of the type
+            /// specified by the type parameter
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param TreeScope 
+            /// @param type The type of control you want to find.
+            /// 
+            /// @return A list of AutomationElements that match the criteria.
             public static List<AutomationElement> GetLocalizedControlType(AutomationElement parent, TreeScope scope, string type)
             {
                 if (parent == null)
@@ -802,6 +954,11 @@ namespace Bio
                     return null;
                 }
             }
+            /// It returns a list of all the children of a given parent element
+            /// 
+            /// @param AutomationElement The parent element
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetRawChildren(AutomationElement parent)
             {
                 if (parent == null)
@@ -824,6 +981,13 @@ namespace Bio
 
                 return result;
             }
+            /// It takes a parent element and an automation ID and returns a list of all the child
+            /// elements that have that automation ID
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param auto The automation ID of the control you want to find.
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetRawAutomationID(AutomationElement parent, string auto)
             {
                 if (parent == null)
@@ -854,6 +1018,13 @@ namespace Bio
 
                 return result;
             }
+            /// It takes a parent element and a string as parameters and returns a list of all the child
+            /// elements of the parent element that have the same LocalizedControlType as the string
+            /// 
+            /// @param AutomationElement The parent element to search from.
+            /// @param auto The control type you want to find.
+            /// 
+            /// @return A list of AutomationElements
             public static List<AutomationElement> GetRawLocalizedControlType(AutomationElement parent, string auto)
             {
                 if (parent == null)
@@ -884,6 +1055,11 @@ namespace Bio
 
                 return result;
             }
+            /// It returns a list of all the children of the parent element
+            /// 
+            /// @param AutomationElement The parent element to search for children.
+            /// 
+            /// @return A list of AutomationElements.
             public static List<AutomationElement> GetRaw(AutomationElement parent)
             {
                 if (parent == null)
@@ -906,6 +1082,11 @@ namespace Bio
 
                 return result;
             }
+            /// If the control supports the ValuePattern, then return the value of the control
+            /// 
+            /// @param AutomationElement The control you want to get the value from.
+            /// 
+            /// @return The value of the control.
             public static string GetValue(AutomationElement control)
             {
                 object patternProvider;
@@ -916,6 +1097,14 @@ namespace Bio
                 }
                 return null;
             }
+            /// "If the control supports the SelectionPattern, then get the selection and return the
+            /// name of the first item in the selection."
+            /// 
+            /// The function returns null if the control does not support the SelectionPattern
+            /// 
+            /// @param AutomationElement The control you want to get the selection from.
+            /// 
+            /// @return The name of the selected item.
             public static string GetSelection(AutomationElement control)
             {
                 object patternProvider;
@@ -927,6 +1116,11 @@ namespace Bio
                 }
                 return null;
             }
+            /// It gets the text from a control
+            /// 
+            /// @param AutomationElement The control you want to get the text from.
+            /// 
+            /// @return The text of the control.
             public static string GetText(AutomationElement control)
             {
                 object patternProvider;
@@ -937,6 +1131,10 @@ namespace Bio
                 }
                 return null;
             }
+           /// It takes a control and a string and sets the value of the control to the string
+           /// 
+           /// @param AutomationElement The element that you want to set the value of.
+           /// @param value The string value to be set.
             public static void SetValue(AutomationElement targetControl, string value)
             {
                 // Validate arguments / initial setup
@@ -999,6 +1197,11 @@ namespace Bio
                     }
                 }
             }
+            /// It takes a parent element and returns the number of children it has
+            /// 
+            /// @param AutomationElement The parent element of the controls you want to count.
+            /// 
+            /// @return The number of controls in the parent.
             public static int GetCount(AutomationElement parent)
             {
                 if (parent == null)
@@ -1017,6 +1220,12 @@ namespace Bio
                 }
                 return i;
             }
+            /// If the element is a toggle button, return true if it is toggled on, otherwise return
+            /// false
+            /// 
+            /// @param AutomationElement The element you want to check
+            /// 
+            /// @return The return value is a boolean value.
             public static bool IsElementToggledOn(AutomationElement element)
             {
                 if (element == null)
@@ -1033,6 +1242,11 @@ namespace Bio
                 }
                 return false;
             }
+            /// It takes a screenshot of the element and returns it as a bitmap
+            /// 
+            /// @param AutomationElement The element you want to capture.
+            /// 
+            /// @return A Bitmap object.
             public static Bitmap GetImage(AutomationElement el)
             {
                 System.Drawing.Graphics g;

@@ -2,6 +2,7 @@
 {
     public partial class ApplyFilter : Form
     {
+        /* This is the constructor of the class. It is called when the class is instantiated. */
         public ApplyFilter(bool two)
         {
             InitializeComponent();
@@ -15,6 +16,10 @@
             if (stackABox.Items.Count > 0)
                 stackABox.SelectedIndex = 0;
         }
+        /// If the number of images in the list of images is not equal to the number of items in the
+        /// stackABox and stackBBox, then clear the items in the stackABox and stackBBox, add the images
+        /// to the stackABox and stackBBox, and if there is only one image in the list of images, then
+        /// select that image
         public void UpdateStacks()
         {
             if (Images.images.Count != stackABox.Items.Count)
@@ -30,14 +35,20 @@
                     stackABox.SelectedIndex = 0;
             }
         }
+        /* A property of the class. It is a getter method. It returns the selected item in the
+        stackABox. */
         public BioImage ImageA
         {
             get { return (BioImage)stackABox.SelectedItem; }
         }
+        /* A property of the class. It is a getter method. It returns the selected item in the
+        stackBBox. */
         public BioImage ImageB
         {
             get { return (BioImage)stackBBox.SelectedItem; }
         }
+        /* A property of the class. It is a getter method. It returns the selected item in the
+                stackABox. */
         public RectangleD Rectangle
         {
             get
@@ -77,6 +88,13 @@
             }
         }
 
+        /// If the user selects an image from the stackA dropdown, then the ROI dropdown is populated
+        /// with the ROIs from that image
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs 
+        /// 
+        /// @return The selected item in the stackABox.
         private void stackABox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (stackABox.SelectedIndex == -1)
@@ -92,6 +110,12 @@
                 stackABox.SelectedIndex = -1;
             }
         }
+        /// If the user selects the same image for both A and B, then display a message box
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs 
+        /// 
+        /// @return The selected index of the stackBBox.
         private void stackBBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (stackABox.SelectedIndex == -1)
@@ -105,24 +129,48 @@
                 stackBBox.SelectedIndex = -1;
             }
         }
+        /// When the form is activated, update the stacks
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void StackTools_Activated(object sender, EventArgs e)
         {
             UpdateStacks();
         }
+        /// The function is called when the user clicks the OK button
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void okBut_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.OK;
         }
+       /// If the user clicks the cancel button, the dialog result is set to cancel
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void cancelBut_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
         }
+        /// If the user clicks the "Set Color" button, then the color dialog box will appear and the
+        /// user can select a color. If the user clicks "OK", then the color will be set to the color
+        /// the user selected. If the user clicks "Cancel", then the color will not be changed
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
+        /// 
+        /// @return The color that was selected in the color dialog.
         private void setColorBut_Click(object sender, EventArgs e)
         {
             if (colorDialog.ShowDialog() != DialogResult.OK)
                 return;
             fillPanel.BackColor = colorDialog.Color;
         }
+        /// This function clears the ROI box when the user clicks on the "Clear" button in the ROI menu
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event data.
         private void clearToolStripMenuItem_Click(object sender, EventArgs e)
         {
             roiBox.SelectedIndex = -1;

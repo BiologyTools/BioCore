@@ -2,6 +2,7 @@
 
 namespace Bio
 {
+    /* It's a form that displays an XML tree */
     public partial class XMLView : Form
     {
         XmlTreeDisplay tree = null;
@@ -14,10 +15,12 @@ namespace Bio
 
         }
     }
+    /* It takes an XML string and displays it in a tree view */
     public class XmlTreeDisplay : System.Windows.Forms.UserControl
     {
         private System.Windows.Forms.TreeView treeXml = new TreeView();
 
+        /* It's a constructor that takes an XML string and displays it in a tree view. */
         public XmlTreeDisplay(string xml)
         {
             treeXml.Nodes.Clear();
@@ -40,6 +43,11 @@ namespace Bio
             treeXml.Dock = DockStyle.Fill;
         }
 
+        /// It takes an XML node and a tree node collection and adds the XML node to the tree node
+        /// collection
+        /// 
+        /// @param XmlNode The XML node to convert.
+        /// @param TreeNodeCollection The collection of nodes to which the new node is added.
         private void ConvertXmlNodeToTreeNode(XmlNode xmlNode,
           TreeNodeCollection treeNodes)
         {

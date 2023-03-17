@@ -12,6 +12,8 @@ namespace Bio
 {
     public partial class SelectRecording : Form
     {
+        /* Adding the items in the Automation.Properties.Values and Automation.Recordings.Values to the
+        propsBox and recsBox. */
         public SelectRecording()
         {
             InitializeComponent();
@@ -25,6 +27,7 @@ namespace Bio
             }
         }
         private Automation.Recording rec = null;
+        /* A property that returns the value of the variable rec. */
         public Automation.Recording Recording
         {
             get
@@ -33,16 +36,30 @@ namespace Bio
             }
         }
 
+        /// When the user selects a recording from the dropdown list, the recording is assigned to the
+        /// variable rec
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void recsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             rec = (Automation.Recording)recsBox.SelectedItem;
         }
 
+        /// When the user selects a recording from the dropdown menu, the recording is assigned to the
+        /// variable rec
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs e
         private void propsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             rec = (Automation.Recording)propsBox.SelectedItem;
         }
 
+        /// The function is called when the user clicks the OK button
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void okBut_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.OK;

@@ -5,6 +5,7 @@
         private ScrollTextBox textBox = new ScrollTextBox();
         private ScrollTextBox lineBox = new ScrollTextBox();
         private int tabSize = 15;
+        /* Initializing the textbox and the linebox. */
         public CodeView()
         {
             InitializeComponent();
@@ -23,6 +24,7 @@
             textBox.SelectionTabs = new int[] { tabSize, tabSize * 2, tabSize * 3, tabSize * 4, tabSize * 5, tabSize * 6 };
             UpdateScroll();
         }
+        /* A property of a RichTextBox. */
         public RichTextBox TextBox
         {
             get
@@ -31,6 +33,7 @@
             }
         }
 
+        /* A property of the textbox. */
         public bool WordWrap
         {
             get
@@ -42,6 +45,7 @@
                 textBox.WordWrap = value;
             }
         }
+        /// The lineBox's vertical scroll position is set to the textBox's vertical scroll position
         public void UpdateScroll()
         {
             lineBox.VerticalScrollPosition = textBox.VerticalScrollPosition;
@@ -54,6 +58,7 @@
         public class ScrollTextBox : RichTextBox
         {
 
+            /* Creating a new instance of the ScrollTextBox class. */
             public ScrollTextBox()
             {
                 _components = new System.ComponentModel.Container();
@@ -67,6 +72,11 @@
                ("Gets or sets the vertical scroll bar's position"
                )
             ]
+            /// The function takes a value and sets the scroll position of the window
+            /// 
+            /// @param value The position to scroll to
+            /// @param  Win32.WM_VSCROLL - The message to send to the control to scroll it.
+            /// @param  Win32.WM_VSCROLL - The message to send to the control to scroll it.
             public int VerticalScrollPosition
             {
                 set { SetScroll(value, Win32.WM_VSCROLL, Win32.SB_VERT); }
@@ -79,6 +89,14 @@
                ("Gets or sets the horizontal scroll bar's position"
                )
             ]
+            /// SetScroll(value, Win32.WM_HSCROLL, Win32.SB_HORZ);
+            /// 
+            /// The first parameter is the value to set the scrollbar to. The second parameter is the
+            /// message to send to the control. The third parameter is the scrollbar to set
+            /// 
+            /// @param value The value to set the scrollbar to.
+            /// @param  Win32.WM_HSCROLL - The message to send to the control
+            /// @param  Win32.WM_HSCROLL - The message to send to the control
             public int HorizontalScrollPosition
             {
                 set { SetScroll(value, Win32.WM_HSCROLL, Win32.SB_HORZ); }
@@ -90,6 +108,7 @@
                )
             , System.ComponentModel.Category("Property Changed")
             ]
+            /* Creating an event handler for the ScrollChanged event. */
             public event System.Windows.Forms.ScrollEventHandler ScrollChanged;
 
             // Fire scroll event if the scroll-bars are moved
@@ -177,6 +196,10 @@
                 TryFireScrollEvent();
             }
 
+            /// If the object is being disposed, and the components are not null, then dispose of the
+            /// components
+            /// 
+            /// @param disposing true if managed resources should be disposed; otherwise, false.
             protected override void Dispose
             (bool disposing
             )
@@ -186,6 +209,12 @@
                 base.Dispose(disposing);
             }
 
+            /// It sets the scrollbar position and then sends a message to the window to update the
+            /// scrollbar
+            /// 
+            /// @param value The value to set the scrollbar to.
+            /// @param windowsMessage The message to send to the window.
+            /// @param scrollBarMessage 
             private void SetScroll
             (int value
             , uint windowsMessage
@@ -206,6 +235,11 @@
                 );
             }
 
+           /// GetScrollPos returns the current position of the scroll bar
+           /// 
+           /// @param scrollBarMessage 
+           /// 
+           /// @return The current position of the scroll bar.
             private int GetScroll
             (int scrollBarMessage
             )
@@ -227,6 +261,11 @@
                 TryFireVerticalScrollEvent();
             }
 
+            /// If the scroll position has changed, fire a scroll event.
+            /// 
+            /// The function is called from the `OnMouseWheel` function.
+            /// 
+            /// @return The ScrollEventArgs object is being returned.
             private void TryFireHorizontalScrollEvent()
             {
 
@@ -261,6 +300,9 @@
 
             }
 
+            /// If the scroll position has changed, fire a scroll event.
+            /// 
+            /// @return The ScrollEventArgs object is being returned.
             private void TryFireVerticalScrollEvent()
             {
                 // Don't do anything if there is no event handler
@@ -298,6 +340,7 @@
             private int _fontWidth;
             private System.ComponentModel.IContainer _components = null;
 
+            /* It's a class that allows you to set the scroll position of a control. */
             private static class Win32
             {
 
@@ -334,15 +377,27 @@
             }
 
         }
+        /// It updates the scrollbar's position when the mouse wheel is scrolled
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param e The mouse event arguments.
         private void Code_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             UpdateScroll();
         }
+        /// It updates the scrollbar.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void textBox_Scroll(object sender, EventArgs e)
         {
             UpdateScroll();
         }
 
+       /// It takes the number of lines in the textbox and adds them to the linebox
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void textBox_TextChanged(object sender, EventArgs e)
         {
             lineBox.Text = "";
@@ -353,11 +408,19 @@
             UpdateScroll();
         }
 
+        /// When the font of the textbox changes, the font of the linebox changes to match it
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void textBox_FontChanged(object sender, EventArgs e)
         {
             lineBox.Font = textBox.Font;
         }
 
+        /// > When the code view is resized, update the scroll bar
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void CodeView_Resize(object sender, EventArgs e)
         {
             UpdateScroll();
