@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCore", "BioCore\BioCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCoreApp", "..\BioCoreApp\BioCoreApp\BioCoreApp.csproj", "{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BioCoreSetup", "..\BioCoreSetup\BioCoreSetup\BioCoreSetup.vdproj", "{ED77FDEF-D7A5-459C-9215-895EAD346E3F}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BioCoreSetup", "..\BioCoreSetup\BioCoreSetup\BioCoreSetup.vdproj", "{A4C120AA-8717-441A-968D-607D31456131}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,17 +43,18 @@ Global
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|x64.Build.0 = Release|x64
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|x86.ActiveCfg = Release|x86
 		{BCD01681-CD22-44E6-AAFA-ED2A857F70E9}.Release|x86.Build.0 = Release|x86
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|Any CPU.ActiveCfg = Debug
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|Any CPU.Build.0 = Debug
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|x64.ActiveCfg = Debug
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|x86.ActiveCfg = Debug
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Debug|x86.Build.0 = Debug
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|Any CPU.ActiveCfg = Release
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|Any CPU.Build.0 = Release
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x64.ActiveCfg = Release
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x64.Build.0 = Release
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x86.ActiveCfg = Release
-		{ED77FDEF-D7A5-459C-9215-895EAD346E3F}.Release|x86.Build.0 = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|Any CPU.ActiveCfg = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|Any CPU.Build.0 = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|x64.ActiveCfg = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|x64.Build.0 = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|x86.ActiveCfg = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Debug|x86.Build.0 = Debug
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|Any CPU.ActiveCfg = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|Any CPU.Build.0 = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|x64.ActiveCfg = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|x64.Build.0 = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|x86.ActiveCfg = Release
+		{A4C120AA-8717-441A-968D-607D31456131}.Release|x86.Build.0 = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

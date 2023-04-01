@@ -53,7 +53,7 @@ namespace Bio.Graphics
                         vec.W = 0.5f;
                         vertices[ind] = new DColorShader.DVertex()
                         {
-                            position = new Vector3((float)x / (float)im.SizeX, (float)y / (float)im.SizeY, (z / (float)im.SizeZ) * (float)im.physicalSizeZ),
+                            position = new Vector3((float)x / (float)im.SizeX, (float)y / (float)im.SizeY, (z / (float)im.SizeZ) * (float)im.PhysicalSizeZ),
                             color = vec
                         };
                     }

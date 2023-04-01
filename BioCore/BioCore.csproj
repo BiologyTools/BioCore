@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.0.0</Version>
+	  <Version>3.0.1</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -22,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.0.0</AssemblyVersion>
-    <FileVersion>3.0.0</FileVersion>
-    <PackageReleaseNotes>Slide overview for ImageViewer.</PackageReleaseNotes>
+    <AssemblyVersion>3.0.1</AssemblyVersion>
+    <FileVersion>3.0.1</FileVersion>
+    <PackageReleaseNotes>Endianness fix.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
