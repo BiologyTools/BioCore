@@ -63,7 +63,7 @@
     </Content>
     <Content Include="Bio.ico" />
     <Content Include="bioformats_package.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
