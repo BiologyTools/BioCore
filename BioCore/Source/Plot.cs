@@ -55,7 +55,7 @@ namespace Bio
 
         private void Plot_FormClosing(object sender, FormClosingEventArgs e)
         {
-            File.Delete(file);
+
         }
 
         private void Plot_ResizeEnd(object sender, EventArgs e)
