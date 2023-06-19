@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ScottPlot;
+using ucar.nc2.@internal.iosp.netcdf3;
 
 namespace Bio
 {
@@ -15,6 +16,7 @@ namespace Bio
     {
         public ScottPlot.Plot plot;
         string file;
+        string name;
         Bitmap bitmap;
         List<double[]> data = new List<double[]>();
         public List<double[]> Data
@@ -31,13 +33,15 @@ namespace Bio
         {
             InitializeComponent();
             UpdateImage();
+            name = DateTime.Now.Ticks.ToString();
             this.Show();
         }
-        public Plot(double[] vals)
+        public Plot(double[] vals, string name)
         {
             InitializeComponent();
             data.Add(vals);
             UpdateImage();
+            this.name = name;
             this.Show();
         }
 
@@ -48,7 +52,8 @@ namespace Bio
             {
                 plot.AddBar(val);
             }
-            file = plot.SaveFig(DateTime.Now.Ticks.ToString() + ".png");
+            file = plot.SaveFig(name + ".png");
+            this.Text = name;
             bitmap = (Bitmap)Bitmap.FromFile(file);
             pictureBox.Image = bitmap;
         }

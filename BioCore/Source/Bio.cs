@@ -9260,7 +9260,7 @@ namespace Bio
                     fr = im.Coords[i, Channel, Time];
                 }
             }
-            Plot pl = new Plot(dt.ToArray());
+            Plot pl = new Plot(dt.ToArray(),"Focus");
             return fr;
         }
         static long CalculateFocusQuality(BufferInfo b)
