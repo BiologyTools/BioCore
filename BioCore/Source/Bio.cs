@@ -8209,7 +8209,6 @@ namespace Bio
 
             } while (!stop);
         }
-
         public static void SaveOMEPyramidal(BioImage[] bms, string file, string compression)
         {
             if (File.Exists(file))
@@ -9244,6 +9243,56 @@ namespace Bio
         public ImageReader imRead = new ImageReader();
         byte[] bts;
         int ssx, ssy;
+        public static int FindFocus(BioImage im, int Channel, int Time)
+        {
+            
+            long mf = 0;
+            int fr = 0;
+            List<double> dt = new List<double>();
+            ZCT c = new ZCT(0, 0, 0);
+            for (int i = 0; i < im.SizeZ; i++)
+            {
+                long f = CalculateFocusQuality(im.Buffers[im.Coords[i,Channel,Time]]);
+                dt.Add(f);
+                if (f > mf)
+                {
+                    mf = f;
+                    fr = im.Coords[i, Channel, Time];
+                }
+            }
+            Plot pl = new Plot(dt.ToArray());
+            return fr;
+        }
+        static long CalculateFocusQuality(BufferInfo b)
+        {
+            if (b.RGBChannelsCount == 1)
+            {
+                long sum = 0;
+                long sumOfSquaresR = 0;
+                for (int y = 0; y < b.SizeY; y++)
+                    for (int x = 0; x < b.SizeX; x++)
+                    {
+                        ColorS pixel = b.GetPixel(x, y);
+                        sum += pixel.R;
+                        sumOfSquaresR += pixel.R * pixel.R;
+                    }
+                return sumOfSquaresR * b.SizeX * b.SizeY - sum * sum;
+            }
+            else
+            {
+                long sum = 0;
+                long sumOfSquares = 0;
+                for (int y = 0; y < b.SizeY; y++)
+                    for (int x = 0; x < b.SizeX; x++)
+                    {
+                        ColorS pixel = b.GetPixel(x, y);
+                        int p = (pixel.R + pixel.G + pixel.B) / 3;
+                        sum += p;
+                        sumOfSquares += p * p;
+                    }
+                return sumOfSquares * b.SizeX * b.SizeY - sum * sum;
+            }
+        }
         /// The function takes in a ZCT coordinate, a series, a tile x and y, a tile size x and y, and
         /// returns a bitmap
         /// 

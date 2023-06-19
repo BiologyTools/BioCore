@@ -1308,5 +1308,14 @@ namespace Bio
             }
             App.viewer.UpdateView();
         }
+
+        private void autoFocusToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if(SelectedImage==null) return;
+            ZCT co = ImageView.GetCoordinate();
+            int f = BioImage.FindFocus(SelectedImage,co.C,co.T);
+            ZCT z = SelectedImage.Buffers[f].Coordinate;
+            ImageView.SetCoordinate(z.Z,z.C,z.T);
+        }
     }
 }
