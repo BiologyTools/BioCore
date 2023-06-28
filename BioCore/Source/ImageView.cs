@@ -534,6 +534,10 @@ namespace Bio
                 }
                 else
                     pyramidalOrigin.Y = value.Y;
+                if(pyramidalOrigin.X < 0)
+                    pyramidalOrigin.X = 0;
+                if(pyramidalOrigin.Y < 0)
+                    pyramidalOrigin.Y = 0;
                 origin = SelectedImage.ToStageSpace(new PointD((double)pyramidalOrigin.X, (double)pyramidalOrigin.Y));
                 hScrollBar.Value = (int)pyramidalOrigin.X;
                 vScrollBar.Value = (int)pyramidalOrigin.Y;
@@ -1244,7 +1248,7 @@ namespace Bio
         /// the coordinates
         private void UpdateTile()
         {
-            tile = SelectedImage.GetTile(GetCoordinate(), Resolution,(int)PyramidalOrigin.X, (int)PyramidalOrigin.Y, pictureBox.Width, pictureBox.Height);
+            tile = SelectedImage.GetTileRGB(GetCoordinate(), Resolution,(int)PyramidalOrigin.X, (int)PyramidalOrigin.Y, pictureBox.Width, pictureBox.Height);
         }
         /// When the user selects a channel from the dropdown menu, the program updates the image to
         /// display the selected channel

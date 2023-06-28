@@ -240,17 +240,17 @@ namespace Bio
             get { return pz; }
             set { pz = value; }
         }
-        public double StageX
+        public double StageSizeX
         {
             get { return stageX; }
             set { stageX = value; }
         }
-        public double StageY
+        public double StageSizeY
         {
             get { return stageY; }
             set { stageY = value; }
         }
-        public double StageZ
+        public double StageSizeZ
         {
             get { return stageZ; }
             set { stageZ = value; }
@@ -5602,10 +5602,7 @@ namespace Bio
         {
             get
             {
-                if (Resolutions.Count > 1)
-                    return true;
-                else
-                    return false;
+                return ispyramidal;
             }
         }
         public string file;
@@ -8681,34 +8678,16 @@ namespace Bio
             b.imagesPerSeries = reader.getImageCount();
             b.series = serie;
             string order = reader.getDimensionOrder();
-            PixelFormat PixelFormat = GetPixelFormat(RGBChannelCount, b.bitsPerPixel);
-            ome.xml.model.enums.PixelType ppx = b.meta.getPixelsType(serie);
-            if (ppx == ome.xml.model.enums.PixelType.UINT8 && RGBChannelCount == 3)
+            //OME reader.getBitsPerPixel(); sometimes returns incorrect bits per pixel, like when opening ImageJ images.
+            //So we check the pixel type from xml metadata and if it fails we use the readers value.
+            PixelFormat PixelFormat;
+            try
             {
-                PixelFormat = PixelFormat.Format24bppRgb;
-                b.bitsPerPixel = 8;
+                PixelFormat = GetPixelFormat(RGBChannelCount, b.meta.getPixelsType(serie));
             }
-            int stride = 0;
-            if (RGBChannelCount == 1)
+            catch (Exception)
             {
-                if (b.bitsPerPixel > 8)
-                    stride = SizeX * 2;
-                else
-                    stride = SizeX;
-            }
-            else
-            if (RGBChannelCount == 3)
-            {
-                b.sizeC = 1;
-                if (b.bitsPerPixel > 8)
-                    stride = SizeX * 2 * 3;
-                else
-                    stride = SizeX * 3;
-            }
-            else
-            {
-                b.sizeC = 1;
-                stride = SizeX * 4;
+                PixelFormat = GetPixelFormat(RGBChannelCount, reader.getBitsPerPixel());
             }
             int sx = tileSizeX;
             int sy = tileSizeY;
@@ -8733,54 +8712,65 @@ namespace Bio
                 if (sy <= 0)
                     return null;
             }
-
-            for (int r = 0; r < reader.getResolutionCount(); r++)
+            int resc = reader.getResolutionCount();
+            for (int s = 0; s < b.seriesCount; s++)
             {
-                Resolution res = new Resolution();
-                reader.setSeries(r);
-                try
+                reader.setSeries(s);
+                for (int r = 0; r < reader.getResolutionCount(); r++)
                 {
-                    int rgbc = reader.getRGBChannelCount();
-                    int bps = reader.getBitsPerPixel();
-                    PixelFormat px = GetPixelFormat(RGBChannelCount, b.bitsPerPixel);
-                    bool hasPhysical = false;
-                    if (b.meta.getPixelsPhysicalSizeX(r) != null)
+                    Resolution res = new Resolution();
+                    try
                     {
-                        res.PhysicalSizeX = b.meta.getPixelsPhysicalSizeX(r).value().doubleValue();
-                        hasPhysical = true;
+                        int rgbc = reader.getRGBChannelCount();
+                        int bps = reader.getBitsPerPixel();
+                        PixelFormat px;
+                        try
+                        {
+                            px = GetPixelFormat(rgbc, b.meta.getPixelsType(s));
+                        }
+                        catch (Exception)
+                        {
+                            px = GetPixelFormat(rgbc, bps);
+                        }
+                        res.PixelFormat = px;
+                        res.SizeX = reader.getSizeX();
+                        res.SizeY = reader.getSizeY();
+                        if (b.meta.getPixelsPhysicalSizeX(s) != null)
+                        {
+                            res.PhysicalSizeX = b.meta.getPixelsPhysicalSizeX(s).value().doubleValue();
+                        }
+                        else
+                            res.PhysicalSizeX = (96 / 2.54) / 1000;
+                        if (b.meta.getPixelsPhysicalSizeY(s) != null)
+                        {
+                            res.PhysicalSizeY = b.meta.getPixelsPhysicalSizeY(s).value().doubleValue();
+                        }
+                        else
+                            res.PhysicalSizeY = (96 / 2.54) / 1000;
+
+                        if (b.meta.getStageLabelX(s) != null)
+                            res.StageSizeX = b.meta.getStageLabelX(s).value().doubleValue();
+                        if (b.meta.getStageLabelY(s) != null)
+                            res.StageSizeY = b.meta.getStageLabelY(s).value().doubleValue();
+                        if (b.meta.getStageLabelZ(s) != null)
+                            res.StageSizeZ = b.meta.getStageLabelZ(s).value().doubleValue();
+                        else
+                            res.StageSizeZ = 1;
+                        if (b.meta.getPixelsPhysicalSizeZ(s) != null)
+                        {
+                            res.PhysicalSizeZ = b.meta.getPixelsPhysicalSizeZ(s).value().doubleValue();
+                        }
+                        else
+                        {
+                            res.PhysicalSizeZ = 1;
+                        }
                     }
-                    else
-                        res.PhysicalSizeX = (96 / 2.54) / 1000;
-                    if (b.meta.getPixelsPhysicalSizeY(r) != null)
+                    catch (Exception e)
                     {
-                        res.PhysicalSizeY = b.meta.getPixelsPhysicalSizeY(r).value().doubleValue();
+                        Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + res.PhysicalSizeX + "," + res.PhysicalSizeY + "," + res.PhysicalSizeZ + ")");
                     }
-                    else
-                        res.PhysicalSizeY = (96 / 2.54) / 1000;
-                    if (b.meta.getPixelsPhysicalSizeZ(r) != null)
-                    {
-                        res.PhysicalSizeZ = b.meta.getPixelsPhysicalSizeZ(r).value().doubleValue();
-                    }
-                    else
-                    {
-                        res.PhysicalSizeZ = 1;
-                    }
-                    res.SizeX = b.meta.getPixelsSizeX(r).getNumberValue().intValue();
-                    res.SizeY = b.meta.getPixelsSizeY(r).getNumberValue().intValue();
-                    if (b.meta.getStageLabelX(r) != null)
-                        res.StageX = b.meta.getStageLabelX(r).value().doubleValue();
-                    if (b.meta.getStageLabelY(r) != null)
-                        res.StageY = b.meta.getStageLabelY(r).value().doubleValue();
-                    if (b.meta.getStageLabelZ(r) != null)
-                        res.StageZ = b.meta.getStageLabelZ(r).value().doubleValue();
-                    else
-                        res.StageZ = 1;
+                    b.Resolutions.Add(res);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + res.PhysicalSizeX + "," + res.PhysicalSizeY + "," + res.PhysicalSizeZ + ")");
-                }
-                b.Resolutions.Add(res);
             }
             reader.setSeries(serie);
             b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
@@ -8886,6 +8876,7 @@ namespace Bio
                 //since this is a tile we need to update the stage coordinates based on tile location
                 b.stageSizeX = b.stageSizeX + (b.PhysicalSizeX * tilex);
                 b.stageSizeY = b.stageSizeY + (b.PhysicalSizeY * tiley);
+                b.ispyramidal = true;
             }
             int rc = b.meta.getROICount();
             for (int im = 0; im < rc; im++)
@@ -9437,6 +9428,13 @@ namespace Bio
             Bitmap bm = BufferInfo.GetBitmap(sx, sy, stride, PixelFormat, bytesr); 
             return bm; 
         }
+        public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        {
+            Bitmap bm = GetTile(coord,serie,tilex,tiley,tileSizeX,tileSizeY);
+            if (bm == null)
+                return null;
+            return (Bitmap)new BufferInfo(file, (Image)bm, coord, 0).ImageRGB;
+        }
         /// This function sets the minimum and maximum values of the image to the minimum and maximum
         /// values of the stack
         /// 
@@ -9556,12 +9554,30 @@ namespace Bio
             }
             throw new NotSupportedException("Not supported pixel format.");
         }
+        public static PixelFormat GetPixelFormat(int rgbChannelCount, ome.xml.model.enums.PixelType px)
+        {
+            if (rgbChannelCount == 1)
+            {
+                if (px == ome.xml.model.enums.PixelType.INT8 || px == ome.xml.model.enums.PixelType.UINT8)
+                    return PixelFormat.Format8bppIndexed;
+                else if (px == ome.xml.model.enums.PixelType.INT16 || px == ome.xml.model.enums.PixelType.UINT16)
+                    return PixelFormat.Format16bppGrayScale;
+            }
+            else
+            {
+                if (px == ome.xml.model.enums.PixelType.INT8 || px == ome.xml.model.enums.PixelType.UINT8)
+                    return PixelFormat.Format24bppRgb;
+                else if (px == ome.xml.model.enums.PixelType.INT16 || px == ome.xml.model.enums.PixelType.UINT16)
+                    return PixelFormat.Format48bppRgb;
+            }
+            throw new NotSupportedException("Not supported pixel format.");
+        }
         /// It opens an OME-TIFF file, and returns an array of BioImage objects, one for each series in
-       /// the file
-       /// 
-       /// @param file the path to the file
-       /// 
-       /// @return An array of BioImage objects.
+        /// the file
+        /// 
+        /// @param file the path to the file
+        /// 
+        /// @return An array of BioImage objects.
         public static BioImage[] OpenOMESeries(string file)
         {
             reader = new ImageReader();

@@ -527,21 +527,17 @@ namespace Bio
             Scripting.UpdateState(Scripting.State.GetMove(e, buts));
             if (Tools.currentTool.type == Tools.Tool.Type.pan && buts == MouseButtons.Left || buts == MouseButtons.Middle)
             {
-                /*
                 if (ImageView.SelectedImage.isPyramidal)
                 {
-                    App.viewer.TileShown = false;
-                    System.Drawing.Point pd = new System.Drawing.Point(App.viewer.MouseMoveInt.X - pod.X, App.viewer.MouseMoveInt.Y - pod.Y);
-                    App.viewer.PyramidalOrigin = new System.Drawing.Point(App.viewer.PyramidalOrigin.X + pd.X, App.viewer.PyramidalOrigin.Y + pd.Y);
-                    pod = App.viewer.MouseMoveInt;
+                    PointD pd = new PointD(App.viewer.MouseDownInt.X - App.viewer.MouseMoveInt.X, App.viewer.MouseDownInt.Y - App.viewer.MouseMoveInt.Y);
+                    App.viewer.PyramidalOrigin = new PointF(App.viewer.PyramidalOrigin.X - (int)pd.X, App.viewer.PyramidalOrigin.Y - (int)pd.Y);
                 }
                 else
                 {
-                    */
                     PointD pf = new PointD(e.X - ImageView.mouseDown.X, e.Y - ImageView.mouseDown.Y);
                     App.viewer.Origin = new PointD(App.viewer.Origin.X + pf.X, App.viewer.Origin.Y + pf.Y);
                     UpdateView();
-                //}
+                }
             }
             if (ImageView.SelectedImage == null)
                 return;

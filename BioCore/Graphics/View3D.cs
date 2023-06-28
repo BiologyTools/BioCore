@@ -29,11 +29,12 @@ namespace Bio
         public View3D(BioImage im)
         {
             InitializeComponent();
+            Initialize();           
             MouseWheel += new System.Windows.Forms.MouseEventHandler(ImageView_MouseWheel);
             RRange = im.RRange;
             GRange = im.GRange;
             BRange = im.BRange;
-            Initialize();
+            
             rMinBox.Value = im.RRange.Min;
             gMinBox.Value = im.GRange.Min;
             bMinBox.Value = im.BRange.Min;
@@ -65,6 +66,8 @@ namespace Bio
         }
         public void UpdateView()
         {
+            if (sys == null)
+                return;
             sys.Configuration.Width = dxPanel.Width;
             sys.Configuration.Height = dxPanel.Height;
             rot = Matrix.RotationX(r.X) * Matrix.RotationY(r.Y) * Matrix.RotationZ(r.Z);
