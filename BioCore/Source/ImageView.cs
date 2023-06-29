@@ -191,6 +191,7 @@ namespace Bio
         public bool loopZ = true;
         public bool loopT = true;
         public bool loopC = true;
+        int resolution;
         private double pxWmicron = 0.004;
         private double pxHmicron = 0.004;
         SizeF scale = new SizeF(1, 1);
@@ -522,13 +523,13 @@ namespace Bio
             }
             set
             {
-                if (value.X > SelectedImage.Resolution.SizeX - pictureBox.Width)
+                if (value.X >= SelectedImage.Resolution.SizeX - pictureBox.Width)
                 {
                     pyramidalOrigin.X = hScrollBar.Maximum;
                 }
                 else
                     pyramidalOrigin.X = value.X;
-                if (value.Y > SelectedImage.Resolution.SizeY - pictureBox.Height)
+                if (value.Y >= SelectedImage.Resolution.SizeY - pictureBox.Height)
                 {
                     pyramidalOrigin.Y = vScrollBar.Maximum;
                 }
@@ -545,31 +546,44 @@ namespace Bio
                 UpdateView();
             }
         }
-        /* A property of the class. */
+        /* Setting the resolution of the image. */
         public int Resolution
         {
-            get { return SelectedImage.resolution; }
+            get { return resolution; }
             set
             {
-                int r = GetOverviewResolution();
-                if (r > 0)
+                if (SelectedImage.Resolutions.Count <= value || value < 0)
+                    return;
+                float x, y;
+                if (value > resolution)
                 {
-                    float dx = SelectedImage.Resolutions[value].SizeX / SelectedImage.Resolution.SizeX;
-                    float dy = SelectedImage.Resolutions[value].SizeY / SelectedImage.Resolution.SizeY;
-                    PyramidalOrigin = new PointF(PyramidalOrigin.X * dx, PyramidalOrigin.Y * dy);
-                    SelectedImage.resolution = value;
-                    Scale = new SizeF(1, 1);
-                    UpdateScrollBars();
-                    UpdateTile();
-                    UpdateView();
+                    //++resolution zoom out
+                    x = ((float)PyramidalOrigin.X / (float)SelectedImage.Resolutions[resolution].SizeX) * (float)SelectedImage.Resolutions[value].SizeX;
+                    y = ((float)PyramidalOrigin.Y / (float)SelectedImage.Resolutions[resolution].SizeY) * (float)SelectedImage.Resolutions[value].SizeY;
+                    float w = Width / 4;
+                    float h = Height / 4;
+                    resolution = value;
+                    PyramidalOrigin = new PointF(x - w, y - h);
                 }
+                else
+                {
+                    //--resolution zoom in
+                    x = ((float)PyramidalOrigin.X / (float)SelectedImage.Resolutions[resolution].SizeX) * (float)SelectedImage.Resolutions[value].SizeX;
+                    y = ((float)PyramidalOrigin.Y / (float)SelectedImage.Resolutions[resolution].SizeY) * (float)SelectedImage.Resolutions[value].SizeY;
+                    float w = Width / 2;
+                    float h = Height / 2;
+                    resolution = value;
+                    PyramidalOrigin = new PointF(x + w, y + h);
+                }
+                UpdateScrollBars();
+                UpdateImage();
+                UpdateView();
             }
         }
         void UpdateScrollBars()
         {
-            hScrollBar.Maximum = SelectedImage.Resolution.SizeX - pictureBox.Width;
-            vScrollBar.Maximum = SelectedImage.Resolution.SizeY - pictureBox.Height;
-            
+            hScrollBar.Maximum = SelectedImage.Resolutions[resolution].SizeX - pictureBox.Width;
+            vScrollBar.Maximum = SelectedImage.Resolutions[resolution].SizeY - pictureBox.Height;
         }
         /* A property that is used to set the scale of the view. */
         public new SizeF Scale
@@ -1239,7 +1253,7 @@ namespace Bio
             set
             {
                 tileShown = value;
-                if (tileShown)
+                if (tileShown && SelectedImage.isPyramidal)
                     UpdateTile();
             }
         }
@@ -1584,13 +1598,11 @@ namespace Bio
             if (Ctrl && SelectedImage.isPyramidal)
             if (e.Delta > 0)
             {
-                if (Resolution - 1 > 0)
-                    Resolution--;
+                Resolution--;
             }
             if (e.Delta < 0)
             {
-                if (Resolution + 1 < SelectedImage.Resolutions.Count)
-                    Resolution++;
+                Resolution++;
             }
         }
         /// If the mouse wheel is scrolled up, increase the value of the trackbar by 1, if the mouse
@@ -2088,6 +2100,8 @@ namespace Bio
                 
                 if (SelectedImage.isPyramidal)
                 {
+                    if (tile == null)
+                        break;
                     //We check to see if image is valid
                     if (tile.PixelFormat == PixelFormat.DontCare)
                         UpdateTile();
