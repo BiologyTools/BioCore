@@ -1262,7 +1262,12 @@ namespace Bio
         /// the coordinates
         private void UpdateTile()
         {
-            tile = SelectedImage.GetTileRGB(GetCoordinate(), Resolution,(int)PyramidalOrigin.X, (int)PyramidalOrigin.Y, pictureBox.Width, pictureBox.Height);
+            if (pictureBox.Height > 0 && pictureBox.Width > 0)
+            {
+                Bitmap bm = (Bitmap)BioImage.GetTile(SelectedImage, GetCoordinate(), Resolution, (int)PyramidalOrigin.X, (int)PyramidalOrigin.Y, pictureBox.Width, pictureBox.Height).ImageRGB;
+                if (bm != null)
+                    tile = bm;
+            }
         }
         /// When the user selects a channel from the dropdown menu, the program updates the image to
         /// display the selected channel

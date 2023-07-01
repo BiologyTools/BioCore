@@ -45,6 +45,12 @@
         public NodeView(string[] args)
         {
             InitializeComponent();
+            //Let's make sure the directories we need for startup exist.
+            Console.WriteLine("Reading start up folders.");
+            string st = System.IO.Path.GetDirectoryName(Environment.ProcessPath);
+            System.IO.Directory.CreateDirectory(st + "/Scripts");
+            System.IO.Directory.CreateDirectory(st + "/Functions");
+            System.IO.Directory.CreateDirectory(st + "/Tools");
             Init();
             InitNodes();
             App.nodeView = this;

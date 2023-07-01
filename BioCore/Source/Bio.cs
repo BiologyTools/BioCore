@@ -5212,7 +5212,7 @@ namespace Bio
         }
         private int sizeZ, sizeC, sizeT;
         private Statistics statistics;
-
+        int tileX, tileY;
         ImageInfo imageInfo = new ImageInfo();
         public static BioImage Copy(BioImage b, bool rois)
         {
@@ -5316,28 +5316,33 @@ namespace Bio
         {
             get { return imageInfo.PhysicalSizeZ; }
         }
+        public int TileX
+        {
+            get { return tileX; }
+        }
+        public int TileY
+        {
+            get { return tileY; }
+        }
         public double StageSizeX
         {
-            get { return imageInfo.StageSizeX; }
-            set
+            get
             {
-                imageInfo.StageSizeX = value;
+                return imageInfo.StageSizeX + (PhysicalSizeX * tileX);
             }
         }
         public double StageSizeY
         {
-            get { return imageInfo.StageSizeY; }
-            set
+            get
             {
-                imageInfo.StageSizeY = value;
+                return imageInfo.StageSizeY + (PhysicalSizeY * tileY);
             }
         }
         public double StageSizeZ
         {
-            get { return imageInfo.StageSizeZ; }
-            set
+            get
             {
-                imageInfo.StageSizeZ = value;
+                return imageInfo.StageSizeZ;
             }
         }
         public Resolution Resolution
@@ -8834,9 +8839,6 @@ namespace Bio
             b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
             if(tile)
             {
-                //since this is a tile we need to update the stage coordinates based on tile location
-                b.StageSizeX = b.StageSizeX + (b.PhysicalSizeX * tilex);
-                b.StageSizeY = b.StageSizeY + (b.PhysicalSizeY * tiley);
                 b.ispyramidal = true;
             }
             int rc = b.meta.getROICount();
@@ -9125,7 +9127,7 @@ namespace Bio
                 BufferInfo bf;
                 if (tile)
                 {
-                    bf = new BufferInfo(b.file, (Image)b.GetTile(b.coordinate, serie, tilex, tiley, sx, sy), new ZCT(z, c, t), p);
+                    bf = BioImage.GetTile(b, b.coordinate, serie, tilex, tiley, sx, sy);
                     b.Buffers.Add(bf);
                 }
                 else
@@ -9245,34 +9247,32 @@ namespace Bio
                 return sumOfSquares * b.SizeX * b.SizeY - sum * sum;
             }
         }
-        /// The function takes in a ZCT coordinate, a series, a tile x and y, a tile size x and y, and
-        /// returns a bitmap
+        /// It reads a tile from a file, and returns a bitmap
         /// 
-        /// @param ZCT Z, C, T coordinates
-        /// @param serie the series number
-        /// @param tilex The x coordinate of the tile
-        /// @param tiley The y coordinate of the tile
-        /// @param tileSizeX The width of the tile in pixels
-        /// @param tileSizeY The height of the tile in pixels
+        /// @param BioImage This is a class that contains the image file name, the image reader, and the
+        /// coordinates of the image.
+        /// @param ZCT Z, C, T
+        /// @param serie the series number (0-based)
+        /// @param tilex the x coordinate of the tile
+        /// @param tiley the y coordinate of the tile
+        /// @param tileSizeX the width of the tile
+        /// @param tileSizeY the height of the tile
         /// 
         /// @return A Bitmap object.
-        public Bitmap GetTile(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        public static BufferInfo GetTile(BioImage b, ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
-            if (imRead == null)
-                imRead = new ImageReader();
-            string s = imRead.getCurrentFile();
+            if (b.imRead == null)
+                b.imRead = new ImageReader();
+            string s = b.imRead.getCurrentFile();
             if (s == null)
-                imRead.setId(file);
-            if (imRead.getSeries() != serie)
-                imRead.setSeries(serie);
-            int SizeX = imRead.getSizeX();
-            int SizeY = imRead.getSizeY();
-            int SizeZ = imRead.getSizeZ();
-            int p = Coords[coord.Z, coord.C, coord.T];
-            littleEndian = imRead.isLittleEndian();
-            int RGBChannelCount = imRead.getRGBChannelCount();
-            int bitsPerPixel = imRead.getBitsPerPixel();
-            PixelFormat PixelFormat = Resolutions[0].PixelFormat;
+                b.imRead.setId(b.file);
+            if (b.imRead.getSeries() != serie)
+                b.imRead.setSeries(serie);
+            int SizeX = b.imRead.getSizeX();
+            int SizeY = b.imRead.getSizeY();
+            int p = b.Coords[coord.Z, coord.C, coord.T];
+            bool littleEndian = b.imRead.isLittleEndian();
+            PixelFormat PixelFormat = b.Resolutions[serie].PixelFormat;
             if (tilex < 0)
                 tilex = 0;
             if (tiley < 0)
@@ -9283,118 +9283,22 @@ namespace Bio
                 tiley = SizeY - 1;
             int sx = tileSizeX;
             if (tilex + tileSizeX > SizeX)
-                sx -= (tilex + tileSizeX) - (SizeX-1);
+                sx -= (tilex + tileSizeX) - (SizeX);
             int sy = tileSizeY;
             if (tiley + tileSizeY > SizeY)
-                sy -= (tiley + tileSizeY) - (SizeY-1);
+                sy -= (tiley + tileSizeY) - (SizeY);
             if (sx <= 0)
                 return null;
             if (sy <= 0)
                 return null;
-            int stride;
-            if (RGBChannelCount == 1)
-            {
-                if (bitsPerPixel > 8)
-                    stride = sx * 2;
-                else
-                    stride = sx;
-            }
-            else
-            if (RGBChannelCount == 3)
-            {
-                if (bitsPerPixel > 8)
-                    stride = sx * 2 * 3;
-                else
-                    stride = sx * 3;
-            }
-            else
-            {
-                stride = sx * 4;
-            }
-
-            try
-            {
-                if (meta.getStageLabelX(serie) != null)
-                    StageSizeX = meta.getStageLabelX(serie).value().doubleValue();
-                if (meta.getStageLabelY(serie) != null)
-                    StageSizeY = meta.getStageLabelY(serie).value().doubleValue();
-                if (meta.getStageLabelZ(serie) != null)
-                    StageSizeZ = meta.getStageLabelZ(serie).value().doubleValue();
-                else
-                    StageSizeZ = 1;
-            }
-            catch (Exception e)
-            {
-                StageSizeX = 0;
-                StageSizeY = 0;
-                StageSizeZ = 0;
-                Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + PhysicalSizeX + "," + PhysicalSizeY + "," + PhysicalSizeZ + ")");
-            }
-            
-
-            if (sx != ssx || sy != ssy)
-            {
-                //We update the cached tile byte buffer.
-                bts = new byte[stride * sy];
-                ssx = sx;
-                ssy = sy;
-            }
-            resolution = serie;
-            //since this is a tile we need to update the stage coordinates based on tile location
-            StageSizeX = StageSizeX + (PhysicalSizeX * tilex);
-            StageSizeY = StageSizeY + (PhysicalSizeY * tiley);
-            byte[] bytesr = imRead.openBytes(Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
-            bool interleaved = imRead.isInterleaved();
-            if (!interleaved)
-            {
-                int strplane = 0;
-                if (bitsPerPixel > 8)
-                    strplane = sx * 2;
-                else
-                    strplane = sx;
-                if (RGBChannelCount == 1)
-                {
-                    for (int y = 0; y < sy; y++)
-                    {
-                        int x = 0;
-                        int str1 = stride * y;
-                        int str2 = strplane * y;
-                        for (int st = 0; st < strplane; st++)
-                        {
-                            bts[str1 + x] = bytesr[str2 + st];
-                            x++;
-                        }
-                    }
-                }
-                else
-                {
-                    int ind = strplane * sy;
-                    int indb = ind * 2;
-                    for (int y = 0; y < sy; y++)
-                    {
-                        int x = 0;
-                        int str1 = stride * y;
-                        int str2 = strplane * y;
-                        for (int st = 0; st < strplane; st++)
-                        {
-                            bts[str1 + x + 2] = bytesr[str2 + st];
-                            bts[str1 + x + 1] = bytesr[ind + str2 + st];
-                            bts[str1 + x] = bytesr[indb + str2 + st];
-                            x += 3;
-                        }
-                    }
-                }
-                return BufferInfo.GetBitmap(sx, sy, stride, PixelFormat, bts);
-            }
-            Bitmap bm = BufferInfo.GetBitmap(sx, sy, stride, PixelFormat, bytesr); 
-            return bm; 
+            byte[] bytesr = b.imRead.openBytes(b.Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
+            bool interleaved = b.imRead.isInterleaved();
+            BufferInfo bm = new BufferInfo(b.file, sx, sy, PixelFormat, bytesr, coord, p, null, littleEndian, interleaved);
+            return bm;
         }
         public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
-            Bitmap bm = GetTile(coord,serie,tilex,tiley,tileSizeX,tileSizeY);
-            if (bm == null)
-                return null;
-            return (Bitmap)new BufferInfo(file, (Image)bm, coord, 0).ImageRGB;
+            return (Bitmap)GetTile(this,coord,serie,tilex,tiley,tileSizeX,tileSizeY).ImageRGB;
         }
         /// This function sets the minimum and maximum values of the image to the minimum and maximum
         /// values of the stack
