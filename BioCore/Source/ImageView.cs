@@ -61,6 +61,14 @@ namespace Bio
                 vScrollBar.Visible = true;
             }
             else
+            if (im.isPyramidal && im.Resolutions.Count == 1)
+            {
+                showPreview = false;
+                UpdateScrollBars();
+                hScrollBar.Visible = true;
+                vScrollBar.Visible = true;
+            }
+            else
             {
                 hScrollBar.Visible = false;
                 vScrollBar.Visible = false;

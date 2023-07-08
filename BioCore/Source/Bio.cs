@@ -204,17 +204,12 @@ namespace Bio
         }
     }
     /* A struct that is used to store the resolution of an image. */
-    public class Resolution
+    public struct Resolution
     {
         int x;
         int y;
         PixelFormat format;
-        double px;
-        double py;
-        double pz;
-        double stageX;
-        double stageY;
-        double stageZ;
+        double px, py, pz, sx, sy, sz;
         public int SizeX
         {
             get { return x; }
@@ -242,18 +237,18 @@ namespace Bio
         }
         public double StageSizeX
         {
-            get { return stageX; }
-            set { stageX = value; }
+            get { return sx; }
+            set { sx = value; }
         }
         public double StageSizeY
         {
-            get { return stageY; }
-            set { stageY = value; }
+            get { return sy; }
+            set { sy = value; }
         }
         public double StageSizeZ
         {
-            get { return stageZ; }
-            set { stageZ = value; }
+            get { return sz; }
+            set { sz = value; }
         }
         public double VolumeWidth
         {
@@ -274,7 +269,18 @@ namespace Bio
             get { return format; }
             set { format = value; }
         }
-        /* Calculating the size of the image in bytes. */
+        public int RGBChannelsCount
+        {
+            get
+            {
+                if (PixelFormat == PixelFormat.Format8bppIndexed || PixelFormat == PixelFormat.Format16bppGrayScale)
+                    return 1;
+                else if (PixelFormat == PixelFormat.Format24bppRgb || PixelFormat == PixelFormat.Format48bppRgb)
+                    return 3;
+                else
+                    return 4;
+            }
+        }
         public long SizeInBytes
         {
             get
@@ -289,36 +295,36 @@ namespace Bio
                     return (long)y * (long)x * 4;
                 else if (format == PixelFormat.Format48bppRgb || format == PixelFormat.Format48bppRgb)
                     return (long)y * (long)x * 6;
-                return 0;
+                throw new NotSupportedException(format + " is not supported.");
             }
-        }
-        public Resolution()
-        {
-
         }
         public Resolution(int w, int h, int omePx, int bitsPerPixel, double physX, double physY, double physZ, double stageX, double stageY, double stageZ)
         {
             x = w;
             y = h;
+            sx = stageX;
+            sy = stageY;
+            sz = stageZ;
             format = BioImage.GetPixelFormat(omePx, bitsPerPixel);
             px = physX;
             py = physY;
             pz = physZ;
-            this.stageX = stageX;
-            this.stageY = stageY;
-            this.stageZ = stageZ;
         }
         public Resolution(int w, int h, PixelFormat f, double physX, double physY, double physZ, double stageX, double stageY, double stageZ)
         {
             x = w;
             y = h;
             format = f;
+            sx = stageX;
+            sy = stageY;
+            sz = stageZ;
             px = physX;
             py = physY;
             pz = physZ;
-            this.stageX = stageX;
-            this.stageY = stageY;
-            this.stageZ = stageZ;
+        }
+        public Resolution Copy()
+        {
+            return new Resolution(x, y, format, px, py, pz, sx, sy, sz);
         }
         public override string ToString()
         {
@@ -5363,7 +5369,7 @@ namespace Bio
                 imageInfo.Series = value;
             }
         }
-
+        public List<NetVips.Image> vipPages = new List<NetVips.Image>();
         static bool initialized = false;
         public Channel RChannel
         {
@@ -5615,6 +5621,7 @@ namespace Bio
                 return initialized;
             }
         }
+        
         /// It converts a 16-bit image to an 8-bit image
         /// 
         /// @return A list of BufferInfo objects.
@@ -6157,7 +6164,38 @@ namespace Bio
             Recorder.AddLine("ImageView.SelectedImage.Bake(" + rf.Min + "," + rf.Max + "," + gf.Min + "," + gf.Max + "," + bf.Min + "," + bf.Max + ");");
         }
 
-        
+        static bool vips = false;
+        public static void OpenVips(BioImage b, int pagecount)
+        {
+            try
+            {
+                for (int i = 0; i < pagecount; i++)
+                {
+                    b.vipPages.Add(NetVips.Image.Tiffload(b.file, i));
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+        }
+        public static void OpenVip(BioImage b, int pagenumber)
+        {
+            try
+            {
+                NetVips.Image im = NetVips.Image.Tiffload(b.file, pagenumber);
+                b.vipPages.Add(im);
+                BufferInfo bf = GetTile(b, new ZCT(0, 0, 0), pagenumber, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+                b.Buffers.Add(bf);
+                Statistics.CalcStatistics(bf);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+        }
         public void UpdateCoords()
         {
             int z = 0;
@@ -7447,6 +7485,94 @@ namespace Bio
         {
             return OpenFile(file, 0);
         }
+        static bool IsTiffTiled(string imagePath)
+        {
+            if (imagePath.EndsWith(".tif") || imagePath.EndsWith(".tiff"))
+            {
+                using (Tiff tiff = Tiff.Open(imagePath, "r"))
+                {
+                    if (tiff == null)
+                    {
+                        throw new Exception("Failed to open TIFF image.");
+                    }
+                    bool t = tiff.IsTiled();
+                    tiff.Close();
+                    return t;
+                }
+            }
+            else return false;
+        }
+        static void InitDirectoryResolution(BioImage b, Tiff image, ImageJDesc jdesc = null)
+        {
+            Resolution res = new Resolution();
+            FieldValue[] rs = image.GetField(TiffTag.RESOLUTIONUNIT);
+            string unit = "NONE";
+            if (rs != null)
+                unit = rs[0].ToString();
+            if (jdesc != null)
+                res.PhysicalSizeZ = jdesc.finterval;
+            else
+                res.PhysicalSizeZ = 2.54 / 96;
+            if (unit == "CENTIMETER")
+            {
+                if (image.GetField(TiffTag.XRESOLUTION) != null)
+                {
+                    double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
+                    res.PhysicalSizeX = (1000 / x);
+                }
+                if (image.GetField(TiffTag.YRESOLUTION) != null)
+                {
+                    double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
+                    res.PhysicalSizeY = (1000 / y);
+                }
+            }
+            else
+            if (unit == "INCH")
+            {
+                if (image.GetField(TiffTag.XRESOLUTION) != null)
+                {
+                    double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
+                    res.PhysicalSizeX = (2.54 / x) / 2.54;
+                }
+                if (image.GetField(TiffTag.YRESOLUTION) != null)
+                {
+                    double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
+                    res.PhysicalSizeY = (2.54 / y) / 2.54;
+                }
+            }
+            else
+            if (unit == "NONE")
+            {
+                if (jdesc != null)
+                {
+                    if (jdesc.unit == "micron")
+                    {
+                        if (image.GetField(TiffTag.XRESOLUTION) != null)
+                        {
+                            double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
+                            res.PhysicalSizeX = (2.54 / x) / 2.54;
+                        }
+                        if (image.GetField(TiffTag.YRESOLUTION) != null)
+                        {
+                            double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
+                            res.PhysicalSizeY = (2.54 / y) / 2.54;
+                        }
+                    }
+                }
+                else
+                {
+                    res.PhysicalSizeX = 2.54 / 96;
+                    res.PhysicalSizeY = 2.54 / 96;
+                    res.PhysicalSizeZ = 2.54 / 96;
+                }
+            }
+            res.SizeX = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
+            res.SizeY = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
+            int bitsPerPixel = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
+            int RGBChannelCount = image.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
+            res.PixelFormat = GetPixelFormat(RGBChannelCount, bitsPerPixel);
+            b.Resolutions.Add(res);
+        }
         /// It opens a file, reads the metadata, reads the image data, and then calculates the image
         /// statistics
         /// 
@@ -7460,12 +7586,16 @@ namespace Bio
             {
                 return OpenOME(file);
             }
+            vips = VipsSupport(file);
             Stopwatch st = new Stopwatch();
             st.Start();
             Progress pr = new Progress(file, "Opening");
             pr.Show();
             Application.DoEvents();
             BioImage b = new BioImage(file);
+            bool tiled = IsTiffTiled(file);
+            if (tiled)
+                b.ispyramidal = true;
             b.series = series;
             b.file = file;
             string fn = Path.GetFileNameWithoutExtension(file);
@@ -7478,244 +7608,211 @@ namespace Bio
             if (file.EndsWith("tif") || file.EndsWith("tiff") || file.EndsWith("TIF") || file.EndsWith("TIFF"))
             {
                 Tiff image = Tiff.Open(file, "r");
-                int SizeX = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
-                int SizeY = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
-                b.bitsPerPixel = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
-                b.littleEndian = image.IsBigEndian();
-                int RGBChannelCount = image.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
-                string desc = "";
+                for (int d = 0; d < image.NumberOfDirectories(); d++)
+                {
+                    image.SetDirectory((short)d);
+                    int SizeX = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
+                    int SizeY = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
+                    b.bitsPerPixel = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
+                    b.littleEndian = image.IsBigEndian();
+                    int RGBChannelCount = image.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
+                    string desc = "";
 
-                FieldValue[] f = image.GetField(TiffTag.IMAGEDESCRIPTION);
-                ImageJDesc imDesc = new ImageJDesc();
-                b.sizeC = 1;
-                b.sizeT = 1;
-                b.sizeZ = 1;
-                if (f != null)
-                {
-                    desc = f[0].ToString();
-                    if (desc.StartsWith("ImageJ"))
-                    {
-                        imDesc.SetString(desc);
-                        if (imDesc.channels != 0)
-                            b.sizeC = imDesc.channels;
-                        else
-                            b.sizeC = 1;
-                        if (imDesc.slices != 0)
-                            b.sizeZ = imDesc.slices;
-                        else
-                            b.sizeZ = 1;
-                        if (imDesc.frames != 0)
-                            b.sizeT = imDesc.frames;
-                        else
-                            b.sizeT = 1;
-                        if (imDesc.finterval != 0)
-                            b.frameInterval = imDesc.finterval;
-                        else
-                            b.frameInterval = 1;
-                        if (imDesc.spacing != 0)
-                            b.imageInfo.PhysicalSizeZ = imDesc.spacing;
-                        else
-                            b.imageInfo.PhysicalSizeZ = 1;
-                    }
-                }
-                int stride = 0;
-                PixelFormat PixelFormat;
-                if (RGBChannelCount == 1)
-                {
-                    if (b.bitsPerPixel > 8)
-                    {
-                        PixelFormat = PixelFormat.Format16bppGrayScale;
-                        stride = SizeX * 2;
-                    }
-                    else
-                    {
-                        PixelFormat = PixelFormat.Format8bppIndexed;
-                        stride = SizeX;
-                    }
-                }
-                else
-                if (RGBChannelCount == 3)
-                {
+                    FieldValue[] f = image.GetField(TiffTag.IMAGEDESCRIPTION);
+                    ImageJDesc imDesc = new ImageJDesc();
                     b.sizeC = 1;
-                    if (b.bitsPerPixel > 8)
+                    b.sizeT = 1;
+                    b.sizeZ = 1;
+                    if (f != null)
                     {
-                        PixelFormat = PixelFormat.Format48bppRgb;
-                        stride = SizeX * 2 * 3;
-                    }
-                    else
-                    {
-                        PixelFormat = PixelFormat.Format24bppRgb;
-                        stride = SizeX * 3;
-                    }
-                }
-                else
-                {
-                    PixelFormat = PixelFormat.Format32bppArgb;
-                    stride = SizeX * 4;
-                }
-                string unit = (string)image.GetField(TiffTag.RESOLUTIONUNIT)[0].ToString();
-                if (unit == "CENTIMETER")
-                {
-                    if (image.GetField(TiffTag.XRESOLUTION) != null)
-                    {
-                        double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                        b.imageInfo.PhysicalSizeX = (1000 / x);
-                    }
-                    if (image.GetField(TiffTag.YRESOLUTION) != null)
-                    {
-                        double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                        b.imageInfo.PhysicalSizeY = (1000 / y);
-                    }
-                }
-                else
-                if (unit == "INCH")
-                {
-                    if (image.GetField(TiffTag.XRESOLUTION) != null)
-                    {
-                        double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                        b.imageInfo.PhysicalSizeX = (2.54 / x) / 2.54;
-                    }
-                    if (image.GetField(TiffTag.YRESOLUTION) != null)
-                    {
-                        double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                        b.imageInfo.PhysicalSizeY = (2.54 / y) / 2.54;
-                    }
-                }
-                else
-                if (unit == "NONE")
-                {
-                    if (imDesc.unit == "micron")
-                    {
-                        if (image.GetField(TiffTag.XRESOLUTION) != null)
+                        desc = f[0].ToString();
+                        if (desc.StartsWith("ImageJ"))
                         {
-                            double x = image.GetField(TiffTag.XRESOLUTION)[0].ToDouble();
-                            b.imageInfo.PhysicalSizeX = (2.54 / x) / 2.54;
-                        }
-                        if (image.GetField(TiffTag.YRESOLUTION) != null)
-                        {
-                            double y = image.GetField(TiffTag.YRESOLUTION)[0].ToDouble();
-                            b.imageInfo.PhysicalSizeY = (2.54 / y) / 2.54;
+                            imDesc.SetString(desc);
+                            if (imDesc.channels != 0)
+                                b.sizeC = imDesc.channels;
+                            else
+                                b.sizeC = 1;
+                            if (imDesc.slices != 0)
+                                b.sizeZ = imDesc.slices;
+                            else
+                                b.sizeZ = 1;
+                            if (imDesc.frames != 0)
+                                b.sizeT = imDesc.frames;
+                            else
+                                b.sizeT = 1;
+                            if (imDesc.finterval != 0)
+                                b.frameInterval = imDesc.finterval;
+                            else
+                                b.frameInterval = 1;
+                            if (imDesc.spacing != 0)
+                                b.imageInfo.PhysicalSizeZ = imDesc.spacing;
+                            else
+                                b.imageInfo.PhysicalSizeZ = 1;
                         }
                     }
-                }
-                string[] sts = desc.Split('\n');
-                int index = 0;
-                for (int i = 0; i < sts.Length; i++)
-                {
-                    if (sts[i].StartsWith("-Channel"))
+                    int stride = 0;
+                    PixelFormat PixelFormat;
+                    if (RGBChannelCount == 1)
                     {
-                        string val = sts[i].Substring(9);
-                        val = val.Substring(0, val.IndexOf(':'));
-                        int serie = int.Parse(val);
-                        if (serie == series && sts[i].Length > 7)
+                        if (b.bitsPerPixel > 8)
                         {
-                            string cht = sts[i].Substring(sts[i].IndexOf('{'), sts[i].Length - sts[i].IndexOf('{'));
-                            Channel.ChannelInfo info = JsonConvert.DeserializeObject<Channel.ChannelInfo>(cht);
-                            Channel ch = new Channel(index, b.bitsPerPixel, info.samplesPerPixel);
-                            ch.info = info;
-                            b.Channels.Add(ch);
-                            index++;
+                            PixelFormat = PixelFormat.Format16bppGrayScale;
+                            stride = SizeX * 2;
+                        }
+                        else
+                        {
+                            PixelFormat = PixelFormat.Format8bppIndexed;
+                            stride = SizeX;
                         }
                     }
                     else
-                    if (sts[i].StartsWith("-ROI"))
+                    if (RGBChannelCount == 3)
                     {
-                        string val = sts[i].Substring(5);
-                        val = val.Substring(0, val.IndexOf(':'));
-                        int serie = int.Parse(val);
-                        if (serie == series && sts[i].Length > 7)
+                        b.sizeC = 1;
+                        if (b.bitsPerPixel > 8)
                         {
-                            string s = sts[i].Substring(sts[i].IndexOf("ROI:") + 4, sts[i].Length - (sts[i].IndexOf("ROI:") + 4));
-                            string ro = s.Substring(s.IndexOf(":") + 1, s.Length - (s.IndexOf(':') + 1));
-                            ROI roi = StringToROI(ro);
-                            b.Annotations.Add(roi);
+                            PixelFormat = PixelFormat.Format48bppRgb;
+                            stride = SizeX * 2 * 3;
+                        }
+                        else
+                        {
+                            PixelFormat = PixelFormat.Format24bppRgb;
+                            stride = SizeX * 3;
                         }
                     }
                     else
-                    if (sts[i].StartsWith("-ImageInfo"))
                     {
-                        string val = sts[i].Substring(11);
-                        val = val.Substring(0, val.IndexOf(':'));
-                        int serie = int.Parse(val);
-                        if (serie == series && sts[i].Length > 10)
+                        PixelFormat = PixelFormat.Format32bppArgb;
+                        stride = SizeX * 4;
+                    }
+
+                    string[] sts = desc.Split('\n');
+                    int index = 0;
+                    for (int i = 0; i < sts.Length; i++)
+                    {
+                        if (sts[i].StartsWith("-Channel"))
                         {
-                            string cht = sts[i].Substring(sts[i].IndexOf('{'), sts[i].Length - sts[i].IndexOf('{'));
-                            b.imageInfo = JsonConvert.DeserializeObject<ImageInfo>(cht);
+                            string val = sts[i].Substring(9);
+                            val = val.Substring(0, val.IndexOf(':'));
+                            int serie = int.Parse(val);
+                            if (serie == series && sts[i].Length > 7)
+                            {
+                                string cht = sts[i].Substring(sts[i].IndexOf('{'), sts[i].Length - sts[i].IndexOf('{'));
+                                Channel.ChannelInfo info = JsonConvert.DeserializeObject<Channel.ChannelInfo>(cht);
+                                Channel ch = new Channel(index, b.bitsPerPixel, info.samplesPerPixel);
+                                ch.info = info;
+                                b.Channels.Add(ch);
+                                index++;
+                            }
                         }
-
-                    }
-                }
-                b.Resolutions.Add(new Resolution(SizeX, SizeY, PixelFormat, b.imageInfo.PhysicalSizeX, b.imageInfo.PhysicalSizeY, b.imageInfo.PhysicalSizeZ, b.imageInfo.StageSizeX, b.imageInfo.StageSizeY, b.imageInfo.StageSizeZ));
-                b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
-
-                //If this is a tiff file not made by Bio we init channels based on RGBChannels.
-                if (b.Channels.Count == 0)
-                    b.Channels.Add(new Channel(0, b.bitsPerPixel, RGBChannelCount));
-
-                //Lets check to see the channels are correctly defined in this file
-                for (int ch = 0; ch < b.Channels.Count; ch++)
-                {
-                    if (b.Channels[ch].SamplesPerPixel != RGBChannelCount)
-                    {
-                        b.Channels[ch].SamplesPerPixel = RGBChannelCount;
-                    }
-                }
-
-                int z = 0;
-                int c = 0;
-                int t = 0;
-                b.Buffers = new List<BufferInfo>();
-                int pages = image.NumberOfDirectories() / b.seriesCount;
-                //int stride = image.ScanlineSize();
-                int str = image.ScanlineSize();
-                //If calculated stride and image scanline size is not the same it means the image is written in planes
-                bool planes = false;
-                if (stride != str)
-                    planes = true;
-                for (int p = series * pages; p < (series + 1) * pages; p++)
-                {
-                    image.SetDirectory((short)p);
-                    if (planes)
-                    {
-                        BufferInfo[] bfs = new BufferInfo[3];
-                        for (int pl = 0; pl < 3; pl++)
+                        else
+                        if (sts[i].StartsWith("-ROI"))
                         {
-                            byte[] bytes = new byte[str * SizeY];
+                            string val = sts[i].Substring(5);
+                            val = val.Substring(0, val.IndexOf(':'));
+                            int serie = int.Parse(val);
+                            if (serie == series && sts[i].Length > 7)
+                            {
+                                string s = sts[i].Substring(sts[i].IndexOf("ROI:") + 4, sts[i].Length - (sts[i].IndexOf("ROI:") + 4));
+                                string ro = s.Substring(s.IndexOf(":") + 1, s.Length - (s.IndexOf(':') + 1));
+                                ROI roi = StringToROI(ro);
+                                b.Annotations.Add(roi);
+                            }
+                        }
+                        else
+                        if (sts[i].StartsWith("-ImageInfo"))
+                        {
+                            string val = sts[i].Substring(11);
+                            val = val.Substring(0, val.IndexOf(':'));
+                            int serie = int.Parse(val);
+                            if (serie == series && sts[i].Length > 10)
+                            {
+                                string cht = sts[i].Substring(sts[i].IndexOf('{'), sts[i].Length - sts[i].IndexOf('{'));
+                                b.imageInfo = JsonConvert.DeserializeObject<ImageInfo>(cht);
+                            }
+
+                        }
+                    }
+
+                    InitDirectoryResolution(b, image, imDesc);
+
+                    b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
+
+                    //If this is a tiff file not made by Bio we init channels based on RGBChannels.
+                    if (b.Channels.Count == 0)
+                        b.Channels.Add(new Channel(0, b.bitsPerPixel, RGBChannelCount));
+
+                    //Lets check to see the channels are correctly defined in this file
+                    for (int ch = 0; ch < b.Channels.Count; ch++)
+                    {
+                        if (b.Channels[ch].SamplesPerPixel != RGBChannelCount)
+                        {
+                            b.Channels[ch].SamplesPerPixel = RGBChannelCount;
+                        }
+                    }
+
+                    int z = 0;
+                    int c = 0;
+                    int t = 0;
+                    b.Buffers = new List<BufferInfo>();
+                    
+                    if (vips && tiled)
+                    {
+                        OpenVip(b, d);
+                    }
+                    else
+                    {
+                        int pages = image.NumberOfDirectories() / b.seriesCount;
+                        //int stride = image.ScanlineSize();
+                        int str = image.ScanlineSize();
+                        //If calculated stride and image scanline size is not the same it means the image is written in planes
+                        bool planes = false;
+                        if (stride != str)
+                        planes = true;
+                        if (planes)
+                        {
+                            BufferInfo[] bfs = new BufferInfo[3];
+                            for (int pl = 0; pl < 3; pl++)
+                            {
+                                byte[] bytes = new byte[str * SizeY];
+                                for (int im = 0, offset = 0; im < SizeY; im++)
+                                {
+                                    image.ReadScanline(bytes, offset, im, (short)pl);
+                                    offset += str;
+                                }
+                                if (b.bitsPerPixel > 8)
+                                    bfs[pl] = new BufferInfo(file, SizeX, SizeY, PixelFormat.Format16bppGrayScale, bytes, new ZCT(0, 0, 0), d, b.littleEndian, true);
+                                else
+                                    bfs[pl] = new BufferInfo(file, SizeX, SizeY, PixelFormat.Format8bppIndexed, bytes, new ZCT(0, 0, 0), d, b.littleEndian, true);
+                            }
+                            BufferInfo bf;
+                            if (b.bitsPerPixel > 8)
+                                bf = BufferInfo.RGB16To48(bfs);
+                            else
+                                bf = BufferInfo.RGB8To24(bfs);
+                            bf.SwitchRedBlue();
+                            Statistics.CalcStatistics(bf);
+                            b.Buffers.Add(bf);
+                        }
+                        else
+                        {
+                            byte[] bytes = new byte[stride * SizeY];
                             for (int im = 0, offset = 0; im < SizeY; im++)
                             {
-                                image.ReadScanline(bytes, offset, im, (short)pl);
-                                offset += str;
+                                image.ReadScanline(bytes, offset, im, 0);
+                                offset += stride;
                             }
-                            if (b.bitsPerPixel > 8)
-                                bfs[pl] = new BufferInfo(file, SizeX, SizeY, PixelFormat.Format16bppGrayScale, bytes, new ZCT(0, 0, 0), p, null, b.littleEndian);
-                            else
-                                bfs[pl] = new BufferInfo(file, SizeX, SizeY, PixelFormat.Format8bppIndexed, bytes, new ZCT(0, 0, 0), p, null, b.littleEndian);
+                            BufferInfo inf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(0, 0, 0), d, b.littleEndian, true);
+                            if (inf.PixelFormat == PixelFormat.Format48bppRgb)
+                                inf.SwitchRedBlue();
+                            b.Buffers.Add(inf);
+                            Statistics.CalcStatistics(inf);
                         }
-                        BufferInfo bf;
-                        if (b.bitsPerPixel > 8)
-                            bf = BufferInfo.RGB16To48(bfs);
-                        else
-                            bf = BufferInfo.RGB8To24(bfs);
-                        bf.SwitchRedBlue();
-                        Statistics.CalcStatistics(bf);
-                        b.Buffers.Add(bf);
+                        pr.UpdateProgressF((float)((double)d / (double)(series + 1) * pages));
+                        Application.DoEvents();
                     }
-                    else
-                    {
-                        byte[] bytes = new byte[stride * SizeY];
-                        for (int im = 0, offset = 0; im < SizeY; im++)
-                        {
-                            image.ReadScanline(bytes, offset, im, 0);
-                            offset += stride;
-                        }
-                        BufferInfo inf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(0, 0, 0), p, b.littleEndian);
-                        if (inf.PixelFormat == PixelFormat.Format48bppRgb)
-                            inf.SwitchRedBlue();
-                        b.Buffers.Add(inf);
-                        Statistics.CalcStatistics(inf);
-                    }
-                    pr.UpdateProgressF((float)((double)p / (double)(series + 1) * pages));
-                    Application.DoEvents();
+                   
                 }
                 image.Close();
                 b.UpdateCoords();
@@ -9247,6 +9344,40 @@ namespace Bio
                 return sumOfSquares * b.SizeX * b.SizeY - sum * sum;
             }
         }
+        public static BufferInfo ExtractRegionFromTiledTiff(BioImage b, int x, int y, int width, int height, int res)
+        {
+            try
+            {
+                NetVips.Image subImage = b.vipPages[res].Crop(x, y, width, height);
+                if (b.vipPages[res].Format == NetVips.Enums.BandFormat.Uchar)
+                {
+                    BufferInfo bm;
+                    byte[] imageData = subImage.WriteToMemory();
+                    if (b.Resolutions[res].RGBChannelsCount == 3)
+                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format24bppRgb, imageData, new ZCT(), res);
+                    else
+                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format8bppIndexed, imageData, new ZCT(), res);
+                    return bm;
+
+                }
+                else if (b.vipPages[res].Format == NetVips.Enums.BandFormat.Ushort)
+                {
+                    BufferInfo bm;
+                    byte[] imageData = subImage.WriteToMemory();
+                    if (b.Resolutions[res].RGBChannelsCount == 3)
+                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format24bppRgb, imageData, new ZCT(),res);
+                    else
+                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format8bppIndexed, imageData, new ZCT(),res);
+                    return bm;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return null;
+            }
+            return null;
+        }
         /// It reads a tile from a file, and returns a bitmap
         /// 
         /// @param BioImage This is a class that contains the image file name, the image reader, and the
@@ -9261,6 +9392,12 @@ namespace Bio
         /// @return A Bitmap object.
         public static BufferInfo GetTile(BioImage b, ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
+            if ((b.file.EndsWith("ome.tif") && vips) || (b.file.EndsWith(".tif") && vips))
+            {
+                //We can get a tile faster with libvips rather than bioformats.
+                //and incase we are on mac we can't use bioformats due to IKVM not supporting mac.
+                return ExtractRegionFromTiledTiff(b, tilex, tiley, tileSizeX, tileSizeY, serie);
+            }
             if (b.imRead == null)
                 b.imRead = new ImageReader();
             string s = b.imRead.getCurrentFile();
@@ -9299,6 +9436,23 @@ namespace Bio
         public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
             return (Bitmap)GetTile(this,coord,serie,tilex,tiley,tileSizeX,tileSizeY).ImageRGB;
+        }
+        static NetVips.Image netim;
+        public static bool VipsSupport(string file)
+        {
+            NetVips.Image im;
+            try
+            {
+                im = NetVips.Image.Tiffload(file);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+            im.Close();
+            im.Dispose();
+            return true;
         }
         /// This function sets the minimum and maximum values of the image to the minimum and maximum
         /// values of the stack
