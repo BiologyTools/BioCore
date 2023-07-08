@@ -1,7 +1,5 @@
 ﻿using Bio.Graphics;
-using ch.qos.logback.core.util;
 using CSScripting;
-using loci.formats;
 using SharpDX.Mathematics.Interop;
 using System.ComponentModel;
 using System.Drawing.Imaging;

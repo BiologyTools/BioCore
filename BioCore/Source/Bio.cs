@@ -1,8 +1,6 @@
 ﻿using AForge;
 using AForge.Imaging.Filters;
 using BitMiracle.LibTiff.Classic;
-using ch.qos.logback.core.util;
-using com.google.common.primitives;
 using loci.common.services;
 using loci.formats;
 using loci.formats.meta;
