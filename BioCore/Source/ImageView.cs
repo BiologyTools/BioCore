@@ -48,7 +48,7 @@ namespace Bio
             overlayPictureBox.Parent = pictureBox;
             overlayPictureBox.Location = new Point(0, 0);
             resolutions = im.Resolutions;
-            if (im.isPyramidal)
+            if (im.isPyramidal && im.Resolutions.Count > 1)
             {
                 int r = GetOverviewResolution();
                 preview = BioImage.OpenOME(SelectedImage.file, r, false, true, 0, 0, SelectedImage.Resolutions[r].SizeX, SelectedImage.Resolutions[r].SizeY);
@@ -539,6 +539,7 @@ namespace Bio
                     pyramidalOrigin.X = 0;
                 if(pyramidalOrigin.Y < 0)
                     pyramidalOrigin.Y = 0;
+                UpdateScrollBars();
                 origin = SelectedImage.ToStageSpace(new PointD((double)pyramidalOrigin.X, (double)pyramidalOrigin.Y));
                 hScrollBar.Value = (int)pyramidalOrigin.X;
                 vScrollBar.Value = (int)pyramidalOrigin.Y;
@@ -806,7 +807,7 @@ namespace Bio
         public void InitPreview()
         {
             if (SelectedImage.Resolutions.Count == 1)
-                return;
+            { showPreview = false;return; }
             overview = new Rectangle(0, 0, 200, 80);
             AForge.Imaging.Filters.ResizeBilinear re = new AForge.Imaging.Filters.ResizeBilinear(200, 80);
             Bitmap bm = re.Apply((Bitmap)preview.Buffers[0].ImageRGB);
@@ -3059,21 +3060,24 @@ namespace Bio
             {
                 if (Images.Count <= i)
                     return;
-                double dx = preview.Volume.Width / 2;
-                double dy = preview.Volume.Height / 2;
-                Origin = new PointD(-(preview.Volume.Location.X + dx), -(preview.Volume.Location.Y + dy));
-                double wx, wy;
-                if (HardwareAcceleration)
+                if (showPreview)
                 {
-                    wx = pictureBox.Width / ToScreenW(preview.Volume.Width);
-                    wy = pictureBox.Height / ToScreenH(preview.Volume.Height);
+                    double dx = preview.Volume.Width / 2;
+                    double dy = preview.Volume.Height / 2;
+                    Origin = new PointD(-(preview.Volume.Location.X + dx), -(preview.Volume.Location.Y + dy));
+                    double wx, wy;
+                    if (HardwareAcceleration)
+                    {
+                        wx = pictureBox.Width / ToScreenW(preview.Volume.Width);
+                        wy = pictureBox.Height / ToScreenH(preview.Volume.Height);
+                    }
+                    else
+                    {
+                        wx = pictureBox.Width / ToScreenScaleW(preview.Volume.Width);
+                        wy = pictureBox.Height / ToScreenScaleH(preview.Volume.Height);
+                    }
+                    Scale = new SizeF((float)wy, (float)wy);
                 }
-                else
-                {
-                    wx = pictureBox.Width / ToScreenScaleW(preview.Volume.Width);
-                    wy = pictureBox.Height / ToScreenScaleH(preview.Volume.Height);
-                }
-                Scale = new SizeF((float)wy, (float)wy);
             }
             UpdateView();
         }
