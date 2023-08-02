@@ -49,8 +49,8 @@ namespace Bio
             if (im.isPyramidal && im.Resolutions.Count > 1)
             {
                 int r = GetOverviewResolution();
-                preview = BioImage.OpenOME(SelectedImage.file, r, false, true, 0, 0, SelectedImage.Resolutions[r].SizeX, SelectedImage.Resolutions[r].SizeY);
-                previewImage = preview.GetFiltered(GetCoordinate(), preview.RRange, preview.GRange, preview.BRange);
+                preview = BioImage.OpenFile(SelectedImage.file, r, true, 0, 0, im.Resolutions[r].SizeX, im.Resolutions[r].SizeY);
+                previewImage = preview.GetTileRGB(GetCoordinate(), r, 0, 0, SelectedImage.Resolutions[r].SizeX,SelectedImage.Resolutions[r].SizeY);
                 Resolution = r;
                 UpdateScrollBars();
                 InitPreview();
@@ -525,32 +525,20 @@ namespace Bio
         {
             get 
             {
-                return pyramidalOrigin; 
+                return new PointF(hScrollBar.Value,vScrollBar.Value); 
             }
             set
             {
-                if (value.X >= SelectedImage.Resolution.SizeX - pictureBox.Width)
+                if (hScrollBar.Maximum >= value.X && value.X >= 0)
                 {
-                    pyramidalOrigin.X = hScrollBar.Maximum;
+                    hScrollBar.Value = (int)value.X;
+                    pyramidalOrigin = value;
                 }
-                else
-                    pyramidalOrigin.X = value.X;
-                if (value.Y >= SelectedImage.Resolution.SizeY - pictureBox.Height)
+                if (vScrollBar.Maximum >= value.Y && value.Y >= 0)
                 {
-                    pyramidalOrigin.Y = vScrollBar.Maximum;
+                    vScrollBar.Value = (int)value.Y;
+                    pyramidalOrigin = value;
                 }
-                else
-                    pyramidalOrigin.Y = value.Y;
-                if(pyramidalOrigin.X < 0)
-                    pyramidalOrigin.X = 0;
-                if(pyramidalOrigin.Y < 0)
-                    pyramidalOrigin.Y = 0;
-                UpdateScrollBars();
-                origin = SelectedImage.ToStageSpace(new PointD((double)pyramidalOrigin.X, (double)pyramidalOrigin.Y));
-                hScrollBar.Value = (int)pyramidalOrigin.X;
-                vScrollBar.Value = (int)pyramidalOrigin.Y;
-                UpdateTile();
-                UpdateView();
             }
         }
         /* Setting the resolution of the image. */
@@ -792,7 +780,7 @@ namespace Bio
                     return i - 1;
                 i++;
             }
-            return -1;
+            return SelectedImage.Resolutions.Count - 1;
         }
         bool showPreview;
         Rectangle overview;

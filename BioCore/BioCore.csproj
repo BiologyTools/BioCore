@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.2.2</Version>
+	  <Version>3.2.3</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.2.2</AssemblyVersion>
-    <FileVersion>3.2.2</FileVersion>
-    <PackageReleaseNotes>Added NetVips giving a performance boost for tile opening.</PackageReleaseNotes>
+    <AssemblyVersion>3.2.3</AssemblyVersion>
+    <FileVersion>3.2.3</FileVersion>
+    <PackageReleaseNotes>Updated BioFormats to 7.0.0 as well as other dependency updates.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -46,12 +46,6 @@
     <Compile Remove="Source\Recordings.designer.cs" />
     <Compile Remove="Source\SelectRecording.cs" />
     <Compile Remove="Source\SelectRecording.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="C:\Users\Erikr\.nuget\packages\bioformats.net6\6.12.0\contentFiles\any\net6.0\bioformats_package.dll" />
-    <Content Remove="C:\Users\Erikr\.nuget\packages\bioformats.net6\6.13.0\contentFiles\any\net6.0\bioformats_package.dll" />
-    <Content Remove="C:\Users\Erikr\.nuget\packages\bioformats.net6\6.13.1\contentFiles\any\net6.0\bioformats_package.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="Source\Recordings.resx" />

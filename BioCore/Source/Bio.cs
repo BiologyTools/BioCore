@@ -6178,13 +6178,13 @@ namespace Bio
             }
 
         }
-        public static void OpenVip(BioImage b, int pagenumber)
+        public static void OpenVip(BioImage b, int pagenumber, int x, int y, int w, int h)
         {
             try
             {
                 NetVips.Image im = NetVips.Image.Tiffload(b.file, pagenumber);
                 b.vipPages.Add(im);
-                BufferInfo bf = GetTile(b, new ZCT(0, 0, 0), pagenumber, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+                BufferInfo bf = GetTile(b, new ZCT(0, 0, 0), pagenumber,x, y, w, h);
                 b.Buffers.Add(bf);
                 Statistics.CalcStatistics(bf);
             }
@@ -7580,6 +7580,17 @@ namespace Bio
         /// @return A BioImage object
         public static BioImage OpenFile(string file, int series)
         {
+            return OpenFile(file, series,false, 0, 0, 1920, 1080);
+        }
+        /// It opens a file, reads the metadata, reads the image data, and then calculates the image
+            /// statistics
+            /// 
+            /// @param file The file to open
+            /// @param series The series number of the image to open.
+            /// 
+            /// @return A BioImage object
+        public static BioImage OpenFile(string file, int series, bool tile, int x, int y, int w, int h)
+        {
             if (isOME(file))
             {
                 return OpenOME(file);
@@ -7757,7 +7768,7 @@ namespace Bio
                     
                     if (vips && tiled)
                     {
-                        OpenVip(b, d);
+                        OpenVip(b, d,x,y,w,h);
                     }
                     else
                     {
@@ -7936,6 +7947,7 @@ namespace Bio
             ImageReader reader = new ImageReader();
             var meta = (IMetadata)((OMEXMLService)new ServiceFactory().getInstance(typeof(OMEXMLService))).createOMEXMLMetadata();
             reader.setMetadataStore((MetadataStore)meta);
+            file = file.Replace("\\", "/");
             reader.setId(file);
             bool ser = false;
             if (reader.getSeriesCount() > 1)
@@ -8255,6 +8267,7 @@ namespace Bio
 
             }
             writer.setMetadataRetrieve(omexml);
+            f = f.Replace("\\", "/");
             writer.setId(f);
             for (int i = 0; i < files.Length; i++)
             {
@@ -8579,6 +8592,7 @@ namespace Bio
                 s++;
             }
             writer.setMetadataRetrieve(omexml);
+            file = file.Replace("\\", "/");
             writer.setId(file);
             writer.setCompression(compression);
             int xx; int yy;
@@ -8707,11 +8721,11 @@ namespace Bio
         {
             //We wait incase OME has not initialized yet.
             if (!initialized)
-                do
-                {
-                    Thread.Sleep(100);
-                    Application.DoEvents();
-                } while (!Initialized);
+            do
+            {
+                Thread.Sleep(100);
+                Application.DoEvents();
+            } while (!Initialized);
             if (file == null || file == "")
                 throw new InvalidDataException("File is empty or null");
             Progress pr = null;
@@ -8727,6 +8741,7 @@ namespace Bio
             b.meta = (IMetadata)((OMEXMLService)new ServiceFactory().getInstance(typeof(OMEXMLService))).createOMEXMLMetadata();
             reader = new ImageReader();
             reader.setMetadataStore((MetadataStore)b.meta);
+            vips = VipsSupport(file);
             string str = reader.getCurrentFile();
             if (str == null)
                 str = "";
@@ -8758,6 +8773,7 @@ namespace Bio
             b.seriesCount = reader.getSeriesCount();
             b.imagesPerSeries = reader.getImageCount();
             b.series = serie;
+            
             string order = reader.getDimensionOrder();
             //OME reader.getBitsPerPixel(); sometimes returns incorrect bits per pixel, like when opening ImageJ images.
             //So we check the pixel type from xml metadata and if it fails we use the readers value.
@@ -9220,19 +9236,24 @@ namespace Bio
             for (int p = 0; p < pages; p++)
             {
                 BufferInfo bf;
+                if (vips)
+                {
+                    OpenVip(b, p,tilex,tiley,tileSizeX,tileSizeY);
+                }
+                else
                 if (tile)
                 {
                     bf = BioImage.GetTile(b, b.coordinate, serie, tilex, tiley, sx, sy);
                     b.Buffers.Add(bf);
+                    Statistics.CalcStatistics(bf);
                 }
                 else
                 {
                     byte[] bytes = reader.openBytes(p);
                     bf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(z, c, t), p, b.littleEndian, inter);
                     b.Buffers.Add(bf);
+                    Statistics.CalcStatistics(bf);
                 }
-                //We add the buffers to thresholding image statistics calculation threads.
-                Statistics.CalcStatistics(bf);
                 if (progress)
                     pr.UpdateProgressF(((float)p / (float)pages));
                 Application.DoEvents();
@@ -9346,15 +9367,16 @@ namespace Bio
         {
             try
             {
+                
                 NetVips.Image subImage = b.vipPages[res].Crop(x, y, width, height);
                 if (b.vipPages[res].Format == NetVips.Enums.BandFormat.Uchar)
                 {
                     BufferInfo bm;
                     byte[] imageData = subImage.WriteToMemory();
                     if (b.Resolutions[res].RGBChannelsCount == 3)
-                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format24bppRgb, imageData, new ZCT(), res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format24bppRgb, imageData, new ZCT(), res);
                     else
-                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format8bppIndexed, imageData, new ZCT(), res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format8bppIndexed, imageData, new ZCT(), res);
                     return bm;
 
                 }
@@ -9363,9 +9385,9 @@ namespace Bio
                     BufferInfo bm;
                     byte[] imageData = subImage.WriteToMemory();
                     if (b.Resolutions[res].RGBChannelsCount == 3)
-                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format24bppRgb, imageData, new ZCT(),res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format48bppRgb, imageData, new ZCT(),res);
                     else
-                        bm = new BufferInfo(b.file, width, height, PixelFormat.Format8bppIndexed, imageData, new ZCT(),res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format16bppGrayScale, imageData, new ZCT(),res);
                     return bm;
                 }
             }
@@ -9399,6 +9421,7 @@ namespace Bio
             if (b.imRead == null)
                 b.imRead = new ImageReader();
             string s = b.imRead.getCurrentFile();
+            b.file = b.file.Replace("\\", "/");
             if (s == null)
                 b.imRead.setId(b.file);
             if (b.imRead.getSeries() != serie)
@@ -9600,6 +9623,7 @@ namespace Bio
             reader = new ImageReader();
             var meta = (IMetadata)((OMEXMLService)new ServiceFactory().getInstance(typeof(OMEXMLService))).createOMEXMLMetadata();
             reader.setMetadataStore((MetadataStore)meta);
+            file = file.Replace("\\", "/");
             reader.setId(file);
             bool tile = false;
             if (reader.getOptimalTileWidth() != reader.getSizeX())
@@ -9840,6 +9864,7 @@ namespace Bio
             ImageReader imageReader = new ImageReader();
             imageReader.setMetadataStore(meta);
             // initialize file
+            file = file.Replace("\\", "/");
             imageReader.setId(file);
             int imageCount = imageReader.getImageCount();
             int seriesCount = imageReader.getSeriesCount();
