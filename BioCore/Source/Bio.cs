@@ -39,12 +39,12 @@ namespace Bio
         {
             im.Filename = GetImageName(im.ID);
             im.ID = im.Filename;
-            if(images.Contains(im))
+            if (images.Contains(im))
             {
                 UpdateImage(im);
             }
             else
-            images.Add(im);
+                images.Add(im);
         }
         /// It takes a string as an argument, and returns the number of images in the list that contain
         /// that string
@@ -1029,8 +1029,8 @@ namespace Bio
             return Points[i];
         }
         /// It returns an array of PointD objects
-       /// 
-       /// @return An array of PointD objects.
+        /// 
+        /// @return An array of PointD objects.
         public PointD[] GetPoints()
         {
             return Points.ToArray();
@@ -1894,7 +1894,7 @@ namespace Bio
             get { return bytes; }
             set
             {
-                bytes = value;  
+                bytes = value;
             }
         }
         public byte[] PaddedBytes
@@ -3641,14 +3641,14 @@ namespace Bio
             return bytes;
         }
         /// It takes a bitmap, locks it, copies the bytes into a byte array, reverses the byte array, and
-       /// then unlocks the bitmap
-       /// 
-       /// @param Bitmap The bitmap to convert to a byte array.
-       /// @param stride The stride is the width of a single row of pixels (a scan line), rounded up to
-       /// a four-byte boundary. If the stride is positive, the bitmap is top-down. If the stride is
-       /// negative, the bitmap is bottom-up. (In Windows GDI, the
-       /// 
-       /// @return A byte array of the image data.
+        /// then unlocks the bitmap
+        /// 
+        /// @param Bitmap The bitmap to convert to a byte array.
+        /// @param stride The stride is the width of a single row of pixels (a scan line), rounded up to
+        /// a four-byte boundary. If the stride is positive, the bitmap is top-down. If the stride is
+        /// negative, the bitmap is bottom-up. (In Windows GDI, the
+        /// 
+        /// @return A byte array of the image data.
         public static byte[] GetBuffer(Bitmap bmp, int stride)
         {
             BitmapData data = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, bmp.PixelFormat);
@@ -3734,9 +3734,9 @@ namespace Bio
         }
 
         /// It creates a new byte array, copies the bytes from the original array into the new array, and
-       /// then creates a new BufferInfo object with the new byte array
-       /// 
-       /// @return A new BufferInfo object.
+        /// then creates a new BufferInfo object with the new byte array
+        /// 
+        /// @return A new BufferInfo object.
         public BufferInfo Copy()
         {
             byte[] bt = new byte[Bytes.Length];
@@ -3858,7 +3858,7 @@ namespace Bio
             Image = fl;
             fl.Dispose();
         }
-       /* Checking if the image is RGB or not. */
+        /* Checking if the image is RGB or not. */
         public bool isRGB
         {
             get
@@ -3876,7 +3876,7 @@ namespace Bio
         {
             return ID;
         }
-       /// It's a function that disposes of the object's memory
+        /// It's a function that disposes of the object's memory
         public void Dispose()
         {
             bytes = null;
@@ -4040,7 +4040,7 @@ namespace Bio
             return bf;
         }
     }
-    
+
     /* It's a class that holds a string, an IFilter, and a Type */
     public class Filt
     {
@@ -4752,16 +4752,16 @@ namespace Bio
             }
         }
         /// It takes a byte array, width, height, number of channels, bits per pixel, and stride, and
-       /// returns an array of Statistics objects
-       /// 
-       /// @param bts the byte array of the image
-       /// @param w width of the image
-       /// @param h height of the image
-       /// @param rGBChannels The number of channels in the image.
-       /// @param BitsPerPixel 8 or 16
-       /// @param stride The number of bytes per row.
-       /// 
-       /// @return An array of Statistics objects.
+        /// returns an array of Statistics objects
+        /// 
+        /// @param bts the byte array of the image
+        /// @param w width of the image
+        /// @param h height of the image
+        /// @param rGBChannels The number of channels in the image.
+        /// @param BitsPerPixel 8 or 16
+        /// @param stride The number of bytes per row.
+        /// 
+        /// @return An array of Statistics objects.
         public static Statistics[] FromBytes(byte[] bts, int w, int h, int rGBChannels, int BitsPerPixel, int stride)
         {
             Statistics[] sts = new Statistics[rGBChannels];
@@ -4935,10 +4935,10 @@ namespace Bio
             return sts;
         }
         /// It takes a byte array, and returns an array of Statistics objects
-       /// 
-       /// @param BufferInfo 
-       /// 
-       /// @return An array of Statistics objects.
+        /// 
+        /// @param BufferInfo 
+        /// 
+        /// @return An array of Statistics objects.
         public static Statistics[] FromBytes(BufferInfo bf)
         {
             return FromBytes(bf.Bytes, bf.SizeX, bf.SizeY, bf.RGBChannelsCount, bf.BitsPerPixel, bf.Stride);
@@ -5619,7 +5619,7 @@ namespace Bio
                 return initialized;
             }
         }
-        
+
         /// It converts a 16-bit image to an 8-bit image
         /// 
         /// @return A list of BufferInfo objects.
@@ -6184,7 +6184,7 @@ namespace Bio
             {
                 NetVips.Image im = NetVips.Image.Tiffload(b.file, pagenumber);
                 b.vipPages.Add(im);
-                BufferInfo bf = GetTile(b, new ZCT(0, 0, 0), pagenumber,x, y, w, h);
+                BufferInfo bf = GetTile(b, new ZCT(0, 0, 0), pagenumber, x, y, w, h);
                 b.Buffers.Add(bf);
                 Statistics.CalcStatistics(bf);
             }
@@ -6477,15 +6477,15 @@ namespace Bio
             return r;
         }
         /// > This function takes a rectangle in the coordinate space of the image and converts it to the
-       /// coordinate space of the stage
-       /// 
-       /// @param RectangleD A rectangle with double precision.
-       /// @param physicalSizeX The width of the stage in pixels
-       /// @param physicalSizeY The height of the stage in pixels
-       /// @param volumeX The X position of the volume in stage space.
-       /// @param volumeY The Y position of the top of the volume in stage space.
-       /// 
-       /// @return A RectangleD object.
+        /// coordinate space of the stage
+        /// 
+        /// @param RectangleD A rectangle with double precision.
+        /// @param physicalSizeX The width of the stage in pixels
+        /// @param physicalSizeY The height of the stage in pixels
+        /// @param volumeX The X position of the volume in stage space.
+        /// @param volumeY The Y position of the top of the volume in stage space.
+        /// 
+        /// @return A RectangleD object.
         public static RectangleD ToStageSpace(RectangleD p, double physicalSizeX, double physicalSizeY, double volumeX, double volumeY)
         {
             RectangleD r = new RectangleD();
@@ -6496,11 +6496,11 @@ namespace Bio
             return r;
         }
         /// > It takes a list of points in the coordinate system of the image and returns a list of
-       /// points in the coordinate system of the stage
-       /// 
-       /// @param p The array of points to convert
-       /// 
-       /// @return A PointD[] array.
+        /// points in the coordinate system of the stage
+        /// 
+        /// @param p The array of points to convert
+        /// 
+        /// @return A PointD[] array.
         public PointD[] ToStageSpace(PointD[] p)
         {
             PointD[] ps = new PointD[p.Length];
@@ -6615,11 +6615,11 @@ namespace Bio
             return b;
         }
         /// This function takes two images and merges them together
-       /// 
-       /// @param BioImage The image to be merged
-       /// @param BioImage The image to be merged
-       /// 
-       /// @return A new BioImage object.
+        /// 
+        /// @param BioImage The image to be merged
+        /// @param BioImage The image to be merged
+        /// 
+        /// @return A new BioImage object.
         public static BioImage MergeChannels(BioImage b2, BioImage b)
         {
             BioImage res = new BioImage(b2.ID);
@@ -6761,10 +6761,10 @@ namespace Bio
             return bi;
         }
         /// It takes a 3D image and merges the time dimension into a single image. 
-       /// 
-       /// @param BioImage The image to be processed
-       /// 
-       /// @return A new BioImage object.
+        /// 
+        /// @param BioImage The image to be processed
+        /// 
+        /// @return A new BioImage object.
         public static BioImage MergeT(BioImage b)
         {
             BioImage bi = BioImage.CopyInfo(b, true, true);
@@ -6804,8 +6804,8 @@ namespace Bio
             return bi;
         }
         /// It takes a single image and splits it into three separate images, one for each color channel
-       /// 
-       /// @return An array of BioImages.
+        /// 
+        /// @return An array of BioImages.
         public BioImage[] SplitChannels()
         {
             BioImage[] bms;
@@ -6974,11 +6974,11 @@ namespace Bio
             }
         }
         /// Get index of pixel in the buffer.
-       /// @param ix x coordinate of the pixel
-       /// @param iy The y coordinate of the pixel
-       /// @param index 0 = Red, 1 = Green, 2 = Blue
-       /// 
-       /// @return The index of the pixel in the buffer.
+        /// @param ix x coordinate of the pixel
+        /// @param iy The y coordinate of the pixel
+        /// @param index 0 = Red, 1 = Green, 2 = Blue
+        /// 
+        /// @return The index of the pixel in the buffer.
         public int GetIndexRGB(int ix, int iy, int index)
         {
             int stridex = SizeX;
@@ -7095,9 +7095,9 @@ namespace Bio
             return GetValueRGB(new ZCT(z, c, t), x, y, RGBindex);
         }
         /// It takes a coordinate and a value, and sets the value at that coordinate
-       /// 
-       /// @param ZCTXY a struct that contains the Z, C, T, X, and Y coordinates of the pixel.
-       /// @param value The value to set the pixel to.
+        /// 
+        /// @param ZCTXY a struct that contains the Z, C, T, X, and Y coordinates of the pixel.
+        /// @param value The value to set the pixel to.
         public void SetValue(ZCTXY coord, ushort value)
         {
             int i = Coords[coord.Z, coord.C, coord.T];
@@ -7305,7 +7305,7 @@ namespace Bio
 
         public bool Loading = false;
         /// We initialize OME on a seperate thread so the user doesn't have to wait for initialization to
-       /// view images.
+        /// view images.
         public static void Initialize()
         {
             //We initialize OME on a seperate thread so the user doesn't have to wait for initialization to
@@ -7580,15 +7580,15 @@ namespace Bio
         /// @return A BioImage object
         public static BioImage OpenFile(string file, int series)
         {
-            return OpenFile(file, series,false, 0, 0, 1920, 1080);
+            return OpenFile(file, series, false, 0, 0, 1920, 1080);
         }
         /// It opens a file, reads the metadata, reads the image data, and then calculates the image
-            /// statistics
-            /// 
-            /// @param file The file to open
-            /// @param series The series number of the image to open.
-            /// 
-            /// @return A BioImage object
+        /// statistics
+        /// 
+        /// @param file The file to open
+        /// @param series The series number of the image to open.
+        /// 
+        /// @return A BioImage object
         public static BioImage OpenFile(string file, int series, bool tile, int x, int y, int w, int h)
         {
             if (isOME(file))
@@ -7765,10 +7765,10 @@ namespace Bio
                     int c = 0;
                     int t = 0;
                     b.Buffers = new List<BufferInfo>();
-                    
+
                     if (vips && tiled)
                     {
-                        OpenVip(b, d,x,y,w,h);
+                        OpenVip(b, d, x, y, w, h);
                     }
                     else
                     {
@@ -7778,7 +7778,7 @@ namespace Bio
                         //If calculated stride and image scanline size is not the same it means the image is written in planes
                         bool planes = false;
                         if (stride != str)
-                        planes = true;
+                            planes = true;
                         if (planes)
                         {
                             BufferInfo[] bfs = new BufferInfo[3];
@@ -7821,7 +7821,7 @@ namespace Bio
                         pr.UpdateProgressF((float)((double)d / (double)(series + 1) * pages));
                         Application.DoEvents();
                     }
-                   
+
                 }
                 image.Close();
                 b.UpdateCoords();
@@ -7839,7 +7839,7 @@ namespace Bio
                 {
                     Image im = Image.FromFile(file);
                     b.imageInfo.PhysicalSizeZ = 1;
-                    b.Resolutions.Add(new Resolution(im.Width, im.Height, im.PixelFormat, 2.54 / im.HorizontalResolution, 2.54 / im.VerticalResolution, 1, 0,0,0));
+                    b.Resolutions.Add(new Resolution(im.Width, im.Height, im.PixelFormat, 2.54 / im.HorizontalResolution, 2.54 / im.VerticalResolution, 1, 0, 0, 0));
                     inf = new BufferInfo(file, Image.FromFile(file), new ZCT(0, 0, 0), 0);
                     Statistics.CalcStatistics(inf);
                 }
@@ -7967,10 +7967,10 @@ namespace Bio
             SaveOMESeries(sts, file, Properties.Settings.Default.Planes);
         }
         /// It saves a series of images to a file, and adds OME-XML metadata to the file
-       /// 
-       /// @param files an array of file paths to the images to be saved
-       /// @param f the file name to save to
-       /// @param planes if true, the planes will be saved as well.
+        /// 
+        /// @param files an array of file paths to the images to be saved
+        /// @param f the file name to save to
+        /// @param planes if true, the planes will be saved as well.
         public static void SaveOMESeries(string[] files, string f, bool planes)
         {
             if (File.Exists(f))
@@ -8232,7 +8232,6 @@ namespace Bio
                     }
                     i++;
                 }
-
                 if (b.Buffers[0].Plane != null && planes)
                     for (int bu = 0; bu < b.Buffers.Count; bu++)
                     {
@@ -8721,11 +8720,11 @@ namespace Bio
         {
             //We wait incase OME has not initialized yet.
             if (!initialized)
-            do
-            {
-                Thread.Sleep(100);
-                Application.DoEvents();
-            } while (!Initialized);
+                do
+                {
+                    Thread.Sleep(100);
+                    Application.DoEvents();
+                } while (!Initialized);
             if (file == null || file == "")
                 throw new InvalidDataException("File is empty or null");
             Progress pr = null;
@@ -8747,10 +8746,10 @@ namespace Bio
                 str = "";
             str = str.Replace("\\", "/");
             file = file.Replace("\\", "/");
-            if(str != file)
-            reader.setId(file);
-            if(reader.getSeries() != serie)
-            reader.setSeries(serie);
+            if (str != file)
+                reader.setId(file);
+            if (reader.getSeries() != serie)
+                reader.setSeries(serie);
             b.resolution = serie;
             int RGBChannelCount = reader.getRGBChannelCount();
             b.bitsPerPixel = reader.getBitsPerPixel();
@@ -8773,7 +8772,7 @@ namespace Bio
             b.seriesCount = reader.getSeriesCount();
             b.imagesPerSeries = reader.getImageCount();
             b.series = serie;
-            
+
             string order = reader.getDimensionOrder();
             //OME reader.getBitsPerPixel(); sometimes returns incorrect bits per pixel, like when opening ImageJ images.
             //So we check the pixel type from xml metadata and if it fails we use the readers value.
@@ -8786,7 +8785,7 @@ namespace Bio
             {
                 PixelFormat = GetPixelFormat(RGBChannelCount, reader.getBitsPerPixel());
             }
-            
+
 
             int sx = tileSizeX;
             int sy = tileSizeY;
@@ -8800,10 +8799,10 @@ namespace Bio
                     tilex = SizeX - 1;
                 if (tiley >= SizeY)
                     tiley = SizeY - 1;
-                
+
                 if (tilex + tileSizeX > SizeX)
                     sx -= (tilex + tileSizeX) - (SizeX);
-                
+
                 if (tiley + tileSizeY > SizeY)
                     sy -= (tiley + tileSizeY) - (SizeY);
                 if (sx <= 0)
@@ -8872,7 +8871,7 @@ namespace Bio
                 }
             }
             reader.setSeries(serie);
-            
+
             //Lets get the channels amd initialize them
             int i = 0;
             while (true)
@@ -8948,7 +8947,7 @@ namespace Bio
                 b.sizeC = 1;
             }
             b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
-            if(tile)
+            if (tile)
             {
                 b.ispyramidal = true;
             }
@@ -9238,7 +9237,7 @@ namespace Bio
                 BufferInfo bf;
                 if (vips)
                 {
-                    OpenVip(b, p,tilex,tiley,tileSizeX,tileSizeY);
+                    OpenVip(b, p, tilex, tiley, tileSizeX, tileSizeY);
                 }
                 else
                 if (tile)
@@ -9315,14 +9314,14 @@ namespace Bio
         int ssx, ssy;
         public static int FindFocus(BioImage im, int Channel, int Time)
         {
-            
+
             long mf = 0;
             int fr = 0;
             List<double> dt = new List<double>();
             ZCT c = new ZCT(0, 0, 0);
             for (int i = 0; i < im.SizeZ; i++)
             {
-                long f = CalculateFocusQuality(im.Buffers[im.Coords[i,Channel,Time]]);
+                long f = CalculateFocusQuality(im.Buffers[im.Coords[i, Channel, Time]]);
                 dt.Add(f);
                 if (f > mf)
                 {
@@ -9330,7 +9329,7 @@ namespace Bio
                     fr = im.Coords[i, Channel, Time];
                 }
             }
-            Plot pl = new Plot(dt.ToArray(),"Focus");
+            Plot pl = new Plot(dt.ToArray(), "Focus");
             return fr;
         }
         static long CalculateFocusQuality(BufferInfo b)
@@ -9367,7 +9366,7 @@ namespace Bio
         {
             try
             {
-                
+
                 NetVips.Image subImage = b.vipPages[res].Crop(x, y, width, height);
                 if (b.vipPages[res].Format == NetVips.Enums.BandFormat.Uchar)
                 {
@@ -9385,9 +9384,9 @@ namespace Bio
                     BufferInfo bm;
                     byte[] imageData = subImage.WriteToMemory();
                     if (b.Resolutions[res].RGBChannelsCount == 3)
-                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format48bppRgb, imageData, new ZCT(),res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format48bppRgb, imageData, new ZCT(), res);
                     else
-                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format16bppGrayScale, imageData, new ZCT(),res);
+                        bm = new BufferInfo(b.file, subImage.Width, subImage.Height, PixelFormat.Format16bppGrayScale, imageData, new ZCT(), res);
                     return bm;
                 }
             }
@@ -9456,7 +9455,7 @@ namespace Bio
         }
         public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
-            return (Bitmap)GetTile(this,coord,serie,tilex,tiley,tileSizeX,tileSizeY).ImageRGB;
+            return (Bitmap)GetTile(this, coord, serie, tilex, tiley, tileSizeX, tileSizeY).ImageRGB;
         }
         static NetVips.Image netim;
         public static bool VipsSupport(string file)
@@ -9566,14 +9565,14 @@ namespace Bio
                 return 65535;
         }
         /// If the bits per pixel is 8, then the pixel format is either 8bppIndexed, 24bppRgb, or
-       /// 32bppArgb. If the bits per pixel is 16, then the pixel format is either 16bppGrayScale or
-       /// 48bppRgb
-       /// 
-       /// @param rgbChannelCount The number of channels in the image. For example, a grayscale image
-       /// has 1 channel, a color image has 3 channels (red, green, blue).
-       /// @param bitsPerPixel 8 or 16
-       /// 
-       /// @return The PixelFormat of the image.
+        /// 32bppArgb. If the bits per pixel is 16, then the pixel format is either 16bppGrayScale or
+        /// 48bppRgb
+        /// 
+        /// @param rgbChannelCount The number of channels in the image. For example, a grayscale image
+        /// has 1 channel, a color image has 3 channels (red, green, blue).
+        /// @param bitsPerPixel 8 or 16
+        /// 
+        /// @return The PixelFormat of the image.
         public static PixelFormat GetPixelFormat(int rgbChannelCount, int bitsPerPixel)
         {
             if (bitsPerPixel == 8)
@@ -9730,7 +9729,7 @@ namespace Bio
         {
             b = OpenFile(b.file);
         }
-       /// It updates the current object.
+        /// It updates the current object.
         public void Update()
         {
             Update(this);
@@ -9755,9 +9754,9 @@ namespace Bio
             t.Start();
         }
         /// It takes a file and an ID and saves the file to the database
-       /// 
-       /// @param file The file to save to.
-       /// @param ID The ID of the user.
+        /// 
+        /// @param file The file to save to.
+        /// @param ID The ID of the user.
         public static void Save(string file, string ID)
         {
             SaveFile(file, ID);
@@ -10190,10 +10189,10 @@ namespace Bio
             return Annotations;
         }
         /// It takes a list of ROI objects and returns a string of all the ROI objects in the list
-       /// 
-       /// @param Annotations List of ROI objects
-       /// 
-       /// @return A string of the ROI's in the list.
+        /// 
+        /// @param Annotations List of ROI objects
+        /// 
+        /// @return A string of the ROI's in the list.
         public static string ROIsToString(List<ROI> Annotations)
         {
             string s = "";
@@ -10447,10 +10446,10 @@ namespace Bio
         private static BioImage bstats = null;
         private static bool update = false;
         /// It takes a BioImage object, and for each channel, it calculates the mean histogram of the
-       /// channel, and then it calculates the mean histogram of the entire image
-       /// 
-       /// @param BioImage This is the image object that contains the image data.
-       /// @param updateImageStats if true, the image stats will be updated.
+        /// channel, and then it calculates the mean histogram of the entire image
+        /// 
+        /// @param BioImage This is the image object that contains the image data.
+        /// @param updateImageStats if true, the image stats will be updated.
         public static void AutoThreshold(BioImage b, bool updateImageStats)
         {
             bstats = b;
@@ -10656,11 +10655,11 @@ namespace Bio
             return a;
         }
         /// It takes a BioImage and a ColorS and returns a BioImage
-       /// 
-       /// @param BioImage a class that contains a list of ColorS objects.
-       /// @param ColorS a struct that contains a byte for each color channel (R, G, B, A)
-       /// 
-       /// @return A BioImage object.
+        /// 
+        /// @param BioImage a class that contains a list of ColorS objects.
+        /// @param ColorS a struct that contains a byte for each color channel (R, G, B, A)
+        /// 
+        /// @return A BioImage object.
         public static BioImage operator *(BioImage a, ColorS b)
         {
             for (int i = 0; i < a.Buffers.Count; i++)
