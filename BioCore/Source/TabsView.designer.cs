@@ -91,6 +91,7 @@ namespace Bio
             this.stackToolsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.duplicateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rotateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.autoFocusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.formatToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bit8ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,7 +109,7 @@ namespace Bio
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openImageJDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveImageJDialog = new System.Windows.Forms.SaveFileDialog();
-            this.autoFocusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.savePyramidalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panel.SuspendLayout();
             this.tabContextMenuStrip.SuspendLayout();
             this.menuStrip.SuspendLayout();
@@ -232,6 +233,7 @@ namespace Bio
             this.saveTabToolStripMenuItem,
             this.saveTabTiffToolStripMenuItem,
             this.saveSeriesToolStripMenuItem,
+            this.savePyramidalToolStripMenuItem,
             this.sepToolStripMenuItem3,
             this.imagesToStackToolStripMenuItem,
             this.newTabViewToolStripMenuItem,
@@ -457,7 +459,7 @@ namespace Bio
             // setToolToolStripMenuItem
             // 
             this.setToolToolStripMenuItem.Name = "setToolToolStripMenuItem";
-            this.setToolToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.setToolToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.setToolToolStripMenuItem.Text = "Set Tool";
             this.setToolToolStripMenuItem.Click += new System.EventHandler(this.setToolToolStripMenuItem_Click);
             // 
@@ -561,24 +563,31 @@ namespace Bio
             // stackToolsToolStripMenuItem1
             // 
             this.stackToolsToolStripMenuItem1.Name = "stackToolsToolStripMenuItem1";
-            this.stackToolsToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.stackToolsToolStripMenuItem1.Size = new System.Drawing.Size(134, 22);
             this.stackToolsToolStripMenuItem1.Text = "Stack Tool";
             this.stackToolsToolStripMenuItem1.Click += new System.EventHandler(this.stackToolsToolStripMenuItem_Click);
             // 
             // duplicateToolStripMenuItem
             // 
             this.duplicateToolStripMenuItem.Name = "duplicateToolStripMenuItem";
-            this.duplicateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.duplicateToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.duplicateToolStripMenuItem.Text = "Duplicate";
             this.duplicateToolStripMenuItem.Click += new System.EventHandler(this.duplicateToolStripMenuItem_Click);
             // 
             // rotateToolStripMenuItem
             // 
             this.rotateToolStripMenuItem.Name = "rotateToolStripMenuItem";
-            this.rotateToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.rotateToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
             this.rotateToolStripMenuItem.Text = "Rotate Flip";
             this.rotateToolStripMenuItem.DropDownOpening += new System.EventHandler(this.rotateToolStripMenuItem_DropDownOpening);
             this.rotateToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.rotateToolStripMenuItem_DropDownItemClicked);
+            // 
+            // autoFocusToolStripMenuItem
+            // 
+            this.autoFocusToolStripMenuItem.Name = "autoFocusToolStripMenuItem";
+            this.autoFocusToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
+            this.autoFocusToolStripMenuItem.Text = "Auto Focus";
+            this.autoFocusToolStripMenuItem.Click += new System.EventHandler(this.autoFocusToolStripMenuItem_Click);
             // 
             // menuStrip
             // 
@@ -720,12 +729,12 @@ namespace Bio
             this.saveImageJDialog.Filter = "ROI Files (*.roi)|*.roi|All files (*.*)|*.*";
             this.saveImageJDialog.Title = "Save ROIs to CSV";
             // 
-            // autoFocusToolStripMenuItem
+            // savePyramidalToolStripMenuItem
             // 
-            this.autoFocusToolStripMenuItem.Name = "autoFocusToolStripMenuItem";
-            this.autoFocusToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.autoFocusToolStripMenuItem.Text = "Auto Focus";
-            this.autoFocusToolStripMenuItem.Click += new System.EventHandler(this.autoFocusToolStripMenuItem_Click);
+            this.savePyramidalToolStripMenuItem.Name = "savePyramidalToolStripMenuItem";
+            this.savePyramidalToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
+            this.savePyramidalToolStripMenuItem.Text = "Save Pyramidal";
+            this.savePyramidalToolStripMenuItem.Click += new System.EventHandler(this.savePyramidalToolStripMenuItem_Click);
             // 
             // TabsView
             // 
@@ -835,5 +844,6 @@ namespace Bio
         private OpenFileDialog openImageJDialog;
         private SaveFileDialog saveImageJDialog;
         private ToolStripMenuItem autoFocusToolStripMenuItem;
+        private ToolStripMenuItem savePyramidalToolStripMenuItem;
     }
 }

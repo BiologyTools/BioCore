@@ -1,18 +1,19 @@
 ﻿using AForge;
 using AForge.Imaging.Filters;
 using BitMiracle.LibTiff.Classic;
+using CSScripting;
 using loci.common.services;
 using loci.formats;
 using loci.formats.meta;
 using loci.formats.services;
+using NetVips;
 using Newtonsoft.Json;
 using ome.xml.model.primitives;
-using SharpDX.Direct2D1.Effects;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.Runtime.InteropServices;
-
+using Image = System.Drawing.Image;
 namespace Bio
 {
     public static class Images
@@ -8635,6 +8636,180 @@ namespace Bio
                 }
             } while (!stop);
         }
+        /// <summary>
+        /// The function "GetBands" returns the number of color bands for a given pixel format in the
+        /// AForge library.
+        /// </summary>
+        /// <param name="PixelFormat">The PixelFormat parameter is an enumeration that represents the
+        /// format of a pixel in an image. It specifies the number of bits per pixel and the color space
+        /// used by the pixel. The PixelFormat enumeration is defined in the AForge.Imaging
+        /// namespace.</param>
+        /// <returns>
+        /// The method is returning the number of color bands for a given pixel format.
+        /// </returns>
+        private static int GetBands(PixelFormat format)
+        {
+            switch (format)
+            {
+                case PixelFormat.Format8bppIndexed: return 1;
+                case PixelFormat.Format16bppGrayScale: return 1;
+                case PixelFormat.Format24bppRgb: return 3;
+                case PixelFormat.Format32bppArgb:
+                case PixelFormat.Format32bppPArgb:
+                case PixelFormat.Format32bppRgb:
+                    return 4;
+                case PixelFormat.Format48bppRgb:
+                    return 3;
+                default:
+                    throw new NotSupportedException($"Unsupported pixel format: {format}");
+            }
+        }
+        /// <summary>
+        /// The function `SaveOMEPyramidal` saves a collection of BioImages as a pyramidal OME-TIFF
+        /// file.
+        /// </summary>
+        /// <param name="bms">An array of BioImage objects representing the images to be saved.</param>
+        /// <param name="file">The `file` parameter is a string that represents the file path where the
+        /// OME Pyramidal TIFF file will be saved.</param>
+        /// <param name="compression">The `compression` parameter is of type
+        /// `Enums.ForeignTiffCompression` and it specifies the compression method to be used when
+        /// saving the TIFF file.</param>
+        public static void SaveOMEPyramidal(BioImage[] bms, string file, Enums.ForeignTiffCompression compression, int compressionLevel)
+        {
+            if (File.Exists(file))
+                File.Delete(file);
+            //We need to go through the images and find the ones belonging to each resolution.
+            //As well we need to determine the dimensions of the tiles.
+            Dictionary<double, List<BioImage>> bis = new Dictionary<double, List<BioImage>>();
+            Dictionary<double, Point3D> min = new Dictionary<double, Point3D>();
+            Dictionary<double, Point3D> max = new Dictionary<double, Point3D>();
+            for (int i = 0; i < bms.Length; i++)
+            {
+                Resolution res = bms[i].Resolutions[bms[i].resolution];
+                if (bis.ContainsKey(res.PhysicalSizeX))
+                {
+                    bis[res.PhysicalSizeX].Add(bms[i]);
+                    if (bms[i].StageSizeX < min[res.PhysicalSizeX].X || bms[i].StageSizeY < min[res.PhysicalSizeX].Y)
+                    {
+                        min[res.PhysicalSizeX] = bms[i].Volume.Location;
+                    }
+                    if (bms[i].StageSizeX > max[res.PhysicalSizeX].X || bms[i].StageSizeY > max[res.PhysicalSizeX].Y)
+                    {
+                        max[res.PhysicalSizeX] = bms[i].Volume.Location;
+                    }
+                }
+                else
+                {
+                    bis.Add(res.PhysicalSizeX, new List<BioImage>());
+                    min.Add(res.PhysicalSizeX, new Point3D(double.MaxValue, double.MaxValue, double.MaxValue));
+                    max.Add(res.PhysicalSizeX, new Point3D(double.MinValue, double.MinValue, double.MinValue));
+                    if (bms[i].StageSizeX < min[res.PhysicalSizeX].X || bms[i].StageSizeY < min[res.PhysicalSizeX].Y)
+                    {
+                        min[res.PhysicalSizeX] = bms[i].Volume.Location;
+                    }
+                    if (bms[i].StageSizeX > max[res.PhysicalSizeX].X || bms[i].StageSizeY > max[res.PhysicalSizeX].Y)
+                    {
+                        max[res.PhysicalSizeX] = bms[i].Volume.Location;
+                    }
+                    bis[res.PhysicalSizeX].Add(bms[i]);
+                }
+            }
+            int s = 0;
+            //We determine the sizes of each resolution.
+            Dictionary<double, Size> ss = new Dictionary<double, Size>();
+            int minx = int.MaxValue;
+            int miny = int.MaxValue;
+            double last = 0;
+            foreach (double px in bis.Keys)
+            {
+                int xs = (1 + (int)Math.Ceiling((max[px].X - min[px].X) / bis[px][0].Resolutions[0].VolumeWidth)) * bis[px][0].SizeX;
+                int ys = (1 + (int)Math.Ceiling((max[px].Y - min[px].Y) / bis[px][0].Resolutions[0].VolumeHeight)) * bis[px][0].SizeY;
+                if (minx > xs)
+                    minx = xs;
+                if (miny > ys)
+                    miny = ys;
+                ss.Add(px, new Size(xs, ys));
+                last = px;
+            }
+            s = 0;
+            string met = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" +
+                "<OME xmlns=\"http://www.openmicroscopy.org/Schemas/OME/2016-06\" " +
+                "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+                "xsi:schemaLocation=\"http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd\">";
+            NetVips.Image img = null;
+            int ib = 0;
+
+            foreach (double px in bis.Keys)
+            {
+                int c = bis[px][s].SizeC;
+                if (bis[px][s].Buffers[0].isRGB)
+                    c = 3;
+                string endian = (bis[px][s].Buffers[0].LittleEndian).ToString().ToLower(CultureInfo.InvariantCulture);
+                met +=
+                "<Image ID=\"Image:" + ib + "\">" +
+                "<Pixels BigEndian=\"" + endian + "\" DimensionOrder= \"XYCZT\" ID= \"Pixels:0\" Interleaved=\"true\" " +
+                "PhysicalSizeX=\"" + bis[px][s].PhysicalSizeX + "\" PhysicalSizeXUnit=\"µm\" PhysicalSizeY=\"" + bis[px][s].PhysicalSizeY + "\" PhysicalSizeYUnit=\"µm\" SignificantBits=\"" + bis[px][s].bitsPerPixel + "\" " +
+                "SizeC = \"" + c + "\" SizeT = \"" + bis[px][s].SizeT + "\" SizeX =\"" + ss[px].Width +
+                "\" SizeY= \"" + ss[px].Height + "\" SizeZ=\"" + bis[px][s].SizeZ;
+                if (bis[px][s].bitsPerPixel > 8) met += "\" Type= \"uint16\">";
+                else met += "\" Type= \"uint8\">";
+                int i = 0;
+                foreach (Channel ch in bis[px][s].Channels)
+                {
+                    met += "<Channel ID=\"Channel:" + ib + ":" + i + "\" SamplesPerPixel=\"1\"></Channel>";
+                    i++;
+                }
+                met += "</Pixels></Image>";
+                ib++;
+            }
+            met += "</OME>";
+            foreach (double px in bis.Keys)
+            {
+                PixelFormat pf = bis[px][0].Buffers[0].PixelFormat;
+                Bitmap level = new Bitmap(ss[px].Width, ss[px].Height, pf);
+                int bands = GetBands(pf);
+                BitmapData d = level.LockBits(new Rectangle(0, 0, level.Width, level.Height),ImageLockMode.ReadWrite,pf);
+                if (bis[px][0].bitsPerPixel > 8)
+                    img = NetVips.Image.NewFromMemory(d.Scan0, (ulong)(d.Stride * d.Height), level.Width, level.Height, bands, Enums.BandFormat.Ushort);
+                else
+                    img = NetVips.Image.NewFromMemory(d.Scan0, (ulong)(d.Stride * d.Height), level.Width, level.Height, bands, Enums.BandFormat.Uchar);
+                int i = 0;
+                foreach (BioImage b in bis[px])
+                {
+                    Size si = ss[px];
+                    double xs = (-(min[px].X - bis[px][i].Volume.Location.X) / bis[px][i].Resolutions[0].VolumeWidth) * bis[px][i].SizeX;
+                    double ys = (-(min[px].Y - bis[px][i].Volume.Location.Y) / bis[px][i].Resolutions[0].VolumeHeight) * bis[px][i].SizeY;
+                    NetVips.Image tile;
+                    Bitmap bm = (Bitmap)bis[px][i].Buffers[0].Image;
+                    BitmapData bd = bm.LockBits(new Rectangle(0, 0, level.Width, level.Height), ImageLockMode.ReadWrite, pf);
+                    if (b.bitsPerPixel > 8)
+                        tile = NetVips.Image.NewFromMemory(bd.Scan0, (ulong)bis[px][i].Buffers[0].Length, bis[px][i].Buffers[0].SizeX, bis[px][i].Buffers[0].SizeY, bands, Enums.BandFormat.Ushort);
+                    else
+                        tile = NetVips.Image.NewFromMemory(bd.Scan0, (ulong)bis[px][i].Buffers[0].Length, bis[px][i].Buffers[0].SizeX, bis[px][i].Buffers[0].SizeY, bands, Enums.BandFormat.Uchar);
+                    img = img.Insert(tile, (int)xs, (int)ys);
+                    bm.UnlockBits(bd);
+                    i++;
+                };
+                level.UnlockBits(d);
+                using var mutated = img.Mutate(mutable =>
+                {
+                    // Set the ImageDescription tag
+                    mutable.Set(GValue.GStrType, "image-description", met);
+                    mutable.Set(GValue.GIntType, "page-height", ss[last].Height);
+                });
+                if (bis[px][0].bitsPerPixel > 8)
+                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, null, true, ss[px].Width, ss[px].Height, true, false, 16,
+                    Enums.ForeignTiffResunit.Cm, 1000 * bis[px][0].PhysicalSizeX, 1000 * bis[px][0].PhysicalSizeY, true, null, Enums.RegionShrink.Nearest,
+                    compressionLevel, true, Enums.ForeignDzDepth.One, true, false, null, null, ss[px].Height);
+                else
+                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, null, true, ss[px].Width, ss[px].Height, true, false, 8,
+                    Enums.ForeignTiffResunit.Cm, 1000 * bis[px][0].PhysicalSizeX, 1000 * bis[px][0].PhysicalSizeY, true, null, Enums.RegionShrink.Nearest,
+                    compressionLevel, true, Enums.ForeignDzDepth.One, true, false, null, null, ss[px].Height);
+                s++;
+            }
+
+        }
+
         /// > This function opens an OME file and returns a BioImage object
         /// 
         /// @param file the path to the file you want to open

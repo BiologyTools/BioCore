@@ -13,6 +13,8 @@ A .NET6 version of Bio library. Bio is an application & library for editing & an
 
 - Supports Pyramidal images with multiple resolutions. Like whole slide images.
 
+- Stitch images at varying resolutions into single pyramidal image with multiple resolutions.
+
 - Multiple view modes like Emission, and Filtered. ROI's shown for each channel can be configured in ROI Manager.
 
 - Supports drawing shapes & colors onto 16 bit & 48 bit images, unlike System.Drawing.Graphics.
@@ -36,7 +38,7 @@ A .NET6 version of Bio library. Bio is an application & library for editing & an
 ## Dependencies
 - [BioFormatsNet6](https://github.com/BiologyTools/BioFormatsNET6)
 - [IKVM](http://www.ikvm.net/)
-- [AForgeImagingCore](https://github.com/BiologyTools/AForgeImagingCore)
+- [AForge](http://www.aforgenet.com/)
 - [LibTiff.Net](https://bitmiracle.com/libtiff/)
 - [Cs-script](https://github.com/oleg-shilo/cs-script/blob/master/LICENSE)
 - [ImageJ](https://imagej.nih.gov/ij/) (Only needed when running ImageJ macro commands)

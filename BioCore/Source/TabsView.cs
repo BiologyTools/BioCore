@@ -1317,5 +1317,13 @@ namespace Bio
             ZCT z = SelectedImage.Buffers[f].Coordinate;
             ImageView.SetCoordinate(z.Z,z.C,z.T);
         }
+
+        private void savePyramidalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveOMEFileDialog.Title = "Save Pyramidal";
+            if (saveOMEFileDialog.ShowDialog() != DialogResult.OK)
+                return;
+            BioImage.SaveOMEPyramidal(App.viewer.Images.ToArray(), saveOMEFileDialog.FileName, NetVips.Enums.ForeignTiffCompression.Lzw, 0);
+        }
     }
 }
