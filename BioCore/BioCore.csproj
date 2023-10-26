@@ -25,7 +25,7 @@
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
     <AssemblyVersion>3.3.0</AssemblyVersion>
     <FileVersion>3.3.0</FileVersion>
-    <PackageReleaseNotes>Multi-resolution pyramidal image creation &amp; stitching and saving, as well as dependency updates.</PackageReleaseNotes>
+    <PackageReleaseNotes>Multi-resolution pyramidal image creation &amp; stitching and saving, as well as dependency updates &amp; bug fixes.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
