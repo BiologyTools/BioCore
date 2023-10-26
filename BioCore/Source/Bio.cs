@@ -3417,19 +3417,48 @@ namespace Bio
                 }
                 else
                 {
-                    int ind = strplane * h;
-                    int indb = ind * 2;
-                    for (int y = 0; y < h; y++)
+                    if (BitsPerPixel > 8)
                     {
-                        int x = 0;
-                        int str1 = Stride * y;
-                        int str2 = strplane * y;
-                        for (int st = 0; st < strplane; st++)
+                        int ind = strplane * h;
+                        int ind2 = strplane * h * 2;
+                        for (int y = 0; y < h; y++)
                         {
-                            bts[str1 + x + 2] = bytes[str2 + st];
-                            bts[str1 + x + 1] = bytes[ind + str2 + st];
-                            bts[str1 + x] = bytes[indb + str2 + st];
-                            x += 3;
+                            int i = 0;
+                            int x = 0;
+                            int str1 = Stride * y;
+                            int str2 = strplane * y;
+                            for (int st = 0; st < strplane; st += 2)
+                            {
+                                bts[str1 + x + 0] = bytes[str2 + st];
+                                bts[str1 + x + 1] = bytes[str2 + st + 1];
+                                bts[str1 + x + 2] = bytes[ind + str2 + st];
+                                bts[str1 + x + 3] = bytes[ind + str2 + st + 1];
+                                bts[str1 + x + 4] = bytes[ind2 + str2 + st];
+                                bts[str1 + x + 5] = bytes[ind2 + str2 + st + 1];
+                                if (i == 1)
+                                {
+                                    i = 0; x += 6;
+                                }
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int ind = strplane * h;
+                        int indb = ind * 2;
+                        for (int y = 0; y < h; y++)
+                        {
+                            int x = 0;
+                            int str1 = Stride * y;
+                            int str2 = strplane * y;
+                            for (int st = 0; st < strplane; st++)
+                            {
+                                bts[str1 + x + 2] = bytes[str2 + st];
+                                bts[str1 + x + 1] = bytes[ind + str2 + st];
+                                bts[str1 + x] = bytes[indb + str2 + st];
+                                x += 3;
+                            }
                         }
                     }
                 }
@@ -3476,19 +3505,48 @@ namespace Bio
                 }
                 else
                 {
-                    int ind = strplane * h;
-                    int indb = ind * 2;
-                    for (int y = 0; y < h; y++)
+                    if (BitsPerPixel > 8)
                     {
-                        int x = 0;
-                        int str1 = Stride * y;
-                        int str2 = strplane * y;
-                        for (int st = 0; st < strplane; st++)
+                        int ind = strplane * h;
+                        int ind2 = strplane * h * 2;
+                        for (int y = 0; y < h; y++)
                         {
-                            bts[str1 + x + 2] = bytes[str2 + st];
-                            bts[str1 + x + 1] = bytes[ind + str2 + st];
-                            bts[str1 + x] = bytes[indb + str2 + st];
-                            x += 3;
+                            int i = 0;
+                            int x = 0;
+                            int str1 = Stride * y;
+                            int str2 = strplane * y;
+                            for (int st = 0; st < strplane; st += 2)
+                            {
+                                bts[str1 + x + 0] = bytes[str2 + st];
+                                bts[str1 + x + 1] = bytes[str2 + st + 1];
+                                bts[str1 + x + 2] = bytes[ind + str2 + st];
+                                bts[str1 + x + 3] = bytes[ind + str2 + st + 1];
+                                bts[str1 + x + 4] = bytes[ind2 + str2 + st];
+                                bts[str1 + x + 5] = bytes[ind2 + str2 + st + 1];
+                                if (i == 1)
+                                {
+                                    i = 0; x += 6;
+                                }
+                                i++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int ind = strplane * h;
+                        int indb = ind * 2;
+                        for (int y = 0; y < h; y++)
+                        {
+                            int x = 0;
+                            int str1 = Stride * y;
+                            int str2 = strplane * y;
+                            for (int st = 0; st < strplane; st++)
+                            {
+                                bts[str1 + x + 2] = bytes[str2 + st];
+                                bts[str1 + x + 1] = bytes[ind + str2 + st];
+                                bts[str1 + x] = bytes[indb + str2 + st];
+                                x += 3;
+                            }
                         }
                     }
                 }
@@ -8300,7 +8358,7 @@ namespace Bio
 
             } while (!stop);
         }
-        public static void SaveOMEPyramidal(BioImage[] bms, string file, string compression)
+        public static void SaveOMEStiched(BioImage[] bms, string file, string compression)
         {
             if (File.Exists(file))
                 File.Delete(file);
@@ -8636,6 +8694,7 @@ namespace Bio
                 }
             } while (!stop);
         }
+
         /// <summary>
         /// The function "GetBands" returns the number of color bands for a given pixel format in the
         /// AForge library.
@@ -9410,7 +9469,7 @@ namespace Bio
             for (int p = 0; p < pages; p++)
             {
                 BufferInfo bf;
-                if (vips)
+                if (vips && tile)
                 {
                     OpenVip(b, p, tilex, tiley, tileSizeX, tileSizeY);
                 }
