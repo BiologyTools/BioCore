@@ -3,13 +3,13 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.3.0</Version>
+	  <Version>3.4.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <ApplicationIcon>Bio.ico</ApplicationIcon>
-    <Authors>ErikRepo</Authors>
+    <Authors>Erik Repo</Authors>
     <PackageIcon>banner.jpg</PackageIcon>
     <PackageProjectUrl>https://github.com/BiologyTools/BioCore</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.3.0</AssemblyVersion>
-    <FileVersion>3.3.0</FileVersion>
-    <PackageReleaseNotes>Multi-resolution pyramidal image creation &amp; stitching and saving, as well as dependency updates &amp; bug fixes.</PackageReleaseNotes>
+    <AssemblyVersion>3.4.0</AssemblyVersion>
+    <FileVersion>3.4.0</FileVersion>
+    <PackageReleaseNotes>BioFormats.NET6 missing dll's fix, as well as dependency updates.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -53,7 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="bioformats_package.dll" />
     <None Remove="Graphics\Shaders\color-gs.hlsl" />
     <None Remove="Graphics\Shaders\color-ps.hlsl" />
     <None Remove="Graphics\Shaders\color-vs.hlsl" />
@@ -65,9 +64,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Bio.ico" />
-    <Content Include="bioformats_package.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Graphics\Shaders\color-gs.hlsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -81,11 +77,10 @@
 
   <ItemGroup>
     <PackageReference Include="AForgeImagingCore" Version="2.2.5" />
-    <PackageReference Include="BioFormats.NET6" Version="7.0.1" />
+    <PackageReference Include="BioFormats.NET6" Version="7.0.1.2" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="CS-Script" Version="4.8.3" />
     <PackageReference Include="H.InputSimulator" Version="1.4.1" />
-    <PackageReference Include="IKVM" Version="8.6.4" />
     <PackageReference Include="NetVips" Version="2.3.1" />
     <PackageReference Include="NetVips.Native" Version="8.14.5" />
     <PackageReference Include="NetVips.Native.win-x64" Version="8.14.5" />
@@ -140,11 +135,5 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="bioformats_package">
-      <HintPath>bioformats_package.dll</HintPath>
-    </Reference>
   </ItemGroup>
 </Project>
