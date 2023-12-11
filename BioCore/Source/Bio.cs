@@ -14,6 +14,12 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using Image = System.Drawing.Image;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using PointF = System.Drawing.PointF;
+using RectangleF = System.Drawing.RectangleF;
+using Size = System.Drawing.Size;
+using IntRange = AForge.IntRange;
+using OpenSlideGTK;
 namespace Bio
 {
     public static class Images
@@ -771,7 +777,7 @@ namespace Bio
                 return Points;
             }
         }
-        private List<RectangleF> selectBoxs = new List<RectangleF>();
+        private List<RectangleD> selectBoxs = new List<RectangleD>();
         public List<int> selectedPoints = new List<int>();
         public RectangleD BoundingBox;
         public Font font = System.Drawing.SystemFonts.DefaultFont;
@@ -880,17 +886,44 @@ namespace Bio
             font = SystemFonts.DefaultFont;
             BoundingBox = new RectangleD(0, 0, 1, 1);
         }
-
+        /// > This function returns a rectangle that is the bounding box of the object, but with a
+        /// border of half the scale
+        /// 
+        /// @param scale the scale of the image
+        /// 
+        /// @return A rectangle with the following properties:
+        public RectangleD GetSelectBound(double scaleX, double scaleY)
+        {
+            double fx = scaleX / 2;
+            double fy = scaleY / 2;
+            return new RectangleD(BoundingBox.X - fx, BoundingBox.Y - fy, BoundingBox.W + scaleX, BoundingBox.H + scaleY);
+        }
         /// It creates a list of rectangles, each rectangle is a square with a side length of
         /// ROI.selectBoxSize, and the center of the square is the point in the list of points
         /// 
         /// @return A list of RectangleF objects.
-        public RectangleF[] GetSelectBoxes()
+        public RectangleD[] GetSelectBoxes()
         {
             selectBoxs.Clear();
             for (int i = 0; i < Points.Count; i++)
             {
-                selectBoxs.Add(new RectangleF((float)(Points[i].X), (float)(Points[i].Y), (float)ROI.selectBoxSize, (float)ROI.selectBoxSize));
+                selectBoxs.Add(new RectangleD((Points[i].X), (Points[i].Y), ROI.selectBoxSize, ROI.selectBoxSize));
+            }
+            return selectBoxs.ToArray();
+        }
+        /// It returns an array of RectangleF objects that are used to draw the selection boxes around
+        /// the points of the polygon
+        /// 
+        /// @param s the size of the select box
+        /// 
+        /// @return A list of RectangleF objects.
+        public RectangleD[] GetSelectBoxes(double s)
+        {
+            double f = s / 2;
+            selectBoxs.Clear();
+            for (int i = 0; i < Points.Count; i++)
+            {
+                selectBoxs.Add(new RectangleD((float)(Points[i].X - f), (float)(Points[i].Y - f), (float)s, (float)s));
             }
             return selectBoxs.ToArray();
         }
@@ -1007,7 +1040,6 @@ namespace Bio
             an.closed = true;
             return an;
         }
-
         /// This function updates the point at the specified index
         /// 
         /// @param PointD A class that contains an X and Y coordinate.
@@ -1039,7 +1071,7 @@ namespace Bio
         /// It converts a list of points to an array of points
         /// 
         /// @return A PointF array.
-        public PointF[] GetPointsF()
+        public System.Drawing.PointF[] GetPointsF()
         {
             PointF[] pfs = new PointF[Points.Count];
             for (int i = 0; i < Points.Count; i++)
@@ -5230,6 +5262,7 @@ namespace Bio
             get { return new VolumeD(new Point3D(StageSizeX, StageSizeY, StageSizeZ), new Point3D(SizeX * PhysicalSizeX, SizeY * PhysicalSizeY, SizeZ * PhysicalSizeZ)); }
         }
         public List<ROI> Annotations = new List<ROI>();
+        public OpenSlideImage slideImage;
         public string filename = "";
         public string script = "";
         public string Filename
@@ -5249,6 +5282,41 @@ namespace Bio
             get
             {
                 return Buffers[0].RGBChannelsCount;
+            }
+        }
+        public int? MacroResolution { get; set; }
+        public int? LabelResolution { get; set; }
+        void SetLabelMacroResolutions()
+        {
+            int i = 0;
+            Size s = new Size(int.MaxValue, int.MaxValue);
+            bool noMacro = true;
+            PixelFormat pf = Resolutions[0].PixelFormat;
+            foreach (Resolution res in Resolutions)
+            {
+                if (res.SizeX < s.Width && res.SizeY < s.Height)
+                {
+                    //If the pixel format changes it means this is the macro resolution.
+                    if (pf != res.PixelFormat)
+                    {
+                        noMacro = false;
+                        break;
+                    }
+                    pf = res.PixelFormat;
+                    s = new Size(res.SizeX, res.SizeY);
+                }
+                else
+                {
+                    //If this level is bigger than the previous this is the macro resolution.
+                    noMacro = false;
+                    break;
+                }
+                i++;
+            }
+            if (!noMacro)
+            {
+                MacroResolution = i;
+                LabelResolution = i + 1;
             }
         }
         public int bitsPerPixel;
@@ -8857,11 +8925,11 @@ namespace Bio
                     mutable.Set(GValue.GIntType, "page-height", ss[last].Height);
                 });
                 if (bis[px][0].bitsPerPixel > 8)
-                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, null, true, ss[px].Width, ss[px].Height, true, false, 16,
+                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, true, ss[px].Width, ss[px].Height, true, false, 16,
                     Enums.ForeignTiffResunit.Cm, 1000 * bis[px][0].PhysicalSizeX, 1000 * bis[px][0].PhysicalSizeY, true, null, Enums.RegionShrink.Nearest,
                     compressionLevel, true, Enums.ForeignDzDepth.One, true, false, null, null, ss[px].Height);
                 else
-                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, null, true, ss[px].Width, ss[px].Height, true, false, 8,
+                    mutated.Tiffsave(file, compression, 1, Enums.ForeignTiffPredictor.None, true, ss[px].Width, ss[px].Height, true, false, 8,
                     Enums.ForeignTiffResunit.Cm, 1000 * bis[px][0].PhysicalSizeX, 1000 * bis[px][0].PhysicalSizeY, true, null, Enums.RegionShrink.Nearest,
                     compressionLevel, true, Enums.ForeignDzDepth.One, true, false, null, null, ss[px].Height);
                 s++;
@@ -9185,6 +9253,18 @@ namespace Bio
             {
                 b.ispyramidal = true;
             }
+
+            try
+            {
+                string st = OpenSlideGTK.OpenSlideImage.DetectVendor(file);
+                if (st != null)
+                    b.slideImage = OpenSlideGTK.OpenSlideImage.Open(file);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message.ToString());
+            }
+
             int rc = b.meta.getROICount();
             for (int im = 0; im < rc; im++)
             {
@@ -9479,6 +9559,7 @@ namespace Bio
                     bf = BioImage.GetTile(b, b.coordinate, serie, tilex, tiley, sx, sy);
                     b.Buffers.Add(bf);
                     Statistics.CalcStatistics(bf);
+
                 }
                 else
                 {
@@ -9523,6 +9604,7 @@ namespace Bio
             b.UpdateCoords(b.SizeZ, b.SizeC, b.SizeT, order);
             reader.close();
             //We wait for threshold image statistics calculation
+            if(b.Buffers.Count != 0)
             do
             {
                 Thread.Sleep(50);
@@ -9541,6 +9623,8 @@ namespace Bio
                 pr.Close();
                 pr.Dispose();
             }
+            if (b.isPyramidal)
+                b.SetLabelMacroResolutions();
             return b;
         }
         public ImageReader imRead = new ImageReader();
@@ -9651,6 +9735,11 @@ namespace Bio
                 //and incase we are on mac we can't use bioformats due to IKVM not supporting mac.
                 return ExtractRegionFromTiledTiff(b, tilex, tiley, tileSizeX, tileSizeY, serie);
             }
+            //We check if we can open this with OpenSlide as this is faster than Bioformats with IKVM.
+            if (b.slideImage != null)
+            {
+                return new BufferInfo(tileSizeX, tileSizeY, PixelFormat.Format32bppArgb, b.slideImage.ReadRegion(serie, tilex, tiley, tileSizeX, tileSizeY), coord, "");
+            }
             if (b.imRead == null)
                 b.imRead = new ImageReader();
             string s = b.imRead.getCurrentFile();
@@ -9663,7 +9752,7 @@ namespace Bio
             int SizeY = b.imRead.getSizeY();
             int p = b.Coords[coord.Z, coord.C, coord.T];
             bool littleEndian = b.imRead.isLittleEndian();
-            PixelFormat PixelFormat = b.Resolutions[serie].PixelFormat;
+            PixelFormat px = b.Resolutions[serie].PixelFormat;
             if (tilex < 0)
                 tilex = 0;
             if (tiley < 0)
@@ -9684,7 +9773,7 @@ namespace Bio
                 return null;
             byte[] bytesr = b.imRead.openBytes(b.Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
             bool interleaved = b.imRead.isInterleaved();
-            BufferInfo bm = new BufferInfo(b.file, sx, sy, PixelFormat, bytesr, coord, p, null, littleEndian, interleaved);
+            BufferInfo bm = new BufferInfo(b.file, sx, sy, px, bytesr, coord, p, null, littleEndian, interleaved);
             return bm;
         }
         public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
@@ -9854,7 +9943,7 @@ namespace Bio
         public static BioImage[] OpenOMESeries(string file)
         {
             reader = new ImageReader();
-            var meta = (IMetadata)((OMEXMLService)new ServiceFactory().getInstance(typeof(OMEXMLService))).createOMEXMLMetadata();
+            var meta = service.createOMEXMLMetadata();
             reader.setMetadataStore((MetadataStore)meta);
             file = file.Replace("\\", "/");
             reader.setId(file);

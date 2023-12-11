@@ -48,12 +48,13 @@ namespace Bio
             this.rGBToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.filteredToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.rawToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.moveStageToImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.goToToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.goToImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.goToStageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.controlsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.hideControlsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.hideStatusToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.hidePreviewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyViewToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zPlayMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.playZToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -169,13 +170,14 @@ namespace Bio
             this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.rOIToolStripMenuItem,
             this.viewToolStripMenuItem,
+            this.moveStageToImageToolStripMenuItem,
             this.goToToolStripMenuItem,
             this.goToImageToolStripMenuItem,
+            this.goToStageToolStripMenuItem,
             this.controlsToolStripMenuItem,
             this.copyViewToClipboardToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip1";
-            this.contextMenuStrip.Size = new System.Drawing.Size(200, 136);
-            this.contextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_Opening);
+            this.contextMenuStrip.Size = new System.Drawing.Size(200, 180);
             // 
             // rOIToolStripMenuItem
             // 
@@ -263,6 +265,13 @@ namespace Bio
             this.rawToolStripMenuItem.Text = "Raw";
             this.rawToolStripMenuItem.Click += new System.EventHandler(this.rawToolStripMenuItem_Click);
             // 
+            // moveStageToImageToolStripMenuItem
+            // 
+            this.moveStageToImageToolStripMenuItem.Name = "moveStageToImageToolStripMenuItem";
+            this.moveStageToImageToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.moveStageToImageToolStripMenuItem.Text = "Move Stage To Image";
+            this.moveStageToImageToolStripMenuItem.DropDownOpening += new System.EventHandler(this.goToImageToolStripMenuItem_DropDownOpening);
+            // 
             // goToToolStripMenuItem
             // 
             this.goToToolStripMenuItem.Name = "goToToolStripMenuItem";
@@ -279,12 +288,17 @@ namespace Bio
             this.goToImageToolStripMenuItem.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.goToImageToolStripMenuItem_DropDownItemClicked);
             this.goToImageToolStripMenuItem.Click += new System.EventHandler(this.goToImageToolStripMenuItem_Click);
             // 
+            // goToStageToolStripMenuItem
+            // 
+            this.goToStageToolStripMenuItem.Name = "goToStageToolStripMenuItem";
+            this.goToStageToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
+            this.goToStageToolStripMenuItem.Text = "Go To Stage";
+            // 
             // controlsToolStripMenuItem
             // 
             this.controlsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.hideControlsToolStripMenuItem1,
-            this.hideStatusToolStripMenuItem,
-            this.hidePreviewToolStripMenuItem});
+            this.hideStatusToolStripMenuItem});
             this.controlsToolStripMenuItem.Name = "controlsToolStripMenuItem";
             this.controlsToolStripMenuItem.Size = new System.Drawing.Size(199, 22);
             this.controlsToolStripMenuItem.Text = "Controls";
@@ -292,23 +306,16 @@ namespace Bio
             // hideControlsToolStripMenuItem1
             // 
             this.hideControlsToolStripMenuItem1.Name = "hideControlsToolStripMenuItem1";
-            this.hideControlsToolStripMenuItem1.Size = new System.Drawing.Size(151, 22);
+            this.hideControlsToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.hideControlsToolStripMenuItem1.Text = "Hide Controls";
             this.hideControlsToolStripMenuItem1.Click += new System.EventHandler(this.hideControlsToolStripMenuItem_Click);
             // 
             // hideStatusToolStripMenuItem
             // 
             this.hideStatusToolStripMenuItem.Name = "hideStatusToolStripMenuItem";
-            this.hideStatusToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
+            this.hideStatusToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.hideStatusToolStripMenuItem.Text = "Hide Status";
             this.hideStatusToolStripMenuItem.Click += new System.EventHandler(this.HideStatusMenuItem_Click);
-            // 
-            // hidePreviewToolStripMenuItem
-            // 
-            this.hidePreviewToolStripMenuItem.Name = "hidePreviewToolStripMenuItem";
-            this.hidePreviewToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
-            this.hidePreviewToolStripMenuItem.Text = "Hide Overview";
-            this.hidePreviewToolStripMenuItem.Click += new System.EventHandler(this.hidePreviewToolStripMenuItem_Click);
             // 
             // copyViewToClipboardToolStripMenuItem
             // 
@@ -689,14 +696,14 @@ namespace Bio
             this.pictureBox.Location = new System.Drawing.Point(0, 29);
             this.pictureBox.Margin = new System.Windows.Forms.Padding(0);
             this.pictureBox.Name = "pictureBox";
-            this.pictureBox.Size = new System.Drawing.Size(479, 290);
+            this.pictureBox.Size = new System.Drawing.Size(481, 290);
             this.pictureBox.TabIndex = 20;
             this.pictureBox.TabStop = false;
+            this.pictureBox.SizeChanged += new System.EventHandler(this.pictureBox_SizeChanged);
             this.pictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox_Paint);
             this.pictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pictureBox_MouseDown);
             this.pictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.rgbPictureBox_MouseMove);
             this.pictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.pictureBox_MouseUp);
-            this.pictureBox.Resize += new System.EventHandler(this.overlayPictureBox_Resize);
             // 
             // overlayPictureBox
             // 
@@ -708,7 +715,7 @@ namespace Bio
             this.overlayPictureBox.Location = new System.Drawing.Point(0, 29);
             this.overlayPictureBox.Margin = new System.Windows.Forms.Padding(0);
             this.overlayPictureBox.Name = "overlayPictureBox";
-            this.overlayPictureBox.Size = new System.Drawing.Size(479, 290);
+            this.overlayPictureBox.Size = new System.Drawing.Size(481, 290);
             this.overlayPictureBox.TabIndex = 19;
             this.overlayPictureBox.TabStop = false;
             this.overlayPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.overlayPictureBox_Paint);
@@ -721,25 +728,25 @@ namespace Bio
             // 
             this.hScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.hScrollBar.Location = new System.Drawing.Point(0, 320);
+            this.hScrollBar.Location = new System.Drawing.Point(0, 318);
             this.hScrollBar.Name = "hScrollBar";
-            this.hScrollBar.Size = new System.Drawing.Size(499, 18);
+            this.hScrollBar.Size = new System.Drawing.Size(500, 18);
             this.hScrollBar.SmallChange = 10;
             this.hScrollBar.TabIndex = 24;
             this.hScrollBar.Visible = false;
-            this.hScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollBar_Scroll);
+            this.hScrollBar.ValueChanged += new System.EventHandler(this.vScrollBar_ValueChanged);
             // 
             // vScrollBar
             // 
             this.vScrollBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.vScrollBar.Location = new System.Drawing.Point(482, 29);
+            this.vScrollBar.Location = new System.Drawing.Point(481, 29);
             this.vScrollBar.Name = "vScrollBar";
             this.vScrollBar.Size = new System.Drawing.Size(17, 290);
             this.vScrollBar.SmallChange = 10;
             this.vScrollBar.TabIndex = 23;
             this.vScrollBar.Visible = false;
-            this.vScrollBar.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollBar_Scroll);
+            this.vScrollBar.ValueChanged += new System.EventHandler(this.vScrollBar_ValueChanged);
             // 
             // saveCSVFileDialog
             // 
@@ -771,8 +778,8 @@ namespace Bio
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(95)))), ((int)(((byte)(122)))), ((int)(((byte)(156)))));
-            this.Controls.Add(this.hScrollBar);
             this.Controls.Add(this.vScrollBar);
+            this.Controls.Add(this.hScrollBar);
             this.Controls.Add(this.trackBarPanel);
             this.Controls.Add(this.statusPanel);
             this.Controls.Add(this.dxPanel);
@@ -864,12 +871,13 @@ namespace Bio
         private System.Windows.Forms.ToolStripMenuItem hideControlsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem hideStatusToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem goToImageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem goToStageToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem moveStageToImageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem goToToolStripMenuItem;
         private System.Windows.Forms.HScrollBar hScrollBar;
         private System.Windows.Forms.VScrollBar vScrollBar;
         private System.Windows.Forms.ToolStripMenuItem drawToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fillToolStripMenuItem;
         private System.Windows.Forms.Panel dxPanel;
-        private ToolStripMenuItem hidePreviewToolStripMenuItem;
     }
 }

@@ -1,9 +1,19 @@
-﻿using AForge;
-using AForge.Imaging;
-using AForge.Imaging.Filters;
-using AForge.Math.Geometry;
-using Bio.Graphics;
+﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using AForge.Imaging.Filters;
+using AForge.Imaging;
+using AForge.Math.Geometry;
+using AForge;
+using Bio.Graphics;
 
 namespace Bio
 {
@@ -17,10 +27,12 @@ namespace Bio
         private static ColorS drawColor = new ColorS(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue);
         private static ColorS eraseColor = new ColorS(0, 0, 0);
         private static int width = 1;
-
+        
         public static Rectangle selectionRectangle;
         public static Hashtable tools = new Hashtable();
         private AbstractFloodFiller floodFiller = null;
+        /* It's a class that contains a list of tools, and each tool has a type, a rectangle, a script,
+        and a tolerance. */
         public class Tool
         {
             public enum ToolType
@@ -30,7 +42,6 @@ namespace Bio
                 select,
                 function
             }
-           /* Defining an enum. */
             public enum Type
             {
                 pencil,
@@ -55,7 +66,6 @@ namespace Bio
                 dropper
             }
 
-            /// It adds all the tools to the tools list
             public static void Init()
             {
                 if (tools.Count == 0)
@@ -186,9 +196,9 @@ namespace Bio
         {
             foreach (Control item in this.Controls)
             {
-                if (item.Tag != null)
-                    if (item.Tag.ToString() == "tool")
-                        item.BackColor = Color.White;
+                if(item.Tag != null)
+                if(item.Tag.ToString() == "tool")
+                item.BackColor = System.Drawing.Color.White;
             }
         }
         /// It updates the GUI
@@ -196,30 +206,49 @@ namespace Bio
         {
             if (ImageView.SelectedImage != null)
             {
-                color1Box.BackColor = ColorS.ToColor(DrawColor, ImageView.SelectedImage.Buffers[0].BitsPerPixel);
-                color2Box.BackColor = ColorS.ToColor(EraseColor, ImageView.SelectedImage.Buffers[0].BitsPerPixel);
+                color1Box.BackColor = System.Drawing.Color.FromArgb(DrawColor.R/ushort.MaxValue, DrawColor.G / ushort.MaxValue, DrawColor.B / ushort.MaxValue);
+                color2Box.BackColor = System.Drawing.Color.FromArgb(EraseColor.R / ushort.MaxValue, EraseColor.G / ushort.MaxValue, EraseColor.B / ushort.MaxValue);
             }
             widthBox.Value = width;
         }
-
+        public static float selectBoxSize = ROI.selectBoxSize;
         ROI anno = new ROI();
-        System.Drawing.Point pod;
-        /// This function is called when the user clicks the mouse button down.
+        /// The function is called when the user clicks the mouse button. 
+       /// 
+       /// The function checks if the user is using the line, polygon, freeform, rectangle, ellipse,
+       /// delete, or text tool. 
+       /// 
+       /// If the user is using the line tool, the function creates a new ROI object and adds it to the
+       /// image's annotations. 
+       /// 
+       /// If the user is using the polygon tool, the function creates a new ROI object and adds it to
+       /// the image's annotations. 
+       /// 
+       /// If the user is using the freeform tool, the function creates a new ROI object and adds it to
+       /// the image's annotations. 
+       /// 
+       /// If the user is using the rectangle tool, the function creates a new ROI object and adds it to
+       /// the image's annotations. 
+       /// 
+       /// If the user is using the ellipse tool, the function creates a new ROI object and adds it to
+       /// the image's annotations. 
+       /// 
+       /// If
        /// 
        /// @param PointD A point with double precision
-       /// @param MouseButtons The mouse button that was pressed.
+       /// @param MouseButtons A set of values that indicate which mouse button was pressed.
        /// 
-       /// @return the tool type.
+       /// @return The return type is void.
         public void ToolDown(PointD e, MouseButtons buts)
         {
             if (App.viewer == null || currentTool == null || ImageView.SelectedImage == null)
                 return;
             Scripting.UpdateState(Scripting.State.GetDown(e, buts));
-            PointF p;
+            PointD p;
             if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y)).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
             else
-                p = ImageView.SelectedImage.ToImageSpace(e).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(e);
             if (currentTool.type == Tool.Type.line && buts == MouseButtons.Left)
             {
                 if (anno.GetPointCount() == 0)
@@ -292,12 +321,12 @@ namespace Bio
                 ImageView.SelectedImage.Annotations.Add(anno);
             }
             else
-            if (currentTool.type == Tool.Type.delete && buts == MouseButtons.Left)
+            if(currentTool.type == Tool.Type.delete && buts == MouseButtons.Left)
             {
                 for (int i = 0; i < ImageView.SelectedImage.Annotations.Count; i++)
                 {
                     ROI an = ImageView.SelectedImage.Annotations[i];
-                    if (an.BoundingBox.IntersectsWith(e.X, e.Y))
+                    if (an.BoundingBox.IntersectsWith(e.X,e.Y))
                     {
                         if (an.selectedPoints.Count == 0)
                         {
@@ -335,7 +364,7 @@ namespace Bio
                 TextInput ti = new TextInput("");
                 if (ti.ShowDialog() != DialogResult.OK)
                     return;
-                an.font = ti.font;
+                an.font = new Font(ti.font.FontFamily, ti.font.Size);
                 an.strokeColor = ti.color;
                 an.Text = ti.TextValue;
                 ImageView.SelectedImage.Annotations.Add(an);
@@ -345,25 +374,25 @@ namespace Bio
             {
                 currentTool = GetTool(Tool.Type.pan);
                 UpdateSelected();
-                panPanel.BackColor = Color.LightGray;
+                panPanel.BackColor = System.Drawing.Color.LightGray;
                 Cursor.Current = Cursors.Hand;
             }
+            
             UpdateOverlay();
-        }
-        /// This function is called when the mouse button is released
+        }        
+        /// The function ToolUp() is called when the mouse button is released
         /// 
-        /// @param PointD The mouse position
-        /// @param MouseButtons The mouse button that was pressed.
+        /// @param PointD X,Y
+        /// @param MouseButtons Left, Right, Middle, XButton1, XButton2
         /// 
-        /// @return The return type is void.
+        /// @return a RectangleF.
         public void ToolUp(PointD e, MouseButtons buts)
         {
-            PointF p;
-            App.viewer.TileShown = true;
+            PointD p;
             if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y)).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
             else
-                p = ImageView.SelectedImage.ToImageSpace(e).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(e);
             if (App.viewer == null || currentTool == null || ImageView.SelectedImage == null || anno == null)
                 return;
             Scripting.UpdateState(Scripting.State.GetUp(e, buts));
@@ -409,15 +438,15 @@ namespace Bio
             if (currentTool.type == Tool.Type.rectSel && buts == MouseButtons.Left)
             {
                 ImageView.selectedAnnotations.Clear();
-                RectangleF r = GetTool(Tool.Type.rectSel).RectangleF;
+                RectangleD r = GetTool(Tool.Type.rectSel).Rectangle;
                 foreach (ROI an in App.viewer.AnnotationsRGB)
                 {
-                    if (an.BoundingBox.IntersectsWith(new RectangleD(r.X,r.Y,r.Width,r.Height)))
+                    if (an.GetSelectBound(App.viewer.GetScale(), App.viewer.GetScale()).ToRectangleF().IntersectsWith(r.ToRectangleF()))
                     {
                         an.selectedPoints.Clear();
                         ImageView.selectedAnnotations.Add(an);
                         an.selected = true;
-                        RectangleF[] sels = an.GetSelectBoxes();
+                        RectangleD[] sels = an.GetSelectBoxes(selectBoxSize);
                         for (int i = 0; i < sels.Length; i++)
                         {
                             if (sels[i].IntersectsWith(r))
@@ -443,7 +472,6 @@ namespace Bio
                 BufferInfo bf = ImageView.SelectedImage.Buffers[ImageView.SelectedImage.Coords[coord.Z, coord.C, coord.T]].GetCropBuffer(r);
                 Statistics[] sts = Statistics.FromBytes(bf);
                 Statistics st = sts[0];
-                Bitmap crop = (Bitmap)bf.Image;
                 Threshold th;
                 if (magicSel.Numeric)
                 {
@@ -457,13 +485,13 @@ namespace Bio
                     th = new Threshold((int)st.Median);
                 else
                     th = new Threshold(st.Min);
-                th.ApplyInPlace(crop);
+                th.ApplyInPlace((Bitmap)bf.Image);
                 Invert inv = new Invert();
                 Bitmap det;
                 if (bf.BitsPerPixel > 8)
-                    det = AForge.Imaging.Image.Convert16bppTo8bpp((crop));
+                    det = AForge.Imaging.Image.Convert16bppTo8bpp((Bitmap)bf.Image);
                 else
-                    det = crop;
+                    det = (Bitmap)bf.Image;
                 BlobCounter blobCounter = new BlobCounter();
                 blobCounter.ProcessImage(det);
                 Blob[] blobs = blobCounter.GetObjectsInformation();
@@ -508,18 +536,12 @@ namespace Bio
             else
             if (Tools.currentTool.type == Tools.Tool.Type.dropper && buts == MouseButtons.Left)
             {
-                DrawColor = ImageView.SelectedBuffer.GetPixel((int)p.X, (int)p.Y);
+                DrawColor = ImageView.SelectedBuffer.GetPixel((int)p.X,(int)p.Y);
                 UpdateGUI();
             }
             UpdateOverlay();
         }
-        /// This function is called when the mouse is moved. It updates the state of the tool and the
-        /// viewer
-        /// 
-        /// @param PointD A point with double precision
-        /// @param MouseButtons Left, Right, Middle
-        /// 
-        /// @return The return type is void.
+
         public void ToolMove(PointD e, MouseButtons buts)
         {
             if (App.viewer == null)
@@ -527,25 +549,17 @@ namespace Bio
             Scripting.UpdateState(Scripting.State.GetMove(e, buts));
             if (Tools.currentTool.type == Tools.Tool.Type.pan && buts == MouseButtons.Left || buts == MouseButtons.Middle)
             {
-                if (ImageView.SelectedImage.isPyramidal)
-                {
-                    PointD pd = new PointD(App.viewer.MouseDownInt.X - App.viewer.MouseMoveInt.X, App.viewer.MouseDownInt.Y - App.viewer.MouseMoveInt.Y);
-                    App.viewer.PyramidalOrigin = new PointF(App.viewer.PyramidalOrigin.X - (int)pd.X, App.viewer.PyramidalOrigin.Y - (int)pd.Y);
-                }
-                else
-                {
-                    PointD pf = new PointD(e.X - ImageView.mouseDown.X, e.Y - ImageView.mouseDown.Y);
-                    App.viewer.Origin = new PointD(App.viewer.Origin.X + pf.X, App.viewer.Origin.Y + pf.Y);
-                    UpdateView();
-                }
+                PointD pf = new PointD(e.X - ImageView.mouseDown.X, e.Y - ImageView.mouseDown.Y);
+                App.viewer.Origin = new PointD(App.viewer.Origin.X + pf.X, App.viewer.Origin.Y + pf.Y);
+                UpdateView();
             }
             if (ImageView.SelectedImage == null)
                 return;
-            PointF p;
+            PointD p;
             if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y)).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
             else
-                p = ImageView.SelectedImage.ToImageSpace(e).ToPointF();
+                p = ImageView.SelectedImage.ToImageSpace(e);
             if (currentTool.type == Tool.Type.line && ImageView.down)
             {
                 anno.UpdatePoint(new PointD(e.X, e.Y), 1);
@@ -567,9 +581,8 @@ namespace Bio
                     anno.AddPoint(new PointD(e.X, e.Y));
                 }
                 UpdateOverlay();
-            }
-            else
-
+            }else
+            
             if (currentTool.type == Tool.Type.rect && anno.type == ROI.Type.Rectangle)
             {
                 if (anno.GetPointCount() == 4)
@@ -592,15 +605,15 @@ namespace Bio
             {
                 PointD d = new PointD(e.X - ImageView.mouseDown.X, e.Y - ImageView.mouseDown.Y);
                 Tools.GetTool(Tools.Tool.Type.rectSel).Rectangle = new RectangleD(ImageView.mouseDown.X, ImageView.mouseDown.Y, d.X, d.Y);
-                RectangleF r = Tools.GetTool(Tools.Tool.Type.rectSel).RectangleF;
+                RectangleD r = Tools.GetTool(Tools.Tool.Type.rectSel).Rectangle;
                 foreach (ROI an in App.viewer.AnnotationsRGB)
                 {
-                    if (an.BoundingBox.ToRectangleF().IntersectsWith(r))
+                    if (an.GetSelectBound(App.viewer.GetScale(), App.viewer.GetScale()).IntersectsWith(r))
                     {
                         an.selectedPoints.Clear();
                         ImageView.selectedAnnotations.Add(an);
                         an.selected = true;
-                        RectangleF[] sels = an.GetSelectBoxes();
+                        RectangleD[] sels = an.GetSelectBoxes(selectBoxSize);
                         for (int i = 0; i < sels.Length; i++)
                         {
                             if (sels[i].IntersectsWith(r))
@@ -638,7 +651,7 @@ namespace Bio
                             {
                                 an.closed = false;
                                 an.RemovePoints(an.selectedPoints.ToArray());
-
+                                
                             }
                         }
                     }
@@ -653,11 +666,11 @@ namespace Bio
                 Tools.GetTool(Tools.Tool.Type.rectSel).Rectangle = new RectangleD(ImageView.mouseDown.X, ImageView.mouseDown.Y, d.X, d.Y);
                 UpdateOverlay();
             }
-
+            
             if (buts == MouseButtons.Left && currentTool.type == Tool.Type.eraser)
             {
                 Graphics.Graphics g = Graphics.Graphics.FromImage(ImageView.SelectedBuffer);
-                Graphics.Pen pen = new Graphics.Pen(Tools.EraseColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel);
+                Graphics.Pen pen = new Graphics.Pen(Tools.EraseColor, (int)Tools.StrokeWidth,ImageView.SelectedBuffer.BitsPerPixel);
                 g.FillEllipse(new Rectangle((int)p.X, (int)p.Y, (int)width, (int)Tools.StrokeWidth), pen.color);
                 pen.Dispose();
                 App.viewer.UpdateImage();
@@ -673,7 +686,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.move);
             UpdateSelected();
-            movePanel.BackColor = Color.LightGray;
+            movePanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the textPanel, the currentTool is set to the text tool, the
@@ -685,7 +698,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.text);
             UpdateSelected();
-            textPanel.BackColor = Color.LightGray;
+            textPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// This function is called when the user double clicks on the text panel. It sets the current
@@ -701,7 +714,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.text);
             UpdateSelected();
-            textPanel.BackColor = Color.LightGray;
+            textPanel.BackColor = System.Drawing.Color.LightGray;
 
             if (fontDialog.ShowDialog() != DialogResult.OK)
                 return;
@@ -717,7 +730,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.point);
             UpdateSelected();
-            pointPanel.BackColor = Color.LightGray;
+            pointPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the linePanel, the currentTool is set to the line tool, the
@@ -729,7 +742,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.line);
             UpdateSelected();
-            linePanel.BackColor = Color.LightGray;
+            linePanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the rectangle panel, the current tool is set to the rectangle tool,
@@ -742,11 +755,12 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.rect);
             UpdateSelected();
-            rectPanel.BackColor = Color.LightGray;
+            rectPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
-        /// When the ellipse button is clicked, the current tool is set to the ellipse tool, the ellipse
-        /// button is highlighted, and the cursor is set to the arrow cursor
+        /// When the ellipse button is clicked, the current tool is set to the ellipse tool, the
+        /// selected tool is updated, the ellipse button's background color is set to light gray, and
+        /// the cursor is set to an arrow
         /// 
         /// @param sender The object that raised the event.
         /// @param EventArgs The EventArgs class is the base class for classes containing event data.
@@ -754,7 +768,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.ellipse);
             UpdateSelected();
-            ellipsePanel.BackColor = Color.LightGray;
+            ellipsePanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the polygon button, the current tool is set to the polygon tool, the
@@ -767,7 +781,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.polygon);
             UpdateSelected();
-            polyPanel.BackColor = Color.LightGray;
+            polyPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the delete button is clicked, the current tool is set to the delete tool, the selected
@@ -780,7 +794,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.delete);
             UpdateSelected();
-            deletePanel.BackColor = Color.LightGray;
+            deletePanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the freeformPanel, the currentTool is set to the freeform tool, the
@@ -792,12 +806,12 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.freeform);
             UpdateSelected();
-            freeformPanel.BackColor = Color.LightGray;
+            freeformPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
-        /// When the user clicks on the rectangle selection tool, the current tool is set to the
-        /// rectangle selection tool, the rectangle selection tool's panel is highlighted, and the
-        /// cursor is set to the arrow cursor
+        /// When the user clicks on the rectangle selection panel, the current tool is set to the
+        /// rectangle selection tool, the panel's background color is set to light gray, and the cursor
+        /// is set to an arrow
         /// 
         /// @param sender The object that raised the event.
         /// @param EventArgs The event arguments.
@@ -805,7 +819,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.rectSel);
             UpdateSelected();
-            rectSelPanel.BackColor = Color.LightGray;
+            rectSelPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the user clicks on the panPanel, the currentTool is set to the pan tool, the selected
@@ -818,7 +832,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.pan);
             UpdateSelected();
-            panPanel.BackColor = Color.LightGray;
+            panPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Hand;
         }
         /// When the magicPanel is clicked, the currentTool is set to the magic tool, the selected tool
@@ -831,7 +845,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.magic);
             UpdateSelected();
-            magicPanel.BackColor = Color.LightGray;
+            magicPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the bucketPanel is clicked, the currentTool is set to the bucket tool, the selected
@@ -844,7 +858,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.bucket);
             UpdateSelected();
-            bucketPanel.BackColor = Color.LightGray;
+            bucketPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         /// When the pencilPanel is clicked, the currentTool is set to the pencil tool, the
@@ -857,7 +871,7 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.pencil);
             UpdateSelected();
-            pencilPanel.BackColor = Color.LightGray;
+            pencilPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
         MagicSelect magicSel = new MagicSelect(2);
@@ -883,17 +897,18 @@ namespace Bio
             this.Hide();
         }
 
-        /// The function is called when the user double clicks on the pencil icon in the toolbar
-       /// 
-       /// @param sender System.Windows.Forms.Panel
-       /// @param MouseEventArgs e
-       /// 
-       /// @return The PenTool class is being returned.
+        /// It's a function that is called when the user double clicks on the pencil icon in the
+        /// toolbar.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param MouseEventArgs e
+        /// 
+        /// @return The PenTool class is being returned.
         private void pencilPanel_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             currentTool = GetTool(Tool.Type.pencil);
             UpdateSelected();
-            pencilPanel.BackColor = Color.LightGray;
+            pencilPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
             PenTool pt = new PenTool(new Graphics.Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel));
             if (pt.ShowDialog() != DialogResult.OK)
@@ -904,10 +919,10 @@ namespace Bio
 
         /// The function is called when the user double clicks on the bucket tool. It sets the current
         /// tool to the bucket tool, updates the selected tool, sets the bucket tool's background color
-        /// to light gray, sets the cursor to an arrow, creates a new flood tool, and sets the flood
-        /// tool's pen color, width, and tolerance
+        /// to light gray, sets the cursor to an arrow, and then creates a new flood tool with the
+        /// selected color and width
         /// 
-        /// @param sender The control that raised the event.
+        /// @param sender The object that raised the event.
         /// @param MouseEventArgs e
         /// 
         /// @return The currentTool is being returned.
@@ -915,9 +930,9 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.bucket);
             UpdateSelected();
-            bucketPanel.BackColor = Color.LightGray;
+            bucketPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
-            FloodTool pt = new FloodTool(new Graphics.Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel), currentTool.tolerance, ImageView.SelectedBuffer.BitsPerPixel);
+            FloodTool pt = new FloodTool(new Graphics.Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel),currentTool.tolerance, ImageView.SelectedBuffer.BitsPerPixel);
             if (pt.ShowDialog() != DialogResult.OK)
                 return;
             Tools.StrokeWidth = pt.Pen.width;
@@ -935,17 +950,17 @@ namespace Bio
         {
             currentTool = GetTool(Tool.Type.dropper);
             UpdateSelected();
-            dropperPanel.BackColor = Color.LightGray;
+            dropperPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
 
-        /// When the user clicks on the color1Box, a new ColorTool is created and shown to the user. If
-        /// the user clicks OK, the color is updated
+        /// When the user clicks on the color1Box, a new ColorTool is created, and if the user clicks
+        /// OK, the DrawColor is set to the color the user selected.
         /// 
         /// @param sender The object that raised the event.
-        /// @param MouseEventArgs The event data for the MouseClick event.
+        /// @param MouseEventArgs The mouse event arguments.
         /// 
-        /// @return The color that is being returned is the color that is being selected.
+        /// @return The color that was selected.
         private void color1Box_MouseClick(object sender, MouseEventArgs e)
         {
             ColorTool t = new ColorTool(DrawColor, ImageView.SelectedBuffer.BitsPerPixel);
@@ -955,11 +970,11 @@ namespace Bio
             UpdateGUI();
         }
 
-        /// When the user clicks on the color2Box, a new ColorTool is created and shown to the user. If
-        /// the user clicks OK, the EraseColor is set to the color the user selected
+        /// It opens a color dialog box and sets the color of the erase tool to the color selected in
+        /// the dialog box.
         /// 
         /// @param sender The object that raised the event.
-        /// @param MouseEventArgs The event data for the MouseClick event.
+        /// @param MouseEventArgs The mouse event arguments.
         /// 
         /// @return The color that was selected.
         private void color2Box_MouseClick(object sender, MouseEventArgs e)
@@ -981,23 +996,23 @@ namespace Bio
             width = (int)widthBox.Value;
         }
 
-        /// When the eraser panel is clicked, the current tool is set to the eraser, the selected tool
-        /// is updated, the eraser panel's background color is set to light gray, and the cursor is set
-        /// to an arrow
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param MouseEventArgs Provides data for the MouseClick event.
+       /// When the user clicks on the eraser panel, the current tool is set to the eraser tool, the
+       /// selected tool is updated, the eraser panel's background color is set to light gray, and the
+       /// cursor is set to an arrow
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param MouseEventArgs The event data generated by a mouse event.
         private void eraserPanel_MouseClick(object sender, MouseEventArgs e)
         {
             currentTool = GetTool(Tool.Type.eraser);
             UpdateSelected();
-            eraserPanel.BackColor = Color.LightGray;
+            eraserPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
         }
 
         /// When the user clicks on the switchBox, the program swaps the DrawColor and EraseColor
         /// 
-        /// @param sender The object that called the event.
+        /// @param sender The object that raised the event.
         /// @param MouseEventArgs The event arguments for the mouse click event.
         private void switchBox_MouseClick(object sender, MouseEventArgs e)
         {
@@ -1008,9 +1023,9 @@ namespace Bio
         }
 
         /// When the Tools menu is activated, update the GUI
-       /// 
-       /// @param sender The object that raised the event.
-       /// @param EventArgs The event arguments.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void Tools_Activated(object sender, EventArgs e)
         {
             UpdateGUI();

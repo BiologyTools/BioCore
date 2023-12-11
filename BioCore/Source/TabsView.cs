@@ -127,7 +127,7 @@ namespace Bio
                 return;
             System.Drawing.Size s;
             if (SelectedImage.isPyramidal)
-                s = new System.Drawing.Size(ImageView.SelectedImage.Resolutions[ImageView.Resolution].SizeX + 42, ImageView.SelectedImage.Resolutions[ImageView.Resolution].SizeY + 206);
+                s = new System.Drawing.Size(ImageView.SelectedImage.Resolutions[ImageView.Level].SizeX + 42, ImageView.SelectedImage.Resolutions[ImageView.Level].SizeY + 206);
             else
                 s = new System.Drawing.Size(ImageView.SelectedImage.SizeX + 20, ImageView.SelectedImage.SizeY + 180);
             if (s.Width > Screen.PrimaryScreen.Bounds.Width || s.Height > Screen.PrimaryScreen.Bounds.Height)
@@ -512,7 +512,7 @@ namespace Bio
                 if(Image.isPyramidal)
                 {
                     PointF p = Image.ToImageSpace(new PointD(-ImageView.Origin.X,-ImageView.Origin.Y)).ToPointF();
-                    Image = BioImage.OpenOME(Image.file,Image.resolution,false,true,(int)p.X,(int)p.Y,ImageView.ViewWidth,ImageView.ViewHeight);
+                    Image = BioImage.OpenOME(Image.file,Image.resolution,false,true,(int)p.X,(int)p.Y,ImageView.Width,ImageView.Height);
                 }
                 BioImage.SaveOME(file, Image.ID);
             }
