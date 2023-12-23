@@ -5531,6 +5531,7 @@ namespace Bio
                     return Channels[0];
             }
         }
+        public static bool Planes = false;
         /* It's a class that holds the information that is stored in the ImageJ description file */
         public class ImageJDesc
         {
@@ -8426,6 +8427,15 @@ namespace Bio
 
             } while (!stop);
         }
+        public static void SaveOMESeries(BioImage[] bms, string f, bool planes)
+        {
+            List<string> sts = new List<string>();
+            foreach (BioImage b in bms)
+            {
+                sts.Add(b.ID);
+            }
+            SaveOMESeries(sts.ToArray(), f, planes);
+        }
         public static void SaveOMEStiched(BioImage[] bms, string file, string compression)
         {
             if (File.Exists(file))
@@ -9720,14 +9730,14 @@ namespace Bio
         /// @param BioImage This is a class that contains the image file name, the image reader, and the
         /// coordinates of the image.
         /// @param ZCT Z, C, T
-        /// @param serie the series number (0-based)
-        /// @param tilex the x coordinate of the tile
-        /// @param tiley the y coordinate of the tile
-        /// @param tileSizeX the width of the tile
-        /// @param tileSizeY the height of the tile
-        /// 
+        /// @param serie the series number (0-based).
+        /// @param tilex the x coordinate of the tile.
+        /// @param tiley the y coordinate of the tile.
+        /// @param tileSizeX the width of the tile.
+        /// @param tileSizeY the height of the tile.
+        /// @param OpenSlide whether the tile should be opened with OpenSlide.
         /// @return A Bitmap object.
-        public static BufferInfo GetTile(BioImage b, ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        public static BufferInfo GetTile(BioImage b, ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY, bool OpenSlide = true)
         {
             if ((b.file.EndsWith("ome.tif") && vips) || (b.file.EndsWith(".tif") && vips))
             {
@@ -9736,7 +9746,7 @@ namespace Bio
                 return ExtractRegionFromTiledTiff(b, tilex, tiley, tileSizeX, tileSizeY, serie);
             }
             //We check if we can open this with OpenSlide as this is faster than Bioformats with IKVM.
-            if (b.slideImage != null)
+            if (b.slideImage != null && OpenSlide)
             {
                 return new BufferInfo(tileSizeX, tileSizeY, PixelFormat.Format32bppArgb, b.slideImage.ReadRegion(serie, tilex, tiley, tileSizeX, tileSizeY), coord, "");
             }
@@ -9972,22 +9982,149 @@ namespace Bio
         /// It opens a file in a new thread.
         /// 
         /// @param file The file to open
-        public static void OpenAsync(string file)
+        public static async Task OpenAsync(string file, bool OME, bool newtab, bool images)
         {
-            Thread t = new Thread(OpenThread);
-            t.Name = file;
-            t.Start();
+            openfile = file;
+            omes = OME;
+            tab = newtab;
+            add = images;
+            await Task.Run(OpenThread);
         }
         /// It opens a file asynchronously
         /// 
         /// @param files The file(s) to open.
-        public static void OpenAsync(string[] files)
+        public static async Task OpenAsync(string[] files, bool OME, bool tab, bool images)
         {
             foreach (string file in files)
             {
-                OpenAsync(file);
+                await OpenAsync(file, OME, tab, images);
             }
         }
+
+        /// It opens a TIFF file and returns a BioImage object
+        /// 
+        /// @param file the file path
+        /// @param series the series number of the image to open
+        /// 
+        /// @return A BioImage object.
+        public static BioImage OpenFile(string file, int series, bool tab, bool addToImages)
+        {
+            return OpenFile(file, series, tab, addToImages);
+        }
+
+        static string openfile;
+        static bool omes, tab, add;
+        static int serie;
+        static void OpenThread()
+        {
+            OpenFile(openfile, serie, tab, add);
+        }
+        static string savefile, saveid;
+        static bool some;
+        static int sserie;
+        static void SaveThread()
+        {
+            if (omes)
+                SaveOME(savefile, saveid);
+            else
+                SaveFile(savefile, saveid);
+        }
+        /// <summary>
+        /// The SaveAsync function saves data to a file asynchronously.
+        /// </summary>
+        /// <param name="file">The file parameter is a string that represents the file path or name
+        /// where the data will be saved.</param>
+        /// <param name="id">The "id" parameter is a string that represents an identifier for the save
+        /// operation. It could be used to uniquely identify the saved data or to specify a specific
+        /// location or format for the saved file.</param>
+        /// <param name="serie">The "serie" parameter is an integer that represents a series or sequence
+        /// number. It is used as a parameter in the SaveAsync method.</param>
+        /// <param name="ome">The "ome" parameter is a boolean value that determines whether or not to
+        /// perform a specific action in the saving process.</param>
+        public static async Task SaveAsync(string file, string id, int serie, bool ome)
+        {
+            savefile = file;
+            saveid = id;
+            some = ome;
+            await Task.Run(SaveThread);
+        }
+
+        static List<string> sts = new List<string>();
+        static void SaveSeriesThread()
+        {
+            if (omes)
+            {
+                BioImage[] bms = new BioImage[sts.Count];
+                int i = 0;
+                foreach (string st in sts)
+                {
+                    bms[i] = Images.GetImage(st);
+                }
+                SaveOMESeries(bms, savefile, Planes);
+            }
+            else
+                SaveSeries(sts.ToArray(), savefile);
+        }
+        /// <summary>
+        /// The function `SaveSeriesAsync` saves a series of `BioImage` objects to a file asynchronously.
+        /// </summary>
+        /// <param name="imgs">imgs is an array of BioImage objects.</param>
+        /// <param name="file">The "file" parameter is a string that represents the file path where the
+        /// series of BioImages will be saved.</param>
+        /// <param name="ome">The "ome" parameter is a boolean flag that indicates whether the images
+        /// should be saved in OME-TIFF format or not. If "ome" is set to true, the images will be saved
+        /// in OME-TIFF format. If "ome" is set to false, the images will be</param>
+        public static async Task SaveSeriesAsync(BioImage[] imgs, string file, bool ome)
+        {
+            sts.Clear();
+            foreach (BioImage item in imgs)
+            {
+                sts.Add(item.ID);
+            }
+            savefile = file;
+            some = ome;
+            await Task.Run(SaveSeriesThread);
+        }
+        static Enums.ForeignTiffCompression comp;
+        static int compLev = 0;
+        static BioImage[] bms;
+        static void SavePyramidalThread()
+        {
+            SaveOMEPyramidal(bms, savefile, comp, compLev);
+        }
+        /// <summary>
+        /// The function `SavePyramidalAsync` saves an array of `BioImage` objects as a pyramidal TIFF
+        /// file asynchronously.
+        /// </summary>
+        /// <param name="imgs">imgs is an array of BioImage objects.</param>
+        /// <param name="file">The "file" parameter is a string that represents the file path where the
+        /// pyramidal image will be saved.</param>
+        /// <param name="com">The parameter "com" is of type Enums.ForeignTiffCompression, which is an
+        /// enumeration representing different compression options for the TIFF file.</param>
+        /// <param name="compLevel">The `compLevel` parameter is an integer that represents the
+        /// compression level for the TIFF file. It is used to specify the level of compression to be
+        /// applied to the image data when saving the pyramidal image. The higher the compression level,
+        /// the smaller the file size but potentially lower image quality.</param>
+        public static async Task SavePyramidalAsync(BioImage[] imgs, string file, Enums.ForeignTiffCompression com, int compLevel)
+        {
+            bms = imgs;
+            savefile = file;
+            comp = com;
+            compLev = compLevel;
+            await Task.Run(SavePyramidalThread);
+        }
+        private static List<string> openOMEfile = new List<string>();
+        /// It opens the OME file.
+        private static void OpenOME()
+        {
+            foreach (string f in openOMEfile)
+            {
+                OpenOME(f, 0, true, false, 0,0,0,0);
+            }
+            openOMEfile.Clear();
+        }
+        private static string saveOMEfile;
+        private static string saveOMEID;
         /// It opens a file
         /// 
         /// @param file The file to open.
@@ -10005,6 +10142,20 @@ namespace Bio
                 Open(file);
             }
         }
+        /// It takes a file and an ID and saves the file to the ID
+        /// 
+        /// @param file The file to save the data to.
+        /// @param ID The ID of the user
+        public static void Save(string file, string ID)
+        {
+            SaveFile(file, ID);
+        }
+        /// It takes the file name and the ID of the OME and saves it to the file
+        private static void SaveOME()
+        {
+            SaveOME(saveOMEfile, saveOMEID);
+        }
+
         /// It takes a list of files, opens them, and stacks them into a single BioImage object
         /// 
         /// @param files an array of file paths
@@ -10058,91 +10209,7 @@ namespace Bio
             Update(this);
         }
 
-        private static List<string> openfile = new List<string>();
-        /// The function is called OpenThread and it opens a file
-        private static void OpenThread()
-        {
-            string file = Thread.CurrentThread.Name;
-            OpenFile(file);
-        }
-        /// It adds the file and ID to a list, then starts a new thread to save the file
-        /// 
-        /// @param file The file to save to
-        /// @param ID The ID of the file
-        public static void SaveAsync(string file, string ID)
-        {
-            saveid.Add(file);
-            savefile.Add(ID);
-            Thread t = new Thread(Save);
-            t.Start();
-        }
-        /// It takes a file and an ID and saves the file to the database
-        /// 
-        /// @param file The file to save to.
-        /// @param ID The ID of the user.
-        public static void Save(string file, string ID)
-        {
-            SaveFile(file, ID);
-        }
-        private static List<string> savefile = new List<string>();
-        private static List<string> saveid = new List<string>();
-        /// It saves all the files in the savefile list to the saveid list.
-        private static void Save()
-        {
-            List<string> sts = new List<string>();
-            for (int i = 0; i < savefile.Count; i++)
-            {
-                SaveAsync(savefile[i], saveid[i]);
-                sts.Add(savefile[i]);
-            }
-            for (int i = 0; i < sts.Count; i++)
-            {
-                savefile.Remove(sts[i]);
-                saveid.Remove(sts[i]);
-            }
-        }
 
-        private static List<string> openOMEfile = new List<string>();
-        /// It takes a string array of file paths, adds them to a list, and starts a new thread to open
-        /// the files
-        /// 
-        /// @param file The file path to the OME file.
-        public static void OpenOMEThread(string[] file)
-        {
-            openOMEfile.AddRange(file);
-            Thread t = new Thread(OpenOME);
-            t.Start();
-        }
-        /// It opens a file
-        private static void OpenOME()
-        {
-            foreach (string f in openOMEfile)
-            {
-                OpenOME(f);
-            }
-            openOMEfile.Clear();
-        }
-        /// It creates a new thread and starts it. 
-        /// 
-        /// The thread is a function called SaveOME. 
-        /// 
-        /// The function SaveOME is defined below. 
-        /// @param file The file to save the OME to
-        /// @param ID The ID of the OME file to save.
-        public static void SaveOMEThread(string file, string ID)
-        {
-            saveOMEID = ID;
-            saveOMEfile = file;
-            Thread t = new Thread(SaveOME);
-            t.Start();
-        }
-        private static string saveOMEfile;
-        private static string saveOMEID;
-        /// This function saves the OME file to the specified file path
-        private static void SaveOME()
-        {
-            SaveOME(saveOMEfile, saveOMEID);
-        }
 
         private static Stopwatch st = new Stopwatch();
         private static ServiceFactory factory;

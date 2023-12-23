@@ -1,8 +1,11 @@
-﻿namespace Bio
+namespace Bio
 {
     public partial class About : Form
     {
         /* This is the constructor for the About form. It is called when the form is created. */
+/// <summary>
+/// Initializes a new instance of the <see cref="About"/> class.
+/// </summary>
         public About()
         {
             InitializeComponent();

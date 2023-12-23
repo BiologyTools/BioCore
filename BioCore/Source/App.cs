@@ -1,4 +1,4 @@
-﻿namespace Bio
+namespace Bio
 {
     public class App
     {
@@ -17,6 +17,11 @@
         public static List<string> recent = new List<string>();
 
         /* A property that returns the current image. */
+        /// <summary>
+        /// Gets the BioImage object for the selected image in the ImageView.
+        /// If no image is selected, returns the image from the tabsView.
+        /// </summary>
+        /// <value>The selected BioImage object.</value>
         public static BioImage Image
         {
             get
@@ -97,9 +102,10 @@
                 }
             }
         }
-        /// It takes a menu strip and returns a list of all the menu items in the menu strip
-        /// 
-        /// @return A list of ToolStripMenuItems
+        /// <summary>
+        /// Retrieves all the menu items from the main menu strip
+        /// </summary>
+        /// <returns>A list of ToolStripMenuItem objects representing the menu items</returns>
         public static List<ToolStripMenuItem> GetMenuItems()
         {
             List<ToolStripMenuItem> allItems = new List<ToolStripMenuItem>();

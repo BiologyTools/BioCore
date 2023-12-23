@@ -1,26 +1,17 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Automation;
-using Gma.System.MouseKeyHook;
-using System.Threading;
+﻿using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.UIA3;
 using System.Diagnostics;
 using WindowsInput;
-using WindowsInput.Native;
-using System.Drawing;
-
+using Gma.System.MouseKeyHook;
 namespace Bio
 {
     public class Automation
     {
         public static InputSimulator input;
-        /* Creating a new hashtable called Recordings. */
-        public static Hashtable Recordings = new Hashtable();
-        public static Hashtable Properties = new Hashtable();
+        public static Dictionary<string, Recording> Recordings = new Dictionary<string, Recording>();
+        public static Dictionary<string, Recording> Properties = new Dictionary<string, Recording>();
+        public static UIA3Automation automation = new UIA3Automation();
         /* It's a class that represents an action that can be performed on an automation element */
         public class Action
         {
@@ -54,6 +45,7 @@ namespace Bio
                 ValuePattern,
                 SelectionPattern,
                 TextPattern,
+                TogglePattern,
                 Image,
             }
 
@@ -126,9 +118,9 @@ namespace Bio
                 type = t;
                 key = e;
                 AutomationElement el = Element;
-                name = el.Current.Name;
-                automationID = el.Current.AutomationId;
-                className = el.Current.ClassName;
+                name = el.Name;
+                automationID = el.AutomationId;
+                className = el.ClassName;
                 Process p = Process.GetProcessById(proc);
                 ProcessName = p.ProcessName;
                 title = Win32.GetActiveWindowTitle();
@@ -138,9 +130,9 @@ namespace Bio
                 type = t;
                 keyPress = e;
                 AutomationElement el = Element;
-                name = el.Current.Name;
-                automationID = el.Current.AutomationId;
-                className = el.Current.ClassName;
+                name = el.Name;
+                automationID = el.AutomationId;
+                className = el.ClassName;
                 Process p = Process.GetProcessById(proc);
                 ProcessName = p.ProcessName;
                 title = Win32.GetActiveWindowTitle();
@@ -150,11 +142,18 @@ namespace Bio
                 type = t;
                 mouse = e;
                 AutomationElement el = Element;
-                name = el.Current.Name;
-                automationID = el.Current.AutomationId;
-                className = el.Current.ClassName;
+                name = el.Name;
+                try
+                {
+                    automationID = el.AutomationId;
+                }
+                catch (Exception)
+                {
+                }
+                
+                className = el.Properties.LocalizedControlType.Value.ToString();
                 mouseButton = e.Button;
-                point = new Point((int)(e.Location.X - el.Current.BoundingRectangle.X), (int)(e.Location.Y - el.Current.BoundingRectangle.Y));
+                point = new Point((int)(e.Location.X - el.BoundingRectangle.X), (int)(e.Location.Y - el.BoundingRectangle.Y));
                 Process p = Process.GetProcessById(proc);
                 title = p.MainWindowTitle;
                 ProcessName = p.ProcessName;
@@ -218,7 +217,7 @@ namespace Bio
                 AutomationElement el = AutomationHelpers.GetElementByProcess(ProcessName, Title, AutomationID, Name, ClassName, Index);
                 if (type == Type.mousedown)
                 {
-                    Cursor.Position = new Point((int)el.Current.BoundingRectangle.X + Point.X, (int)el.Current.BoundingRectangle.Y + Point.Y);
+                    Cursor.Position = new Point((int)el.BoundingRectangle.X + Point.X, (int)el.BoundingRectangle.Y + Point.Y);
                     if (mouse.Button == MouseButtons.Left)
                         MouseOperations.LeftClick();
 
@@ -227,7 +226,7 @@ namespace Bio
                 }
                 else if (type == Type.mouseup)
                 {
-                    Cursor.Position = new Point((int)el.Current.BoundingRectangle.X + Point.X, (int)el.Current.BoundingRectangle.Y + Point.Y);
+                    Cursor.Position = new Point((int)el.BoundingRectangle.X + Point.X, (int)el.BoundingRectangle.Y + Point.Y);
                     if (mouse.Button == MouseButtons.Left)
                         MouseOperations.LeftClick();
                     if (mouse.Button == MouseButtons.Right)
@@ -279,7 +278,7 @@ namespace Bio
             }
         }
         /* It's a class that represents a recording of a series of actions that can be performed on a
-        Windows application. */
+        UI element. */
         public class Recording
         {
             private string name;
@@ -318,6 +317,7 @@ namespace Bio
             }
             public object Get()
             {
+                if(list.Count > 1)
                 for (int i = 0; i < list.Count; i++)
                 {
                     Action ac = list[i];
@@ -328,15 +328,29 @@ namespace Bio
                 Action la = list.Last();
                 AutomationElement ae = AutomationHelpers.GetElementByProcess(la.ProcessName, la.Title, la.AutomationID, la.Name, la.ClassName, la.Index);
                 if (la.Value == Action.ValueType.Name)
-                    return ae.Current.Name;
+                    return ae.Name;
                 else if (la.Value == Action.ValueType.SelectionPattern)
                     return AutomationHelpers.GetSelection(ae);
                 else if (la.Value == Action.ValueType.TextPattern)
                     return AutomationHelpers.GetText(ae);
                 else if (la.Value == Action.ValueType.ValuePattern)
                     return AutomationHelpers.GetValue(ae);
+                else if (la.Value == Action.ValueType.TogglePattern)
+                    return AutomationHelpers.GetToggle(ae);
                 else
                     return AutomationHelpers.GetImage(ae);
+            }
+            public Bitmap GetImage()
+            {
+                Action la = list.Last();
+                AutomationElement ae = AutomationHelpers.GetElementByProcess(la.ProcessName, la.Title, la.AutomationID, la.Name, la.ClassName, la.Index);
+                return AutomationHelpers.GetImage(ae);
+            }
+            public Rectangle GetBounds()
+            {
+                Action la = list.Last();
+                AutomationElement ae = AutomationHelpers.GetElementByProcess(la.ProcessName, la.Title, la.AutomationID, la.Name, la.ClassName, la.Index);
+                return ae.BoundingRectangle;
             }
             public void Set(string val)
             {
@@ -357,6 +371,7 @@ namespace Bio
             }
         }
 
+        /* A getter method that returns the value of the recording variable. */
         public static bool IsRecording
         {
             get { return recording; }
@@ -366,7 +381,7 @@ namespace Bio
         private static bool recording = false;
         private static bool move = false;
         public static Recording rec = new Recording();
-        /* Hooking into the mouse and keyboard events. */
+       /* Creating a global hook for the mouse and keyboard. */
         public Automation()
         {
             m_GlobalHook = Hook.GlobalEvents();
@@ -381,13 +396,14 @@ namespace Bio
         }
 
         //This represent the current element under the mouse.
+       /* Getting the element that the mouse is currently over. */
         public static AutomationElement Element
         {
             get
             {
                 try
                 {
-                    return AutomationElement.FromPoint(new System.Windows.Point(Cursor.Position.X, Cursor.Position.Y));
+                    return automation.FromPoint(new Point(Cursor.Position.X, Cursor.Position.Y));
                 }
                 catch (Exception)
                 {
@@ -406,20 +422,22 @@ namespace Bio
         public static void StopRecording()
         {
             recording=false;
-            rec.Name = "Recording" + (Recordings.Count + 1);
+            rec.Name = recname;
             Recordings.Add(rec.Name,rec);
         }
+        public static string recname;
         /// > Start recording the properties of the current object
-        public static void StartPropertyRecording()
+        public static void StartPropertyRecording(string name)
         {
             recording = true;
+            recname = name;
             rec = new Recording();
+            rec.Name = recname;
         }
         /// Stop recording the property and add it to the list of properties
         public static void StopPropertyRecording()
         {
             recording = false;
-            rec.Name = "Property" + (Properties.Count+1);
             Properties.Add(rec.Name,rec);
         }
         /// It takes a string as an argument, and returns an object
@@ -429,14 +447,13 @@ namespace Bio
         /// @return The value of the property.
         public static object GetProperty(string prop)
         {
-            Recording rec = (Recording)Properties[prop];
             Recorder.AddLine("Automation.GetProperty(" + '"' + prop + '"' + ");");
-            return rec.Get();
+            return Properties[prop].Get();
         }
-        /// It takes a property name and a value, and sets the property to the value
-        /// 
-        /// @param prop The name of the property you want to set.
-        /// @param val The value to set the property to.
+       /// It takes a property name and a value, and sets the property to the value
+       /// 
+       /// @param prop The name of the property you want to set.
+       /// @param val The value to set the property to.
         public static void SetProperty(string prop, string val)
         {
             Recording rec = (Recording)Properties[prop];
@@ -470,7 +487,7 @@ namespace Bio
         /// @param MouseEventExtArgs
         /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
         /// 
-        /// @return The AutomationElement is being returned.
+        /// @return The return value is the AutomationElement that is under the mouse pointer.
         private void GlobalHookMouseDownExt(object sender, MouseEventExtArgs e)
         {
             if (!recording)
@@ -478,16 +495,16 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.mousedown, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.mousedown, el.Properties.ProcessId, e));
         }
-        /// If the user is recording, then get the current element and add a mouse up action to the list
-        /// of actions
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param MouseEventExtArgs
-        /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/GlobalMouseKeyHook/MouseEventExtArgs.cs
-        /// 
-        /// @return The AutomationElement is being returned.
+       /// If the user is recording, then get the current element and add a new action to the list of
+       /// actions
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param MouseEventExtArgs
+       /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
+       /// 
+       /// @return The AutomationElement is being returned.
         private void GlobalHookMouseUpExt(object sender, MouseEventExtArgs e)
         {
             if (!recording)
@@ -495,7 +512,7 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.mouseup, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.mouseup, el.Properties.ProcessId, e));
         }
         /// If the mouse wheel is being used, and the mouse is over a window, then add the action to the
         /// list of actions
@@ -513,18 +530,18 @@ namespace Bio
             if (el == null)
                 return;
             if (e.Delta > 0)
-                rec.List.Add(new Action(Action.Type.wheelup, el.Current.ProcessId, e));
+                rec.List.Add(new Action(Action.Type.wheelup, el.Properties.ProcessId, e));
             else
-                rec.List.Add(new Action(Action.Type.wheeldown, el.Current.ProcessId, e));
+                rec.List.Add(new Action(Action.Type.wheeldown, el.Properties.ProcessId, e));
         }
-        /// If the mouse is moving, and we're recording, and we have an element, then add a mousemove
-        /// action to the recording.
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param MouseEventExtArgs
-        /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
-        /// 
-        /// @return The return value is the current mouse position.
+       /// If the mouse is moving, and we're recording, and we have an element, then add a mousemove
+       /// action to the list of actions
+       /// 
+       /// @param sender The object that raised the event.
+       /// @param MouseEventExtArgs
+       /// https://github.com/gmamaladze/globalmousekeyhook/blob/master/MouseKeyHook/MouseEventExtArgs.cs
+       /// 
+       /// @return The return value is the current AutomationElement.
         private void GlobalHookMouseMoveExt(object sender, MouseEventExtArgs e)
         {
             if (!move)
@@ -534,7 +551,7 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.mousemove, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.mousemove, el.Properties.ProcessId, e));
 
         }
         /// If the user is recording, and the element is not null, then add a new action to the list of
@@ -552,7 +569,7 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.keypress, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.keypress, el.Properties.ProcessId, e));
         }
         /// If the user is recording, and the user has selected an element, then add a new action to the
         /// list of actions
@@ -569,15 +586,16 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.keyup, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.keyup, el.Properties.ProcessId, e));
         }
-       /// If we're recording, and we have a valid element, then add a new action to the list of actions
-       /// 
-       /// @param sender The object that raised the event.
-       /// @param KeyEventArgs
-       /// https://msdn.microsoft.com/en-us/library/system.windows.input.keyeventargs(v=vs.110).aspx
-       /// 
-       /// @return The AutomationElement is being returned.
+        /// If the user is recording, and the user presses a key, then add a new action to the list of
+        /// actions
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param KeyEventArgs
+        /// https://msdn.microsoft.com/en-us/library/system.windows.input.keyeventargs(v=vs.110).aspx
+        /// 
+        /// @return The AutomationElement is being returned.
         private void GlobalHookKeyDown(object sender, KeyEventArgs e)
         {
             if (!recording)
@@ -585,16 +603,12 @@ namespace Bio
             AutomationElement el = Element;
             if (el == null)
                 return;
-            rec.List.Add(new Action(Action.Type.keydown, el.Current.ProcessId, e));
+            rec.List.Add(new Action(Action.Type.keydown, el.Properties.ProcessId, e));
         }
 
+        /* It's a class that helps you automate windows applications */
         public static class AutomationHelpers
         {
-            /// It returns a list of all the children of the parent element
-            /// 
-            /// @param AutomationElement The parent element
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetChildren(AutomationElement parent)
             {
                 if (parent == null)
@@ -602,9 +616,7 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                AutomationElementCollection collection = parent.FindAll(TreeScope.Children, Condition.TrueCondition);
-
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Children, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>(collection.Cast<AutomationElement>());
@@ -616,11 +628,6 @@ namespace Bio
                     return null;
                 }
             }
-            /// It returns a list of all the children of the parent element
-            /// 
-            /// @param AutomationElement The parent element
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetAllChildren(AutomationElement parent)
             {
                 if (parent == null)
@@ -630,7 +637,7 @@ namespace Bio
                 }
                 try
                 {
-                    AutomationElementCollection collection = parent.FindAll(TreeScope.Subtree, Condition.TrueCondition);
+                    AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                     if (collection != null)
                     {
                         List<AutomationElement> result = new List<AutomationElement>(collection.Cast<AutomationElement>());
@@ -642,18 +649,11 @@ namespace Bio
                         return null;
                     }
                 }
-                catch (Exception )
+                catch (Exception)
                 {
                     return null;
                 }
             }
-            /// It takes a parent element and a name, and returns a list of all the child elements that
-            /// have that name
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param name The name of the element you want to find.
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetName(AutomationElement parent, string name)
             {
                 if (parent == null)
@@ -661,15 +661,13 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                AutomationElementCollection collection = parent.FindAll(TreeScope.Subtree, Condition.TrueCondition);
-
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>();
                     foreach (AutomationElement item in collection)
                     {
-                        if (item.Current.Name == name)
+                        if (item.Name == name)
                         {
                             result.Add(item);
                         }
@@ -682,13 +680,6 @@ namespace Bio
                     return null;
                 }
             }
-            /// It takes a parent element and an automation id and returns a list of all the elements
-            /// that have that automation id
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param id The ID of the element you want to find.
-            /// 
-            /// @return A list of AutomationElements that have the AutomationID of "id"
             public static List<AutomationElement> GetAutomationID(AutomationElement parent, string id)
             {
                 if (parent == null)
@@ -696,15 +687,13 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                AutomationElementCollection collection = parent.FindAll(TreeScope.Subtree, Condition.TrueCondition);
-
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>();
                     foreach (AutomationElement item in collection)
                     {
-                        if (item.Current.AutomationId == id)
+                        if (item.AutomationId == id)
                         {
                             result.Add(item);
                         }
@@ -717,13 +706,6 @@ namespace Bio
                     return null;
                 }
             }
-            /// It takes a parent element and a class name as parameters, and returns a list of all the
-            /// child elements that have the specified class name
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param name The name of the class you want to find.
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetClassName(AutomationElement parent, string name)
             {
                 if (parent == null)
@@ -731,15 +713,13 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                AutomationElementCollection collection = parent.FindAll(TreeScope.Subtree, Condition.TrueCondition);
-
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>();
                     foreach (AutomationElement item in collection)
                     {
-                        if (item.Current.ClassName == name)
+                        if (item.ClassName == name)
                         {
                             result.Add(item);
                         }
@@ -752,33 +732,21 @@ namespace Bio
                     return null;
                 }
             }
-            /// It finds the process, finds the window, finds the element, and returns the element
-            /// 
-            /// @param process The name of the process you want to get the element from.
-            /// @param title The title of the window you want to get the element from.
-            /// @param id The AutomationId of the element
-            /// @param name The name of the element.
-            /// @param classname The class name of the element.
-            /// @param index The index of the element you want to get. If you want the first element,
-            /// set this to 0. If you want the second element, set this to 1. If you want the last
-            /// element, set this to -1.
-            /// 
-            /// @return The AutomationElement object.
             public static AutomationElement GetElementByProcess(string process, string title, string id, string name, string classname, int index)
             {
                 Process[] procs = Process.GetProcessesByName(process);
                 string ti = title;
                 if (ti == "")
                     ti = procs[0].MainWindowTitle;
-                AutomationElement root = AutomationElement.RootElement;
-                AutomationElementCollection prs = root.FindAll(TreeScope.Children, Condition.TrueCondition);
+                AutomationElement root = automation.GetDesktop();
+                AutomationElement[] prs = automation.GetDesktop().FindAll(TreeScope.Children, FlaUI.Core.Conditions.TrueCondition.Default);
                 AutomationElement window = null;
                 List<AutomationElement> ats = new List<AutomationElement>();
                 foreach (AutomationElement item in prs)
                 {
                     try
                     {
-                        if (item.Current.Name.Contains(ti))
+                        if (item.Name.Contains(ti))
                         {
                             window = item;
                         }
@@ -791,14 +759,13 @@ namespace Bio
                 }
                 if (window == null)
                     throw new ArgumentException("Window " + title + " not found.");
-                AutomationElementCollection items = window.FindAll(TreeScope.Subtree, Condition.TrueCondition);
+                AutomationElement[] items = window.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 List<AutomationElement> result = new List<AutomationElement>();
                 foreach (AutomationElement item in items)
                 {
                     try
                     {
-                        int[] r = item.GetRuntimeId();
-                        if (item.Current.ClassName == classname && item.Current.AutomationId == id && item.Current.Name == name)
+                        if (item.Properties.LocalizedControlType == classname && item.Name == name)
                         {
                             result.Add(item);
                         }
@@ -807,22 +774,12 @@ namespace Bio
                     {
 
                     }
-                        
+
                 }
                 if (index == -1)
                     return result[0];
                 return result[index];
             }
-            /// It finds the index of the element that is clicked on
-            /// 
-            /// @param process The name of the process you want to find the element in.
-            /// @param title The title of the window.
-            /// @param id The AutomationId of the element
-            /// @param name The name of the element.
-            /// @param classname The class name of the element.
-            /// @param Point The point on the screen where the element is located.
-            /// 
-            /// @return The index of the element.
             public static int GetIndex(string process, string title, string id, string name, string classname, Point p)
             {
                 //For elements which have the same name, tittle, & id we also find the index of the item.
@@ -830,15 +787,14 @@ namespace Bio
                 string ti = title;
                 if (ti == "")
                     ti = procs[0].MainWindowTitle;
-                AutomationElement root = AutomationElement.RootElement;
-                AutomationElementCollection prs = root.FindAll(TreeScope.Children, Condition.TrueCondition);
+                AutomationElement[] prs = automation.GetDesktop().FindAll(TreeScope.Children, FlaUI.Core.Conditions.TrueCondition.Default);
                 AutomationElement window = null;
                 List<AutomationElement> ats = new List<AutomationElement>();
                 foreach (AutomationElement item in prs)
                 {
                     try
                     {
-                        if (item.Current.Name.Contains(title))
+                        if (item.Name.Contains(title))
                         {
                             window = item;
                         }
@@ -851,35 +807,42 @@ namespace Bio
                 }
                 if (window == null)
                     return 0;
-                AutomationElementCollection items = window.FindAll(TreeScope.Subtree, Condition.TrueCondition);
-                List<AutomationElement> result = new List<AutomationElement>();
-                int index = 0;
-                foreach (AutomationElement item in items)
+                AutomationElement[] items = null;
+                try
                 {
-                    try
-                    {
-                        int[] r = item.GetRuntimeId();
-                        if (item.Current.ClassName == classname && item.Current.AutomationId == id && item.Current.Name == name)
-                        {
-                            result.Add(item);
-                        }
-                        if (item.Current.BoundingRectangle.IntersectsWith(new System.Windows.Rect(p.X, p.Y, 1, 1)) && result.Count > 0)
-                        {
-                            index = result.Count-1;
-                        }
-                    }
-                    catch (Exception)
-                    {
-
-                    }
+                    items = window.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 }
+                catch (Exception)
+                {
+
+                }
+                List<AutomationElement> result = new List<AutomationElement>();
+                
+                int index = 0;
+                /*
+                if (items != null)
+                    foreach (AutomationElement item in items)
+                    {
+                        try
+                        {
+                            int[] r = item.Properties.RuntimeId;
+                            if (item.ClassName == classname && item.AutomationId == id && item.Name == name)
+                            {
+                                result.Add(item);
+                            }
+                            if (item.BoundingRectangle.IntersectsWith(new Rectangle(p.X, p.Y, 1, 1)) && result.Count > 0)
+                            {
+                                index = result.Count - 1;
+                            }
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+                    }
+                */
                 return index;
             }
-            /// It takes a string like "1,2,3" and returns an array of integers like [1,2,3]
-            /// 
-            /// @param s The string to convert to a runtime ID.
-            /// 
-            /// @return An array of integers.
             public static int[] StringToRuntimeID(string s)
             {
                 int[] r = new int[3];
@@ -890,24 +853,16 @@ namespace Bio
                 }
                 return r;
             }
-            /// It returns a list of AutomationElements that have the same AutomationId and Name
-            /// 
-            /// @param id The AutomationId of the element
-            /// @param name The name of the element you want to find.
-            /// 
-            /// @return A list of AutomationElements.
             public static List<AutomationElement> GetElement(string id, string name)
             {
-                AutomationElement parent = AutomationElement.RootElement;
-
-                AutomationElementCollection collection = parent.FindAll(TreeScope.Subtree, Condition.TrueCondition);
-
+                AutomationElement parent = automation.GetDesktop();
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>();
                     foreach (AutomationElement item in collection)
                     {
-                        if (item.Current.AutomationId == id && item.Current.Name == name)
+                        if (item.AutomationId == id && item.Name == name)
                         {
                             result.Add(item);
                         }
@@ -920,14 +875,6 @@ namespace Bio
                     return null;
                 }
             }
-            /// It returns a list of AutomationElements that have a LocalizedControlType of the type
-            /// specified by the type parameter
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param TreeScope 
-            /// @param type The type of control you want to find.
-            /// 
-            /// @return A list of AutomationElements that match the criteria.
             public static List<AutomationElement> GetLocalizedControlType(AutomationElement parent, TreeScope scope, string type)
             {
                 if (parent == null)
@@ -935,13 +882,13 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-                AutomationElementCollection collection = parent.FindAll(scope, Condition.TrueCondition);
+                AutomationElement[] collection = automation.GetDesktop().FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 if (collection != null)
                 {
                     List<AutomationElement> result = new List<AutomationElement>();
                     foreach (AutomationElement item in collection)
                     {
-                        if (item.Current.LocalizedControlType == type)
+                        if (item.Properties.LocalizedControlType == type)
                         {
                             result.Add(item);
                         }
@@ -954,40 +901,15 @@ namespace Bio
                     return null;
                 }
             }
-            /// It returns a list of all the children of a given parent element
-            /// 
-            /// @param AutomationElement The parent element
-            /// 
-            /// @return A list of AutomationElements
-            public static List<AutomationElement> GetRawChildren(AutomationElement parent)
+            public static AutomationElement[] GetRawChildren(AutomationElement parent)
             {
                 if (parent == null)
                 {
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                List<AutomationElement> result = new List<AutomationElement>();
-
-                // the predefined tree walker wich iterates through controls
-                TreeWalker tw = TreeWalker.RawViewWalker;
-                AutomationElement child = tw.GetFirstChild(parent);
-
-                while (child != null)
-                {
-                    result.Add(child);
-                    child = tw.GetNextSibling(child);
-                }
-
-                return result;
+                return parent.FindAll(TreeScope.Children, FlaUI.Core.Conditions.TrueCondition.Default);
             }
-            /// It takes a parent element and an automation ID and returns a list of all the child
-            /// elements that have that automation ID
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param auto The automation ID of the control you want to find.
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetRawAutomationID(AutomationElement parent, string auto)
             {
                 if (parent == null)
@@ -995,36 +917,17 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                List<AutomationElement> all = new List<AutomationElement>();
-                List<AutomationElement> result = new List<AutomationElement>();
-
-                // the predefined tree walker wich iterates through controls
-                TreeWalker tw = TreeWalker.RawViewWalker;
-                AutomationElement child = tw.GetFirstChild(parent);
-
-                while (child != null)
-                {
-                    all.Add(child);
-                    child = tw.GetNextSibling(child);
-                }
+                List<AutomationElement> ress = new List<AutomationElement>();
+                AutomationElement[] all = parent.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 foreach (AutomationElement item in all)
                 {
-                    if (item.Current.AutomationId == auto)
+                    if (item.AutomationId == auto)
                     {
-                        result.Add(item);
+                        ress.Add(item);
                     }
                 }
-
-                return result;
+                return ress;
             }
-            /// It takes a parent element and a string as parameters and returns a list of all the child
-            /// elements of the parent element that have the same LocalizedControlType as the string
-            /// 
-            /// @param AutomationElement The parent element to search from.
-            /// @param auto The control type you want to find.
-            /// 
-            /// @return A list of AutomationElements
             public static List<AutomationElement> GetRawLocalizedControlType(AutomationElement parent, string auto)
             {
                 if (parent == null)
@@ -1032,120 +935,59 @@ namespace Bio
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                List<AutomationElement> all = new List<AutomationElement>();
-                List<AutomationElement> result = new List<AutomationElement>();
-
-                // the predefined tree walker wich iterates through controls
-                TreeWalker tw = TreeWalker.RawViewWalker;
-                AutomationElement child = tw.GetFirstChild(parent);
-
-                while (child != null)
-                {
-                    all.Add(child);
-                    child = tw.GetNextSibling(child);
-                }
+                List<AutomationElement> ress = new List<AutomationElement>();
+                AutomationElement[] all = parent.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
                 foreach (AutomationElement item in all)
                 {
-                    if (item.Current.LocalizedControlType == auto)
+                    if (item.Properties.LocalizedControlType == auto)
                     {
-                        result.Add(item);
+                        ress.Add(item);
                     }
                 }
-
-                return result;
+                return ress;
             }
-            /// It returns a list of all the children of the parent element
-            /// 
-            /// @param AutomationElement The parent element to search for children.
-            /// 
-            /// @return A list of AutomationElements.
-            public static List<AutomationElement> GetRaw(AutomationElement parent)
+            public static AutomationElement[] GetRaw(AutomationElement parent)
             {
                 if (parent == null)
                 {
                     // null parameter
                     throw new ArgumentException();
                 }
-
-                List<AutomationElement> result = new List<AutomationElement>();
-
-                // the predefined tree walker wich iterates through controls
-                TreeWalker tw = TreeWalker.RawViewWalker;
-                AutomationElement child = tw.GetFirstChild(parent);
-
-                while (child != null)
-                {
-                    result.Add(child);
-                    child = tw.GetNextSibling(child);
-                }
-
-                return result;
+                List<AutomationElement> ress = new List<AutomationElement>();
+                return parent.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default);
             }
-            /// If the control supports the ValuePattern, then return the value of the control
-            /// 
-            /// @param AutomationElement The control you want to get the value from.
-            /// 
-            /// @return The value of the control.
             public static string GetValue(AutomationElement control)
             {
-                object patternProvider;
-                if (control.TryGetCurrentPattern(ValuePattern.Pattern, out patternProvider))
+                if(control.ControlType == ControlType.Edit)
                 {
-                    ValuePattern valuePatternProvider = patternProvider as ValuePattern;
-                    return valuePatternProvider.Current.Value;
+                    FlaUI.Core.AutomationElements.TextBox tb = control.AsTextBox();
+                    return tb.Text;
                 }
-                return null;
+                else if(control.ControlType == ControlType.Text)
+                {
+                    return control.AsLabel().Text;
+                }
+                return control.Name;
             }
-            /// "If the control supports the SelectionPattern, then get the selection and return the
-            /// name of the first item in the selection."
-            /// 
-            /// The function returns null if the control does not support the SelectionPattern
-            /// 
-            /// @param AutomationElement The control you want to get the selection from.
-            /// 
-            /// @return The name of the selected item.
             public static string GetSelection(AutomationElement control)
             {
                 object patternProvider;
-                if (control.TryGetCurrentPattern(SelectionPattern.Pattern, out patternProvider))
-                {
-                    SelectionPattern selPatternProvider = patternProvider as SelectionPattern;
-                    AutomationElement[] sel = selPatternProvider.Current.GetSelection();
-                    return sel[0].Current.Name;
-                }
-                return null;
+                FlaUI.Core.AutomationElements.ListBox lb = control.AsListBox();
+                return lb.SelectedItem.Name;
             }
-            /// It gets the text from a control
-            /// 
-            /// @param AutomationElement The control you want to get the text from.
-            /// 
-            /// @return The text of the control.
             public static string GetText(AutomationElement control)
             {
-                object patternProvider;
-                if (control.TryGetCurrentPattern(TextPattern.Pattern, out patternProvider))
-                {
-                    TextPattern textPatternProvider = patternProvider as TextPattern;
-                    return textPatternProvider.DocumentRange.GetText(-1).TrimEnd('\r');
-                }
-                return null;
+                return control.AsLabel().Text;
             }
-           /// It takes a control and a string and sets the value of the control to the string
-           /// 
-           /// @param AutomationElement The element that you want to set the value of.
-           /// @param value The string value to be set.
             public static void SetValue(AutomationElement targetControl, string value)
             {
                 // Validate arguments / initial setup
                 if (value == null)
                     throw new ArgumentNullException(
                         "String parameter must not be null.");
-
                 if (targetControl == null)
                     throw new ArgumentNullException(
                         "AutomationElement parameter must not be null");
-
                 // A series of basic checks prior to attempting an insertion.
                 //
                 // Check #1: Is control enabled?
@@ -1153,55 +995,13 @@ namespace Bio
                 // is to filter using 
                 // PropertyCondition(AutomationElement.IsEnabledProperty, true) 
                 // and exclude all read-only text controls from the collection.
-                if (!targetControl.Current.IsEnabled)
+                if (!targetControl.IsEnabled)
                 {
                     throw new InvalidOperationException(
                         "The control is not enabled.\n\n");
                 }
-
-                // Check #2: Are there styles that prohibit us 
-                //           from sending text to this control?
-                if (!targetControl.Current.IsKeyboardFocusable)
-                {
-                    throw new InvalidOperationException(
-                        "The control is not focusable.\n\n");
-                }
-
-                // Once you have an instance of an AutomationElement,  
-                // check if it supports the ValuePattern pattern.
-                object valuePattern = null;
-
-                if (!targetControl.TryGetCurrentPattern(
-                    ValuePattern.Pattern, out valuePattern))
-                {
-                    // Elements that support TextPattern 
-                    // do not support ValuePattern and TextPattern
-                    // does not support setting the text of 
-                    // multi-line edit or document controls.
-                    // For this reason, text input must be simulated.
-                }
-                // Control supports the ValuePattern pattern so we can 
-                // use the SetValue method to insert content.
-                else
-                {
-                    if (((ValuePattern)valuePattern).Current.IsReadOnly)
-                    {
-                        throw new InvalidOperationException(
-                            "The control is read-only.");
-                    }
-                    else
-                    {
-                        ((ValuePattern)valuePattern).SetValue(value);
-                        //We send enter key to update the value now that the text field has been set.
-                        input.Keyboard.KeyPress(VirtualKeyCode.RETURN);
-                    }
-                }
+                targetControl.AsTextBox().Text = value;
             }
-            /// It takes a parent element and returns the number of children it has
-            /// 
-            /// @param AutomationElement The parent element of the controls you want to count.
-            /// 
-            /// @return The number of controls in the parent.
             public static int GetCount(AutomationElement parent)
             {
                 if (parent == null)
@@ -1210,50 +1010,27 @@ namespace Bio
                     throw new ArgumentException();
                 }
                 int i = 0;
-                // the predefined tree walker wich iterates through controls
-                TreeWalker tw = TreeWalker.RawViewWalker;
-                AutomationElement child = tw.GetFirstChild(parent);
-                while (child != null)
-                {
-                    child = tw.GetNextSibling(child);
-                    i++;
-                }
-                return i;
+                return parent.FindAll(TreeScope.Subtree, FlaUI.Core.Conditions.TrueCondition.Default).Length;
             }
-            /// If the element is a toggle button, return true if it is toggled on, otherwise return
-            /// false
-            /// 
-            /// @param AutomationElement The element you want to check
-            /// 
-            /// @return The return value is a boolean value.
-            public static bool IsElementToggledOn(AutomationElement element)
+            public static bool GetToggle(AutomationElement element)
             {
                 if (element == null)
                 {
                     return false;
                 }
-
-                Object objPattern;
-                TogglePattern togPattern;
-                if (true == element.TryGetCurrentPattern(TogglePattern.Pattern, out objPattern))
-                {
-                    togPattern = objPattern as TogglePattern;
-                    return togPattern.Current.ToggleState == ToggleState.On;
-                }
-                return false;
+                ToggleButton tb = element.AsToggleButton();
+                if (tb.TogglePattern.ToggleState.ValueOrDefault.HasFlag(ToggleState.On))
+                    return true;
+                else
+                    return false;
             }
-            /// It takes a screenshot of the element and returns it as a bitmap
-            /// 
-            /// @param AutomationElement The element you want to capture.
-            /// 
-            /// @return A Bitmap object.
             public static Bitmap GetImage(AutomationElement el)
             {
                 System.Drawing.Graphics g;
-                System.Windows.Rect r = el.Current.BoundingRectangle;
+                Rectangle r = el.BoundingRectangle;
                 Bitmap b = new Bitmap((int)r.Width, (int)r.Height);
                 g = System.Drawing.Graphics.FromImage(b);
-                g.CopyFromScreen(new Point((int)r.X,(int)r.Y), new Point(0, 0),new Size(b.Width,b.Height));
+                g.CopyFromScreen(new Point((int)r.X,(int)r.Y), new Point(0, 0),new Size(r.Width,r.Height));
                 return b;
             }
 

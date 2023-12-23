@@ -151,9 +151,8 @@ namespace Bio
         }
         public static bool operator !=(PointD p1, PointD p2)
         {
-            return (p1.X != p2.X && p1.Y != p2.Y);
+            return (p1.X != p2.X || p1.Y != p2.Y);
         }
-
         public override string ToString()
         {
             return X.ToString() + "," + Y.ToString();

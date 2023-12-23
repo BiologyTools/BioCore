@@ -453,7 +453,7 @@ namespace Bio
             if (ti.ShowDialog() != DialogResult.OK)
                 return;
             propRecStatusLabel.Text = "Property Recording: Started";
-            Automation.StartPropertyRecording();
+            Automation.StartPropertyRecording(ti.Text);
         }
 
 /// If the user clicks the stop button, the label will change to "Property Recording: Stopped" and if

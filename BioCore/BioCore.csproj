@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.4.0</Version>
+	  <Version>3.5.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.4.0</AssemblyVersion>
-    <FileVersion>3.4.0</FileVersion>
-    <PackageReleaseNotes>OpenSlide integration.</PackageReleaseNotes>
+    <AssemblyVersion>3.5.0</AssemblyVersion>
+    <FileVersion>3.5.0</FileVersion>
+    <PackageReleaseNotes>Updated Bioformats to 7.1.0. OpenSlide integration for increased performance.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -39,28 +39,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Optimize>False</Optimize>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Source\Automation.cs" />
-    <Compile Remove="Source\ImageViewOld.cs" />
-    <Compile Remove="Source\ImageViewOld.designer.cs" />
-    <Compile Remove="Source\Recordings.cs" />
-    <Compile Remove="Source\Recordings.designer.cs" />
-    <Compile Remove="Source\SelectRecording.cs" />
-    <Compile Remove="Source\SelectRecording.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="Source\ImageViewOld.resx" />
-    <EmbeddedResource Remove="Source\Recordings.resx" />
-    <EmbeddedResource Remove="Source\SelectRecording.resx" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Graphics\Shaders\color-gs.hlsl" />
-    <None Remove="Graphics\Shaders\color-ps.hlsl" />
-    <None Remove="Graphics\Shaders\color-vs.hlsl" />
-    <None Remove="Source\avr5q1sl.vlz~" />
-  </ItemGroup>
 
   <ItemGroup>
     <Content Include="banner.jpg">
@@ -80,20 +58,23 @@
 
   <ItemGroup>
     <PackageReference Include="AForgeImagingCore" Version="2.2.5" />
-    <PackageReference Include="BioFormats.NET6" Version="7.0.1.2" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
-    <PackageReference Include="CS-Script" Version="4.8.3" />
+    <PackageReference Include="CS-Script" Version="4.8.13" />
+    <PackageReference Include="FlaUI.Core" Version="4.0.0" />
+    <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="H.InputSimulator" Version="1.4.1" />
+    <PackageReference Include="IKVM" Version="8.6.4" />
+    <PackageReference Include="MouseKeyHook" Version="5.7.1" />
     <PackageReference Include="NetVips" Version="2.4.0" />
     <PackageReference Include="NetVips.Native" Version="8.15.0" />
     <PackageReference Include="NetVips.Native.win-x64" Version="8.15.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.7.0">
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenSlideGTK" Version="1.3.0" />
-    <PackageReference Include="ScottPlot" Version="4.1.68" />
+    <PackageReference Include="OpenSlideGTK" Version="1.3.1" />
+    <PackageReference Include="ScottPlot" Version="4.1.69" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
@@ -139,5 +120,11 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="bioformats_package">
+      <HintPath>bioformats_package.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

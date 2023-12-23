@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCore", "BioCore\BioCore.
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BioCoreSetup", "..\BioCoreSetup\BioCoreSetup\BioCoreSetup.vdproj", "{E40264E9-80D8-44CE-A634-F94EB21FE920}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BioCoreApp", "..\BioCoreApp\BioCoreApp\BioCoreApp.csproj", "{633C711A-2C74-4DEE-9DA1-E2E2D7132E1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BioCoreApp", "..\BioCoreApp\BioCoreApp\BioCoreApp.csproj", "{633C711A-2C74-4DEE-9DA1-E2E2D7132E1B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
