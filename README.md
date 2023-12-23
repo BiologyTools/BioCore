@@ -42,6 +42,7 @@ A .NET6 version of Bio library. Bio is an application & library for editing & an
 - [LibTiff.Net](https://bitmiracle.com/libtiff/)
 - [Cs-script](https://github.com/oleg-shilo/cs-script/blob/master/LICENSE)
 - [ImageJ](https://imagej.nih.gov/ij/) (Only needed when running ImageJ macro commands)
+- [OpenSlideGTK](https://github.com/BiologyTools/OpenSlideSharp) (Optional) [MIT](https://github.com/BiologyTools/OpenSlideSharp/blob/master/LICENSE)
 
 ## Licenses
 - Bio [GPL3](https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -50,6 +51,9 @@ A .NET6 version of Bio library. Bio is an application & library for editing & an
 - [IKVM](https://github.com/gluck/ikvm/blob/master/LICENSE)
 - LibTiff.Net [BSD](https://bitmiracle.com/libtiff/)
 - Cs-script [MIT](https://github.com/oleg-shilo/cs-script/blob/master/LICENSE)
+
+## Installation
+- Optionally install [OpenSlide](https://openslide.org/docs/windows/) for increased performance.
 
 ## Scripting
 -  Save scripts into "StartupPath/Scripts" with ".cs" ending.
