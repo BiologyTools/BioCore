@@ -63,6 +63,10 @@ A .NET6 version of Bio library. Bio is an application & library for editing & an
 -  Program installer include sample filter & tool script.
 -  Use Script recorder to record program function calls and script runner to turn recorder text into working scripts. (See sample [scripts](https://github.com/BioMicroscopy/BioImage-Scripts)
 
+## Plugins
+- Save plugin DLL's into "StartupPath/Plugins"
+- See [example plugin](https://github.com/BiologyTools/PluginExampleWIN) to create your own plugins.
+
 ## Sample Tool Script
 ```
 //css_reference BioCore.dll;
