@@ -42,12 +42,13 @@ namespace BioCore
         {
             get { return Image.Annotations; }
         }
+        public static bool Initialized { get; private set; }
         /// Initialize() is a function that initializes the BioImage Suite Web viewer
-        public static void Initialize()
+        public static void Initialize(bool requireImageJ = false)
         {
             BioImage.Initialize();
             Microscope.Initialize();
-            ImageJ.Initialize(true);
+            ImageJ.Initialize(requireImageJ);
             tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
@@ -58,6 +59,7 @@ namespace BioCore
             seriesTool = new Series();
             lib = new Library();
             console = new BioConsole();
+            Initialized = true;
         }
         /// Hide() hides all the tools
         public static void Hide()

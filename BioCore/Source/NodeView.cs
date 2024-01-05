@@ -58,11 +58,12 @@
             {
                 BioImage.OpenAsync(s,true,true,true).Wait();
             }
-            App.tabsView.Show();
+            Show();
         }
 
         private static void Init()
         {
+            if(!App.Initialized)
             App.Initialize();
             Filters.Init();
         }

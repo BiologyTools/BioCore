@@ -275,11 +275,19 @@ namespace BioCore
             }
             else
             {
-                double aspx = (double)Images[0].Resolutions[0].SizeX / (double)Images[0].Resolutions[0].SizeY;
-                double aspy = (double)Images[0].Resolutions[0].SizeY / (double)Images[0].Resolutions[0].SizeX;
-                overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
-                ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
-                overviewBitmap = re.Apply((Bitmap)BioImage.GetTile(Images[0], GetCoordinate(), 0, 0, 0, Images[0].Resolutions[0].SizeX, Images[0].Resolutions[0].SizeY).ImageRGB);
+                try
+                {
+                    double aspx = (double)Images[0].Resolutions[0].SizeX / (double)Images[0].Resolutions[0].SizeY;
+                    double aspy = (double)Images[0].Resolutions[0].SizeY / (double)Images[0].Resolutions[0].SizeX;
+                    overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
+                    ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
+                    overviewBitmap = re.Apply((Bitmap)BioImage.GetTile(Images[0], GetCoordinate(), 0, 0, 0, Images[0].Resolutions[0].SizeX, Images[0].Resolutions[0].SizeY).ImageRGB);
+                }
+                catch (Exception)
+                {
+                    ShowOverview = false;
+                    return;
+                }
             }
             ShowOverview = true;
             Console.WriteLine("Preview Initialized.");
@@ -2538,8 +2546,8 @@ namespace BioCore
                 if (!OpenSlide)
                 {
                     Resolution rs = SelectedImage.Resolutions[(int)Level];
-                    double dx = (e.X / overview.Width) * rs.SizeX;
-                    double dy = (e.Y / overview.Height) * rs.SizeY;
+                    double dx = ((double)e.X / overview.Width) * rs.SizeX;
+                    double dy = ((double)e.Y / overview.Height) * rs.SizeY;
                     PyramidalOrigin = new PointD(dx, dy);
                 }
                 else

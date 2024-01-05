@@ -28,121 +28,114 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NodeView));
-            this.treeView = new System.Windows.Forms.TreeView();
-            this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.setIDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuStrip = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newTabsViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openFilesDialog = new System.Windows.Forms.OpenFileDialog();
-            this.contextMenuStrip.SuspendLayout();
-            this.menuStrip.SuspendLayout();
-            this.SuspendLayout();
+            treeView = new TreeView();
+            contextMenuStrip = new ContextMenuStrip(components);
+            deleteToolStripMenuItem = new ToolStripMenuItem();
+            setTextToolStripMenuItem = new ToolStripMenuItem();
+            setIDToolStripMenuItem = new ToolStripMenuItem();
+            menuStrip = new MenuStrip();
+            fileToolStripMenuItem = new ToolStripMenuItem();
+            newTabsViewToolStripMenuItem = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
+            openFilesDialog = new OpenFileDialog();
+            contextMenuStrip.SuspendLayout();
+            menuStrip.SuspendLayout();
+            SuspendLayout();
             // 
             // treeView
             // 
-            this.treeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.treeView.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(95)))), ((int)(((byte)(122)))), ((int)(((byte)(156)))));
-            this.treeView.ContextMenuStrip = this.contextMenuStrip;
-            this.treeView.Location = new System.Drawing.Point(-1, 27);
-            this.treeView.Name = "treeView";
-            this.treeView.Size = new System.Drawing.Size(286, 170);
-            this.treeView.TabIndex = 2;
-            this.treeView.DoubleClick += new System.EventHandler(this.treeView_DoubleClick);
+            treeView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            treeView.BackColor = Color.FromArgb(95, 122, 156);
+            treeView.ContextMenuStrip = contextMenuStrip;
+            treeView.Location = new Point(-1, 31);
+            treeView.Margin = new Padding(4, 3, 4, 3);
+            treeView.Name = "treeView";
+            treeView.Size = new Size(270, 306);
+            treeView.TabIndex = 2;
+            treeView.DoubleClick += treeView_DoubleClick;
             // 
             // contextMenuStrip
             // 
-            this.contextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem,
-            this.setTextToolStripMenuItem,
-            this.setIDToolStripMenuItem});
-            this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(137, 70);
+            contextMenuStrip.Items.AddRange(new ToolStripItem[] { deleteToolStripMenuItem, setTextToolStripMenuItem, setIDToolStripMenuItem });
+            contextMenuStrip.Name = "contextMenuStrip";
+            contextMenuStrip.Size = new Size(137, 70);
             // 
             // deleteToolStripMenuItem
             // 
-            this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
-            this.deleteToolStripMenuItem.Text = "Delete";
-            this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
+            deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            deleteToolStripMenuItem.Size = new Size(136, 22);
+            deleteToolStripMenuItem.Text = "Delete";
+            deleteToolStripMenuItem.Click += deleteToolStripMenuItem_Click;
             // 
             // setTextToolStripMenuItem
             // 
-            this.setTextToolStripMenuItem.Name = "setTextToolStripMenuItem";
-            this.setTextToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
-            this.setTextToolStripMenuItem.Text = "Set ROI Text";
-            this.setTextToolStripMenuItem.Click += new System.EventHandler(this.setTextToolStripMenuItem_Click);
+            setTextToolStripMenuItem.Name = "setTextToolStripMenuItem";
+            setTextToolStripMenuItem.Size = new Size(136, 22);
+            setTextToolStripMenuItem.Text = "Set ROI Text";
+            setTextToolStripMenuItem.Click += setTextToolStripMenuItem_Click;
             // 
             // setIDToolStripMenuItem
             // 
-            this.setIDToolStripMenuItem.Name = "setIDToolStripMenuItem";
-            this.setIDToolStripMenuItem.Size = new System.Drawing.Size(136, 22);
-            this.setIDToolStripMenuItem.Text = "Set ROI ID";
-            this.setIDToolStripMenuItem.Click += new System.EventHandler(this.setIDToolStripMenuItem_Click);
+            setIDToolStripMenuItem.Name = "setIDToolStripMenuItem";
+            setIDToolStripMenuItem.Size = new Size(136, 22);
+            setIDToolStripMenuItem.Text = "Set ROI ID";
+            setIDToolStripMenuItem.Click += setIDToolStripMenuItem_Click;
             // 
             // menuStrip
             // 
-            this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
-            this.aboutToolStripMenuItem});
-            this.menuStrip.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(285, 24);
-            this.menuStrip.TabIndex = 3;
+            menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, aboutToolStripMenuItem });
+            menuStrip.Location = new Point(0, 0);
+            menuStrip.Name = "menuStrip";
+            menuStrip.Padding = new Padding(7, 2, 0, 2);
+            menuStrip.Size = new Size(269, 24);
+            menuStrip.TabIndex = 3;
             // 
             // fileToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newTabsViewToolStripMenuItem});
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
-            this.fileToolStripMenuItem.Text = "File";
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newTabsViewToolStripMenuItem });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Size = new Size(37, 20);
+            fileToolStripMenuItem.Text = "File";
             // 
             // newTabsViewToolStripMenuItem
             // 
-            this.newTabsViewToolStripMenuItem.Name = "newTabsViewToolStripMenuItem";
-            this.newTabsViewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.newTabsViewToolStripMenuItem.Text = "New Tabs View";
-            this.newTabsViewToolStripMenuItem.Click += new System.EventHandler(this.newTabsViewToolStripMenuItem_Click);
+            newTabsViewToolStripMenuItem.Name = "newTabsViewToolStripMenuItem";
+            newTabsViewToolStripMenuItem.Size = new Size(152, 22);
+            newTabsViewToolStripMenuItem.Text = "New Tabs View";
+            newTabsViewToolStripMenuItem.Click += newTabsViewToolStripMenuItem_Click;
             // 
             // aboutToolStripMenuItem
             // 
-            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
-            this.aboutToolStripMenuItem.Text = "About";
-            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(52, 20);
+            aboutToolStripMenuItem.Text = "About";
+            aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
             // 
             // openFilesDialog
             // 
-            this.openFilesDialog.Multiselect = true;
-            this.openFilesDialog.Title = "Open Images";
+            openFilesDialog.Multiselect = true;
+            openFilesDialog.Title = "Open Images";
             // 
             // NodeView
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(285, 197);
-            this.Controls.Add(this.menuStrip);
-            this.Controls.Add(this.treeView);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "NodeView";
-            this.ShowInTaskbar = false;
-            this.Text = "Node View";
-            this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
-            this.Activated += new System.EventHandler(this.MainForm_Activated);
-            this.contextMenuStrip.ResumeLayout(false);
-            this.menuStrip.ResumeLayout(false);
-            this.menuStrip.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(269, 337);
+            Controls.Add(menuStrip);
+            Controls.Add(treeView);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 3, 4, 3);
+            Name = "NodeView";
+            Text = "Bio - Node View";
+            WindowState = FormWindowState.Minimized;
+            Activated += MainForm_Activated;
+            contextMenuStrip.ResumeLayout(false);
+            menuStrip.ResumeLayout(false);
+            menuStrip.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion

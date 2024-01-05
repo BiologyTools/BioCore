@@ -46,7 +46,6 @@ namespace BioCore
             im.Filename = GetImageName(im.ID);
             im.ID = im.Filename;
             images.Add(im);
-            App.nodeView.UpdateNodes();
             if (newtab)
                 App.tabsView.AddTab(im);
             else
@@ -123,7 +122,6 @@ namespace BioCore
             im = null;
             Recorder.AddLine("Bio.Table.RemoveImage(" + '"' + id + '"' + ");");
         }
-
         /// It updates an image from the table
         /// 
         /// @param id The id of the image to update.
@@ -9165,7 +9163,15 @@ namespace BioCore
                 }
             }
             reader.setSeries(serie);
-
+            if (resc > 1)
+            {
+                b.ispyramidal = true;
+                tile = true;
+                if(tileSizeX == 0)
+                    tileSizeX = Screen.PrimaryScreen.WorkingArea.Width;
+                if (tileSizeY == 0)
+                    tileSizeY = Screen.PrimaryScreen.WorkingArea.Height;
+            }
             //Lets get the channels amd initialize them
             int i = 0;
             while (true)
@@ -9608,6 +9614,8 @@ namespace BioCore
                 b.StackThreshold(true);
             else
                 b.StackThreshold(false);
+            if (b.isPyramidal)
+                b.SetLabelMacroResolutions();
             if(addToImages)
             Images.AddImage(b,newTab);
             b.Loading = false;
@@ -9616,8 +9624,7 @@ namespace BioCore
                 pr.Close();
                 pr.Dispose();
             }
-            if (b.isPyramidal)
-                b.SetLabelMacroResolutions();
+            
             return b;
         }
         public ImageReader imRead = new ImageReader();
