@@ -1,4 +1,4 @@
-﻿namespace Bio
+﻿namespace BioCore
 {
     public partial class NodeView : Form
     {
@@ -54,17 +54,11 @@
             Init();
             InitNodes();
             App.nodeView = this;
-            if (args.Length > 0)
+            foreach (string s in args)
             {
-                App.tabsView = new TabsView(args);
-                App.tabsView.Show();
+                BioImage.OpenAsync(s,true,true,true).Wait();
             }
-            else
-            {
-                App.tabsView = new TabsView();
-                App.tabsView.Show();
-            }
-            //timer.Start();
+            App.tabsView.Show();
         }
 
         private static void Init()

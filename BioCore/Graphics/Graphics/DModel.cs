@@ -2,7 +2,7 @@
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 
-namespace Bio.Graphics
+namespace BioCore.Graphics
 {
     public class DModel
     {

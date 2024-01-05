@@ -1,5 +1,5 @@
 ﻿
-namespace Bio
+namespace BioCore
 {
     partial class ImageView
     {
@@ -55,6 +55,7 @@ namespace Bio
             controlsToolStripMenuItem = new ToolStripMenuItem();
             hideControlsToolStripMenuItem1 = new ToolStripMenuItem();
             hideStatusToolStripMenuItem = new ToolStripMenuItem();
+            hideOverviewToolStripMenuItem = new ToolStripMenuItem();
             copyViewToClipboardToolStripMenuItem = new ToolStripMenuItem();
             zPlayMenuStrip = new ContextMenuStrip(components);
             playZToolStripMenuItem = new ToolStripMenuItem();
@@ -97,7 +98,6 @@ namespace Bio
             vScrollBar = new VScrollBar();
             saveCSVFileDialog = new SaveFileDialog();
             dxPanel = new Panel();
-            hideOverviewToolStripMenuItem = new ToolStripMenuItem();
             timePlayMenuStrip.SuspendLayout();
             contextMenuStrip.SuspendLayout();
             zPlayMenuStrip.SuspendLayout();
@@ -165,7 +165,7 @@ namespace Bio
             // 
             contextMenuStrip.Items.AddRange(new ToolStripItem[] { rOIToolStripMenuItem, viewToolStripMenuItem, moveStageToImageToolStripMenuItem, goToToolStripMenuItem, goToImageToolStripMenuItem, goToStageToolStripMenuItem, controlsToolStripMenuItem, copyViewToClipboardToolStripMenuItem });
             contextMenuStrip.Name = "contextMenuStrip1";
-            contextMenuStrip.Size = new Size(200, 202);
+            contextMenuStrip.Size = new Size(200, 180);
             // 
             // rOIToolStripMenuItem
             // 
@@ -283,16 +283,23 @@ namespace Bio
             // hideControlsToolStripMenuItem1
             // 
             hideControlsToolStripMenuItem1.Name = "hideControlsToolStripMenuItem1";
-            hideControlsToolStripMenuItem1.Size = new Size(180, 22);
+            hideControlsToolStripMenuItem1.Size = new Size(151, 22);
             hideControlsToolStripMenuItem1.Text = "Hide Controls";
             hideControlsToolStripMenuItem1.Click += hideControlsToolStripMenuItem_Click;
             // 
             // hideStatusToolStripMenuItem
             // 
             hideStatusToolStripMenuItem.Name = "hideStatusToolStripMenuItem";
-            hideStatusToolStripMenuItem.Size = new Size(180, 22);
+            hideStatusToolStripMenuItem.Size = new Size(151, 22);
             hideStatusToolStripMenuItem.Text = "Hide Status";
             hideStatusToolStripMenuItem.Click += HideStatusMenuItem_Click;
+            // 
+            // hideOverviewToolStripMenuItem
+            // 
+            hideOverviewToolStripMenuItem.Name = "hideOverviewToolStripMenuItem";
+            hideOverviewToolStripMenuItem.Size = new Size(151, 22);
+            hideOverviewToolStripMenuItem.Text = "Hide Overview";
+            hideOverviewToolStripMenuItem.Click += hideOverviewToolStripMenuItem_Click;
             // 
             // copyViewToClipboardToolStripMenuItem
             // 
@@ -721,13 +728,6 @@ namespace Bio
             dxPanel.MouseMove += rgbPictureBox_MouseMove;
             dxPanel.MouseUp += pictureBox_MouseUp;
             // 
-            // hideOverviewToolStripMenuItem
-            // 
-            hideOverviewToolStripMenuItem.Name = "hideOverviewToolStripMenuItem";
-            hideOverviewToolStripMenuItem.Size = new Size(180, 22);
-            hideOverviewToolStripMenuItem.Text = "Hide Overview";
-            hideOverviewToolStripMenuItem.Click += hideOverviewToolStripMenuItem_Click;
-            // 
             // ImageView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -745,6 +745,8 @@ namespace Bio
             Name = "ImageView";
             Size = new Size(499, 425);
             KeyDown += ImageView_KeyDown;
+            KeyPress += ImageView_KeyPress;
+            KeyUp += ImageView_KeyUp;
             timePlayMenuStrip.ResumeLayout(false);
             contextMenuStrip.ResumeLayout(false);
             zPlayMenuStrip.ResumeLayout(false);

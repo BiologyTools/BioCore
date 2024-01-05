@@ -1,5 +1,5 @@
 ﻿
-namespace Bio
+namespace BioCore
 {
     partial class FunctionForm
     {

@@ -1,4 +1,4 @@
-namespace Bio.Graphics
+namespace BioCore.Graphics
 {
     /// <summary>
     /// Implements the QueueLinear flood fill algorithm using array-based pixel manipulation.

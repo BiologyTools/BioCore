@@ -8,9 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ScottPlot;
-using ucar.nc2.@internal.iosp.netcdf3;
 
-namespace Bio
+namespace BioCore
 {
     public partial class Plot : Form
     {

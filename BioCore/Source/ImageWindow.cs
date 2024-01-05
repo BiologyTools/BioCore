@@ -1,4 +1,4 @@
-﻿namespace Bio
+﻿namespace BioCore
 {
     public partial class ImageWindow : Form
     {

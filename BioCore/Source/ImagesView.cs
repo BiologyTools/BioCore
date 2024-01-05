@@ -1,4 +1,4 @@
-﻿namespace Bio.Source
+﻿namespace BioCore.Source
 {
     public partial class ImagesView : Form
     {

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Bio.Graphics
+namespace BioCore.Graphics
 {
     /// <summary>
     /// The base class that the flood fill algorithms inherit from. Implements the

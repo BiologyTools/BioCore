@@ -1,6 +1,7 @@
-﻿using CSScriptLib;
+﻿using BioCore;
+using CSScriptLib;
 
-namespace Bio
+namespace BioCore
 {
     public partial class Scripting : Form
     {
@@ -496,9 +497,9 @@ namespace Bio
         }
 
         /// If the window is not minimized, then refresh the status
-/// 
-/// @param sender The object that raised the event.
-/// @param EventArgs The event arguments.
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The event arguments.
         private void timer_Tick(object sender, EventArgs e)
         {
             if (this.WindowState != FormWindowState.Minimized)

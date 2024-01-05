@@ -4,7 +4,7 @@ using FlaUI.UIA3;
 using System.Diagnostics;
 using WindowsInput;
 using Gma.System.MouseKeyHook;
-namespace Bio
+namespace BioCore
 {
     public class Automation
     {

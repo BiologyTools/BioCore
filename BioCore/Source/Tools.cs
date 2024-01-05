@@ -13,9 +13,9 @@ using AForge.Imaging.Filters;
 using AForge.Imaging;
 using AForge.Math.Geometry;
 using AForge;
-using Bio.Graphics;
+using BioCore.Graphics;
 
-namespace Bio
+namespace BioCore
 {
     public partial class Tools : Form
     {

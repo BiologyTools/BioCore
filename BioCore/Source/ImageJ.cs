@@ -1,29 +1,124 @@
-﻿using System.Diagnostics;
-
-namespace Bio
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using System.IO;
+using CSScripting;
+using AForge;
+using BioCore;
+namespace BioCore
 {
     public class ImageJ
     {
+        public static class Macro
+        {
+            public class Command
+            {
+                public string Name { get; set; }
+                public string Arguments { get; set; }
+                public string Description { get; set; }
+                public Command(string name, string args, string description)
+                {
+                    Name = name;
+                    Arguments = args;
+                    Description = description;
+                }
+                public override string ToString()
+                {
+                    return Name.ToString();
+                }
+            }
+            public class Function
+            {
+                public string Name { get; set; }
+                public string Arguments { get; set; }
+                public string Description { get; set; }
+                public Function(string name, string args, string description)
+                {
+                    Name = name;
+                    Arguments = args;
+                    Description = description;
+                }
+                public override string ToString()
+                {
+                    return Name.ToString();
+                }
+            }
+            public static Dictionary<string, Command> Commands = new Dictionary<string, Command>();
+            public static Dictionary<string, List<Function>> Functions = new Dictionary<string, List<Function>>();
+            internal static void Initialize()
+            {
+                string[] sts = File.ReadAllLines("macro-functions.txt");
+                foreach (string s in sts)
+                {
+                    string com = "";
+                    string args = "";
+                    string doc = "";
+                    bool indoc = false, inargs = false;
+                    if (!s.StartsWith('#'))
+                    {
+                        for (int i = 0; i < s.Length; i++)
+                        {
+                            if (!inargs)
+                            {
+                                if (s[i] != '(')
+                                    com += s[i];
+                                else
+                                    inargs = true;
+                                if (s[i] == ' ')
+                                {
+                                    inargs = true;
+                                    indoc = true;
+                                }
+                            }
+                            else
+                            if (!indoc)
+                                if (s[i] != ')')
+                                    args += s[i];
+                                else
+                                    indoc = true;
+                            else
+                                doc += s[i];
+                        }
+                        if (!Functions.ContainsKey(com))
+                            Functions.Add(com, new List<Function>() { new Function(com, args, doc) });
+                        else
+                            Functions[com].Add(new Function(com, args, doc));
+                    }
+                }
+                string[] cs = File.ReadAllLines("macro-commands.csv");
+                foreach (string s in cs)
+                {
+                    string[] v = s.Split(',');
+                    Commands.Add(v[0], new Command(v[0], v[1], ""));
+                }
+            }
+        }
+        public static List<Macro.Command> Macros = new List<Macro.Command>();
         public static string ImageJPath;
         public static List<Process> processes = new List<Process>();
         private static Random rng = new Random();
+        static bool init = false;
+        public static bool Initialized { get { return init; } private set { } }
         /// It runs a macro in ImageJ
         /// 
         /// @param file the path to the macro file
-        /// @param param "C:\Users\User\Desktop\test.tif"
+        /// @param param 
         /// 
         /// @return The macro is being returned.
         public static void RunMacro(string file, string param)
         {
-            if (ImageJPath == "")
+            if(!Initialized)
             {
-                if (!App.SetImageJPath())
-                    return;
+                Initialize(true);
             }
             file.Replace("/", "\\");
             Process pr = new Process();
             pr.StartInfo.FileName = ImageJPath;
             pr.StartInfo.Arguments = "-macro " + file + " " + param;
+
             pr.Start();
             processes.Add(pr);
             Recorder.AddLine("ImageJ.RunMacro(" + file + "," + '"' + param + '"' + ");");
@@ -37,19 +132,18 @@ namespace Bio
         /// @return The macro is returning a string.
         public static void RunString(string con, string param, bool headless)
         {
-
-            if (ImageJPath == "")
+            if (!Initialized)
             {
-                if (!App.SetImageJPath())
-                    return;
+                Initialize(true);
             }
             Process pr = new Process();
             pr.StartInfo.FileName = ImageJPath;
+            pr.StartInfo.CreateNoWindow = true;
             string te = rng.Next(0, 9999999).ToString();
             string p = Environment.CurrentDirectory + "\\" + te + ".txt";
             p.Replace("/", "\\");
-            File.WriteAllText(p, con);
-            if (headless)
+            File.WriteAllText(p,con);
+            if(headless)
                 pr.StartInfo.Arguments = "--headless -macro " + p + " " + param;
             else
                 pr.StartInfo.Arguments = "-macro " + p + " " + param;
@@ -68,7 +162,7 @@ namespace Bio
                         }
                         catch (Exception)
                         {
-
+                        
                         }
                     } while (File.Exists(Path.GetDirectoryName(ImageJPath) + "/done.txt"));
                     pr.Kill();
@@ -77,23 +171,22 @@ namespace Bio
             } while (!pr.HasExited);
             File.Delete(p);
         }
-        /// It runs a macro on an image, saves the result as a new image, and then opens the new image
-        /// in a new tab
+        /// It runs a macro on the selected image, saves the result as a new image, and then opens the
+        /// new image in a new tab
         /// 
-        /// @param con The ImageJ macro to run
-        /// @param headless whether to run ImageJ in headless mode
+        /// @param con The ImageJ macro to run.
+        /// @param headless Whether to run ImageJ in headless mode.
         /// @param onTab If true, the image will be opened in a new tab. If false, the image will be
         /// opened in the current tab.
-        /// @param bioformats If true, the image is opened using the bioformats plugin. If false, the
-        /// image is opened using the default imagej open command.
+        /// @param bioformats If the image is a bioformats image, it will use the bioformats importer to
+        /// open the image.
         /// 
-        /// @return The image is being returned as a new tab.
-        public static void RunOnImage(string con, bool headless, bool onTab, bool bioformats)
+        /// @return The return value is the result of the last statement in the script.
+        public static void RunOnImage(string con, bool headless, bool onTab, bool bioformats, bool newTab)
         {
-            if (ImageJPath == "")
+            if (!Initialized)
             {
-                if (!App.SetImageJPath())
-                    return;
+                Initialize(true);
             }
             string filename = "";
             string dir = Path.GetDirectoryName(ImageView.SelectedImage.file);
@@ -112,7 +205,7 @@ namespace Bio
             "run(\"Bio-Formats Exporter\", \"save=" + file + " export compression=Uncompressed\"); " +
             "dir = getDir(\"startup\"); " +
             "File.saveString(\"done\", dir + \"/done.txt\");";
-            if (bioformats)
+            if(bioformats)
                 st =
                 "open(getArgument); " + con +
                 "run(\"Bio-Formats Exporter\", \"save=" + file + " export compression=Uncompressed\"); " +
@@ -128,111 +221,65 @@ namespace Bio
             File.Delete(ffile);
             File.Copy(file, ffile);
             File.Delete(file);
-            App.tabsView.AddTab(BioImage.OpenFile(ffile));
+            if (ImageView.SelectedImage.Filename != filename + ".ome.tif" || ImageView.SelectedImage.Filename != filename + ".tif")
+            {
+                if (ImageView.SelectedImage.filename.EndsWith(".tif"))
+                    BioImage.OpenFile(ffile, 0, newTab, true);
+                else
+                    BioImage.OpenFile(ffile, 0, true, true);
+            }
+            else
+            {
+                App.viewer.Images[App.viewer.SelectedIndex] = BioImage.OpenFile(ffile, 0, false, false);
+            }
             App.viewer.UpdateImage();
             App.viewer.UpdateView();
-
-            Recorder.AddLine("RunOnImage(\"" + con + "\"," + headless + "," + onTab + ");");
+            Recorder.AddLine("RunOnImage(\"" + con + "\"," + headless + "," + onTab + "," + newTab + ");");
         }
 
-        /*
-        public static void RunOnImage(string con, bool headless, bool onTab)
-        {
-            string filename = "";
-            string dir = Path.GetDirectoryName(ImageView.SelectedImage.file);
-            if(App.viewer.Images.Count == 1)
-            {
-                if (ImageView.SelectedImage.ID.EndsWith(".ome.tif"))
-                {
-                    filename = Path.GetFileNameWithoutExtension(ImageView.SelectedImage.ID);
-                    filename = filename.Remove(filename.Length - 4, 4);
-                }
-                else
-                    filename = Path.GetFileNameWithoutExtension(ImageView.SelectedImage.ID);
-            }
-            else
-            {
-                string f = App.viewer.Images[0].ID;
-                if (f.EndsWith(".ome.tif"))
-                {
-                    filename = Path.GetFileNameWithoutExtension(f);
-                    filename = filename.Remove(filename.Length - 4, 4);
-                }
-                else
-                    filename = Path.GetFileNameWithoutExtension(f);
-            }
-
-            string temp;
-            if(dir == "")
-                temp = filename + "-temp" + ".ome.tif";
-            else
-                temp = dir + "\\" + filename  + "-temp" + ".ome.tif";
-            temp = temp.Replace("\\", "/");
-            string st;
-            if (!onTab)
-            {
-                st =
-                "run(\"Bio-Formats Importer\", \"open=\" + getArgument + \" autoscale color_mode=Default open_all_series display_rois rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT\"); " + con +
-                "run(\"Bio-Formats Exporter\", \"save=" + temp + " export compression=Uncompressed\"); " +
-                "dir = getDir(\"startup\"); " +
-                "File.saveString(\"done\", dir + \"/done.txt\");";
-            }
-            else
-            {
-                //Currently v.2.4.1 some OME series written by Bio open up only correctly in ImageJ when opened with ImageJ open() rather than BioFormats.
-                st =
-                "open(getArgument); " + con +
-                "run(\"Bio-Formats Exporter\", \"save=" + temp + " export compression=Uncompressed\"); " +
-                "dir = getDir(\"startup\"); " +
-                "File.saveString(\"done\", dir + \"/done.txt\");";
-            }
-            if (App.viewer.Images.Count == 1)
-            {
-                //First we save to a temp file.
-                BioImage.SaveOME(temp, ImageView.SelectedImage.file);
-            }
-            else
-            {
-                //First we save to a temp file.
-                List<string> sts = new List<string>();
-                foreach (BioImage item in App.viewer.Images)
-                {
-                    sts.Add(item.ID);
-                }
-                BioImage.SaveOMESeries(sts.ToArray(), temp);
-            }
-            //We save the image as a temp image as otherwise imagej won't export due to file access error.
-            RunString(st, temp, headless);
-            string ffile = dir + "/" + filename + ".ome.tif";
-            File.Delete(ImageView.SelectedImage.file);
-            File.Copy(temp, ImageView.SelectedImage.file);
-            File.Delete(temp);
-            if (ImageView.SelectedImage.ID.EndsWith(".ome.tif"))
-            {
-                if(ImageView.SelectedImage.seriesCount > 1)
-                foreach (BioImage item in App.viewer.Images)
-                {
-                    item.Update();
-                }
-                else
-                    ImageView.SelectedImage.Update();
-            }
-            else
-            {
-                App.tabsView.AddTab(BioImage.OpenFile(ImageView.SelectedImage.file));
-            }
-            Recorder.AddLine("RunOnImage(\"" + con + "," + headless + "," + onTab + ");");
-        }
-        */
         /// This function is used to initialize the path of the ImageJ.exe file
         /// 
         /// @param path The path to the ImageJ executable.
-        public static void Initialize(string path)
+        public static bool Initialize(bool imagej)
         {
-            ImageJPath = path;
+            if (!imagej)
+                return false;
+            if (!SetImageJPath())
+                return false;
+            Macro.Initialize();
+            string[] ds = Directory.GetFiles(Path.GetDirectoryName(ImageJPath) + "/macros");
+            foreach (string s in ds)
+            {
+                if (s.EndsWith(".ijm") || s.EndsWith(".txt"))
+                    Macros.Add(new Macro.Command(Path.GetFileName(s), "", ""));
+            }
+            return true;
+        }
+        /// If the ImageJ path is not set, prompt the user to set it
+        /// 
+        /// @return The return value is a boolean.
+        public static bool SetImageJPath()
+        {
+            if (BioCore.Properties.Settings.Default.ImageJPath != "")
+            {
+                ImageJPath = BioCore.Properties.Settings.Default.ImageJPath;
+                init = true;
+                return true;
+            }
+            MessageBox.Show("ImageJ path not set. Set the ImageJ executable location.");
+            OpenFileDialog file = new OpenFileDialog();
+            file.Title = "Set the ImageJ executable location.";
+            if (file.ShowDialog() != DialogResult.OK)
+                return false;
+            BioCore.Properties.Settings.Default.ImageJPath = file.FileName;
+            BioCore.Properties.Settings.Default.Save();
+            ImageJPath = file.FileName;
+            init = true;
+            file.Dispose();
+            return true;
         }
 
-
+        /* It reads a binary file and returns a ROI object */
         public class RoiDecoder
         {
             #region Params
@@ -631,7 +678,7 @@ namespace Bio
                     roi.PointsD[i] = pd;
                     roi.UpdateBoundingBox();
                 }
-                
+
                 if (roi.type == ROI.Type.Polygon || roi.type == ROI.Type.Freeform)
                     roi.closed = true;
                 return roi;
@@ -762,9 +809,9 @@ namespace Bio
                 */
             }
 
-            /// It reads the name of the ROI from the file
-            /// 
-            /// @return The name of the ROI.
+           /// It reads the name of the ROI from the file
+           /// 
+           /// @return The name of the ROI.
             string getRoiName()
             {
                 string fileName = name;
@@ -783,9 +830,9 @@ namespace Bio
                 return new string(namem);
             }
 
-            /// It reads the ROI properties from the file and returns them as a string
-            /// 
-            /// @return A string of characters.
+           /// It reads the ROI properties from the file and returns them as a string
+           /// 
+           /// @return A string of characters.
             string getRoiProps()
             {
                 int hdr2Offset = getInt(HEADER2_OFFSET);
@@ -835,11 +882,12 @@ namespace Bio
                 return data[bas] & 255;
             }
 
-            /// > If the number is less than -5000, then assume it's unsigned and return the number
-            /// 
-            /// @param bas the starting position of the data in the byte array
-            /// 
-            /// @return The value of the short at the given index.
+           /// > It reads two bytes from the data array, converts them to an integer, and returns the
+           /// integer
+           /// 
+           /// @param bas the starting position of the data in the byte array
+           /// 
+           /// @return The value of the short at the specified index.
             int getShort(int bas)
             {
                 int b0 = data[bas] & 255;
@@ -850,11 +898,11 @@ namespace Bio
                 return n;
             }
 
-            /// It takes a base address and returns the unsigned short value at that address
-            /// 
-            /// @param bas The base address of the data.
-            /// 
-            /// @return The value of the two bytes at the given index.
+           /// It returns the unsigned short value of the data at the given index.
+           /// 
+           /// @param bas The base address of the data.
+           /// 
+           /// @return The value of the two bytes at the given index.
             int getUnsignedShort(int bas)
             {
                 int b0 = data[bas] & 255;
@@ -876,16 +924,20 @@ namespace Bio
                 return ((b0 << 24) + (b1 << 16) + (b2 << 8) + b3);
             }
 
-            /// It takes a base address and returns a float value from the memory address
-            /// 
-            /// @param bas The base address of the float.
-            /// 
-            /// @return The float value of the int value at the given base.
+/// It takes a base address, reads 4 bytes from that address, converts those 4 bytes into a float, and
+/// returns the float
+/// 
+/// @param bas The base address of the value you want to read.
+/// 
+/// @return The float value of the integer at the base address.
             float getFloat(int bas)
             {
-                return BitConverter.Int32BitsToSingle(getInt(bas));
+                //return BitConverter.ToSingle(getInt(bas));
+                byte[] bytes = BitConverter.GetBytes(getInt(bas));
+                return BitConverter.ToSingle(bytes, 0);
             }
-            /// It takes a byte array and returns an ROI object
+
+            /// It takes a byte array and returns a ROI object
             /// 
             /// @param bytes byte array of the ROI
             /// 
@@ -909,9 +961,9 @@ namespace Bio
 
         }
 
-        /// It converts the ROI type to the ImageJ type
+        /// > It converts the ROI type to the ImageJ type
         /// 
-        /// @param ROI The ROI object to be written to the file.
+        /// @param ROI The ROI object to be converted.
         /// 
         /// @return The ROI type is being returned.
         static int GetImageJType(ROI roi)
@@ -944,14 +996,14 @@ namespace Bio
         /// 
         /// @param ROI Region of Interest
         /// @param xp x-coordinates of the points in the ROI
-        /// @param yp y-coordinates of the polygon vertices.
+        /// @param yp y-coordinates of the points in the ROI
         static void GetPointsXY(ROI roi, out int[] xp, out int[] yp)
         {
             int[] x = new int[roi.PointsD.Count];
             int[] y = new int[roi.PointsD.Count];
             for (int i = 0; i < roi.PointsD.Count; i++)
             {
-                PointF pd = ImageView.SelectedImage.ToImageSpace(roi.PointsD[i]).ToPointF();
+                PointD pd = ImageView.SelectedImage.ToImageSpace(roi.PointsD[i]);
                 x[i] = (int)pd.X;
                 y[i] = (int)pd.Y;
             }
@@ -967,15 +1019,15 @@ namespace Bio
         /// @param y The y-coordinate of the ROI.
         static void GetXY(ROI roi, out float x, out float y)
         {
-            PointF pd = ImageView.SelectedImage.ToImageSpace(new PointD(roi.X, roi.Y)).ToPointF();
-            x = pd.X;
-            y = pd.Y;
+            PointD pd = ImageView.SelectedImage.ToImageSpace(new PointD(roi.X, roi.Y));
+            x = (float)pd.X;
+            y = (float)pd.Y;
         }
-        /// This function takes a ROI and returns the width and height of the ROI in image units
-        /// 
-        /// @param ROI Region of Interest
-        /// @param w width of the rectangle
-        /// @param h height of the image
+       /// > This function takes a ROI and returns the width and height of the ROI in pixels
+       /// 
+       /// @param ROI The ROI object that you want to get the width and height of.
+       /// @param w width of the rectangle
+       /// @param h height of the rectangle
         static void GetWH(ROI roi, out float w, out float h)
         {
             w = (float)ImageView.SelectedImage.ToImageSizeX(roi.W);
@@ -999,6 +1051,7 @@ namespace Bio
             }
             return value;
         }
+        /* It takes a ROI object and writes it to a file */
         public class RoiEncoder
         {
             static int HEADER_SIZE = 64;
@@ -1050,6 +1103,7 @@ namespace Bio
                 if (f != null)
                 {
                     write(roi, f);
+
                 }
                 else
                 {
@@ -1082,7 +1136,7 @@ namespace Bio
             /// It takes a ROI object and writes it to a file
             /// 
             /// @param ROI The ROI object to be saved
-            /// @param FileStream The file stream to write to
+            /// @param FileStream f
             /// 
             /// @return The data is being returned as a byte array.
             void write(ROI roi, FileStream f)
@@ -1343,7 +1397,7 @@ namespace Bio
                 }
 
                 //saveOverlayOptions(roi, options);
-                f.Write(data);
+                f.Write(data,0,data.Length);
             }
 
             /// It saves the stroke width and color of the ROI
@@ -1431,14 +1485,14 @@ namespace Bio
             }
             */
             /// The function takes a ROI object and converts it to a byte array
-           /// 
-           /// @param ROI The ROI object
+            /// 
+            /// @param ROI The ROI object
             void saveTextRoi(ROI roi)
             {
                 //Font font = roi.getCurrentFont();
-                string fontName = roi.font.FontFamily.ToString();
+                string fontName = roi.font.FontFamily.Name.ToString();
                 int size = (int)roi.font.Size;
-                int drawStringMode = 0; //roi.getDrawStringMode() ? 1024 : 0;
+                //int drawStringMode = 0; //roi.getDrawStringMode() ? 1024 : 0;
                 int style = 0;//font.getStyle() + roi.getJustification() * 256 + drawStringMode;
                 string text = roi.roiName;
                 float angle = 0;
@@ -1550,7 +1604,7 @@ namespace Bio
 
             /// > The function `putPointCounters` writes the counters of the ROI to the byte array
             /// 
-            /// @param ROI the ROI object
+            /// @param ROI the region of interest
             /// @param hdr2Offset the offset of the header2
             void putPointCounters(ROI roi, int hdr2Offset)
             {
@@ -1582,14 +1636,16 @@ namespace Bio
                 data[bas + 1] = (byte)v;
             }
 
-            /// > It takes a float and converts it to an int, then it takes the int and converts it to a
-           /// byte array
-           /// 
-           /// @param bas The base address of the data.
-           /// @param v The value to be written to the buffer.
+            /// > It takes a float and converts it to a byte array, then it takes the first 4 bytes of
+            /// the array and puts them into the data array
+            /// 
+            /// @param bas the base address of the data array
+            /// @param v the float value to be converted
             void putFloat(int bas, float v)
             {
-                int tmp = BitConverter.SingleToInt32Bits(v);//Float.floatToIntBits(v);
+                byte[] bytes = BitConverter.GetBytes(v);
+                int tmp = BitConverter.ToInt32(bytes, 0);
+                //int tmp = BitConverter.SingleToInt32Bits(v);//Float.floatToIntBits(v);
                 data[bas] = (byte)(tmp >> 24);
                 data[bas + 1] = (byte)(tmp >> 16);
                 data[bas + 2] = (byte)(tmp >> 8);
@@ -1608,7 +1664,6 @@ namespace Bio
                 data[bas + 3] = (byte)i;
             }
         }
-
 
     }
 }

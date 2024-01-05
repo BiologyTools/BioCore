@@ -4,11 +4,11 @@ using AForge;
 using OpenSlideGTK;
 using Mapsui.Tiling.Fetcher;
 using System.Drawing.Imaging;
-using Bio.Graphics;
+using BioCore.Graphics;
 using Point = System.Drawing.Point;
 using AForge.Imaging.Filters;
 
-namespace Bio
+namespace BioCore
 {
     /// <summary>
     /// ImageView control for image stacks, pyramidal and whole-slide-images.
@@ -558,9 +558,9 @@ namespace Bio
         ///Setting the value of the pyramidalOrigin variable. */
         public PointD PyramidalOrigin
         {
-            get 
-            { 
-                    return pyramidalOrigin; 
+            get
+            {
+                return pyramidalOrigin;
             }
             set
             {
@@ -1173,6 +1173,7 @@ namespace Bio
                 gray.Dispose();
                 b.Dispose();
                 dx.EndDraw();
+                Plugins.Render(this, dx);
             }
             drawing = false;
         }
@@ -1716,6 +1717,7 @@ namespace Bio
         {
             if (SelectedImage == null)
                 return;
+            Plugins.ScrollEvent(sender, e);
             if (SelectedImage.isPyramidal)
             {
                 if (openSlide)
@@ -2329,6 +2331,7 @@ namespace Bio
         private void pictureBox_Paint(object sender, PaintEventArgs e)
         {
             update = true;
+            Plugins.Paint(sender, e);
             DrawView(e.Graphics);
         }
         /// GetScale() returns the scale of the image in the viewport.
@@ -2356,7 +2359,7 @@ namespace Bio
             }
             PointD p = ImageToViewSpace(e.Location.X, e.Location.Y);
             tools.ToolMove(p, mouseDownButtons);
-
+            Plugins.MouseMove(sender, p, e);
             PointD ip = SelectedImage.ToImageSpace(p);
             mousePoint = "(" + (p.X) + ", " + (p.Y) + ")";
             if (e.Button == MouseButtons.XButton1 && !x1State && !Ctrl && Mode != ViewMode.RGBImage)
@@ -2485,6 +2488,7 @@ namespace Bio
                 return;
             App.viewer = this;
             PointD p = ImageToViewSpace(e.Location.X, e.Location.Y);
+            Plugins.MouseUp(sender, p, e);
             if (e.Button == MouseButtons.Middle)
             {
                 PointD pd = new PointD(p.X - mouseDown.X, p.Y - mouseDown.Y);
@@ -2526,6 +2530,7 @@ namespace Bio
                 ip = SelectedImage.ToImageSpace(new PointD(SelectedImage.Volume.Width - p.X, SelectedImage.Volume.Height - p.Y));
             else
                 ip = SelectedImage.ToImageSpace(p);
+            Plugins.MouseDown(sender, p, e);
             tools.BringToFront();
             int ind = 0;
             if (ShowOverview && overview.IntersectsWith(new Rectangle(e.X, e.Y, 1, 1)))
@@ -2664,6 +2669,7 @@ namespace Bio
             selectedImage = SelectedImage;
             PointD p = ToViewSpace(e.Location.X, e.Location.Y);
             tools.ToolDown(p, e.Button);
+            Plugins.MouseDown(sender, p, e);
             if (e.Button != MouseButtons.XButton1 && e.Button != MouseButtons.XButton2)
                 Origin = new PointD(-p.X, -p.Y);
         }
@@ -3213,8 +3219,9 @@ namespace Bio
         /// @param KeyEventArgs The event arguments for the key press.
         /// 
         /// @return The return value is a PointD object.
-        public void ImageView_KeyDown(object sender, KeyEventArgs e)
+        internal void ImageView_KeyDown(object sender, KeyEventArgs e)
         {
+            Plugins.KeyDownEvent(sender, e);
             double moveAmount = 5 * Scale.Width;
             if (e.KeyCode == Keys.C && e.Control)
             {
@@ -3258,6 +3265,15 @@ namespace Bio
             }
         }
 
+        internal void ImageView_KeyUp(object sender, KeyEventArgs e)
+        {
+            Plugins.KeyUpEvent(sender, e);
+        }
+
+        internal void ImageView_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            Plugins.KeyPressEvent(sender, e);
+        }
         /// If the selected image is not null, set the origin to the center of the image, and set the
         /// scale to the height of the image.
         /// 
@@ -3520,7 +3536,7 @@ namespace Bio
         }
         private void hideOverviewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if(hideOverviewToolStripMenuItem.Text == "Hide Overview")
+            if (hideOverviewToolStripMenuItem.Text == "Hide Overview")
             {
                 ShowOverview = false;
                 hideOverviewToolStripMenuItem.Text = "Show Overview";
@@ -3565,8 +3581,5 @@ namespace Bio
         }
 
         #endregion
-
-
-        
     }
 }

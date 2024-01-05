@@ -1,6 +1,6 @@
 ﻿using System.Xml;
 
-namespace Bio
+namespace BioCore
 {
     /* It's a form that displays an XML tree */
     public partial class XMLView : Form

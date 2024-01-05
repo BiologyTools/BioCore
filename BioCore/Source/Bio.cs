@@ -20,87 +20,88 @@ using RectangleF = System.Drawing.RectangleF;
 using Size = System.Drawing.Size;
 using IntRange = AForge.IntRange;
 using OpenSlideGTK;
-namespace Bio
+namespace BioCore
 {
+    /* A class declaration. */
     public static class Images
     {
-        internal static List<BioImage> images = new List<BioImage>();
-        /// It returns the image with the given ID
+        public static List<BioImage> images = new List<BioImage>();
         /// 
-        /// @param ids The ID of the image you want to get.
-        /// 
-        /// @return The image with the ID that matches the ID that was passed in.
+        /// @param ids The id of the image you want to get.
         public static BioImage GetImage(string ids)
         {
             for (int i = 0; i < images.Count; i++)
             {
-                if (images[i].ID == ids)
+                if (images[i].ID == ids || images[i].file == ids || images[i].filename == Path.GetFileName(ids))
                     return images[i];
             }
             return null;
         }
-        /// This function adds an image to the database
+        /// It adds an image to the list of images
         /// 
-        /// @param BioImage 
-        public static void AddImage(BioImage im)
+        /// @param BioImage A class that contains the image data and other information.
+        public static void AddImage(BioImage im, bool newtab)
         {
+            if (images.Contains(im)) return;
             im.Filename = GetImageName(im.ID);
             im.ID = im.Filename;
-            if (images.Contains(im))
-            {
-                UpdateImage(im);
-            }
+            images.Add(im);
+            App.nodeView.UpdateNodes();
+            if (newtab)
+                App.tabsView.AddTab(im);
             else
-                images.Add(im);
+            {
+                if (!App.viewer.Images.Contains(im))
+                {
+                    App.viewer.AddImage(im);
+                    App.viewer.Update();
+                }
+            }
         }
-        /// It takes a string as an argument, and returns the number of images in the list that contain
-        /// that string
+        /// It takes a string as an argument, and returns the number of times that string appears in the
+        /// list of images
         /// 
         /// @param s The name of the image
         /// 
-        /// @return The number of images that have the same name as the image being passed in.
+        /// @return The number of images that contain the name of the image.
         public static int GetImageCountByName(string s)
         {
+            string name = Path.GetFileName(s);
+            string ext = Path.GetExtension(s);
+            if (name.Split('-').Length > 2)
+                name = name.Remove(name.LastIndexOf('-'), name.Length - name.LastIndexOf('-'));
             int i = 0;
-            string name = Path.GetFileNameWithoutExtension(s);
             for (int im = 0; im < images.Count; im++)
             {
-                if (images[im].ID.Contains(name))
+                if (images[im].ID.Contains(name) && images[im].ID.EndsWith(ext))
                     i++;
             }
             return i;
         }
-        /* The above code is used to create a unique ID for an image. */
+        /// It takes a string, and returns a string
+        /// 
+        /// @param s The path to the image.
+        /// 
+        /// @return The name of the image.
         public static string GetImageName(string s)
         {
             //Here we create a unique ID for an image.
             int i = Images.GetImageCountByName(s);
             if (i == 0)
-                return s;
-            string test = Path.GetFileName(s);
+                return Path.GetFileName(s);
             string name = Path.GetFileNameWithoutExtension(s);
-            string ext = Path.GetExtension(s);
-            int sti = name.LastIndexOf("-");
-            if (sti == -1)
+            if (Path.GetFileNameWithoutExtension(name) != name)
+                name = Path.GetFileNameWithoutExtension(name);
+            string ext = s.Substring(s.IndexOf('.'), s.Length - s.IndexOf('.'));
+            if (name.Split('-').Length > 2)
             {
-                return name + "-" + i + ext;
-
+                string sts = name.Remove(name.LastIndexOf('-'), name.Length - name.LastIndexOf('-'));
+                return sts + "-" + i + ext;
             }
             else
-            {
-                string stb = name.Substring(0, sti);
-                string sta = name.Substring(sti + 1, name.Length - sti - 1);
-                int ind;
-                if (int.TryParse(sta, out ind))
-                {
-                    return stb + "-" + (ind + 1).ToString() + ext;
-                }
-                else
-                    return name + "-" + i + ext;
-            }
-            //
+                return name + "-" + i + ext;
         }
-        /// This function removes an image from the database
+        /// This function removes an image from the table
         /// 
         /// @param BioImage This is the image that you want to remove.
         public static void RemoveImage(BioImage im)
@@ -118,16 +119,15 @@ namespace Bio
             if (im == null)
                 return;
             images.Remove(im);
-            im.Dispose();
+            //im.Dispose();
             im = null;
-            GC.Collect();
             Recorder.AddLine("Bio.Table.RemoveImage(" + '"' + id + '"' + ");");
         }
-        /// This function takes a BioImage object and updates the image in the database with the same ID
-        /// as the BioImage object
+
+        /// It updates an image from the table
         /// 
-        /// @param BioImage This is the image object that is being updated.
-        /// 
+        /// @param id The id of the image to update.
+        /// @param im The BioImage to update with.
         /// @return The image is being returned.
         public static void UpdateImage(BioImage im)
         {
@@ -4193,9 +4193,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.Base(" + '"' + id +
                     '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4233,9 +4231,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.Base2(" + '"' + id + '"' + "," +
                    '"' + id2 + '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4270,9 +4266,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.InPlace(" + '"' + id +
                     '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4311,9 +4305,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.InPlace2(" + '"' + id + '"' + "," +
                    '"' + id2 + '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4348,9 +4340,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.InPlacePartial(" + '"' + id +
                     '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4388,9 +4378,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.Resize(" + '"' + id +
                     '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + "," + w + "," + h + ");");
@@ -4430,9 +4418,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img,true);
                 }
                 Recorder.AddLine("Bio.Filters.Rotate(" + '"' + id +
                     '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + "," + angle.ToString() + "," +
@@ -4469,9 +4455,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img,true);
                 }
                 Recorder.AddLine("Bio.Filters.Transformation(" + '"' + id +
                         '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + "," + angle + ");");
@@ -4505,9 +4489,7 @@ namespace Bio
                 }
                 if (!inPlace)
                 {
-                    Images.AddImage(img);
-                    ImageView iv = new ImageView(img);
-                    iv.Show();
+                    Images.AddImage(img, true);
                 }
                 Recorder.AddLine("Bio.Filters.Copy(" + '"' + id +
                         '"' + "," + '"' + name + '"' + "," + inPlace.ToString().ToLower() + ");");
@@ -4537,7 +4519,7 @@ namespace Bio
             {
                 img.Buffers[i].Crop(rec);
             }
-            Images.AddImage(img);
+            Images.AddImage(img,false);
             Recorder.AddLine("Bio.Filters.Crop(" + '"' + id + '"' + "," + x + "," + y + "," + w + "," + h + ");");
             App.tabsView.AddTab(img);
             return img;
@@ -6285,7 +6267,7 @@ namespace Bio
             } while (Buffers[Buffers.Count - 1].Stats == null);
             AutoThreshold(bm, false);
             Statistics.ClearCalcBuffer();
-            Images.AddImage(bm);
+            Images.AddImage(bm, false);
             App.tabsView.AddTab(bm);
             Recorder.AddLine("ImageView.SelectedImage.Bake(" + rf.Min + "," + rf.Max + "," + gf.Min + "," + gf.Max + "," + bf.Min + "," + bf.Max + ");");
         }
@@ -6738,7 +6720,7 @@ namespace Bio
                 b.StackThreshold(true);
             else
                 b.StackThreshold(false);
-            Images.AddImage(b);
+            Images.AddImage(b, false);
             Recorder.AddLine("Bio.BioImage.Substack(" + '"' + orig.Filename + '"' + "," + ser + "," + zs + "," + ze + "," + cs + "," + ce + "," + ts + "," + te + ");");
             return b;
         }
@@ -6819,7 +6801,7 @@ namespace Bio
                     cc++;
                 }
             }
-            Images.AddImage(res);
+            Images.AddImage(res, false);
             //We wait for threshold image statistics calculation
             do
             {
@@ -6871,7 +6853,7 @@ namespace Bio
                     ind++;
                 }
             }
-            Images.AddImage(bi);
+            Images.AddImage(bi, false);
             bi.UpdateCoords(1, b.SizeC, b.SizeT);
             bi.Coordinate = new ZCT(0, 0, 0);
             //We wait for threshold image statistics calculation
@@ -6914,7 +6896,7 @@ namespace Bio
                     ind++;
                 }
             }
-            Images.AddImage(bi);
+            Images.AddImage(bi, false);
             bi.UpdateCoords(1, b.SizeC, b.SizeT);
             bi.Coordinate = new ZCT(0, 0, 0);
             //We wait for threshold image statistics calculation
@@ -7011,9 +6993,9 @@ namespace Bio
                 AutoThreshold(ri, false);
                 AutoThreshold(gi, false);
                 AutoThreshold(bi, false);
-                Images.AddImage(ri);
-                Images.AddImage(gi);
-                Images.AddImage(bi);
+                Images.AddImage(ri, true);
+                Images.AddImage(gi, true);
+                Images.AddImage(bi, true);
                 Statistics.ClearCalcBuffer();
                 bms[0] = ri;
                 bms[1] = gi;
@@ -7598,7 +7580,7 @@ namespace Bio
             image.Close();
             for (int i = 0; i < pages; i++)
             {
-                bs[i] = OpenFile(file, i);
+                bs[i] = OpenFile(file, i, true);
             }
             return bs;
         }
@@ -7609,7 +7591,7 @@ namespace Bio
         /// @return A BioImage object.
         public static BioImage OpenFile(string file)
         {
-            return OpenFile(file, 0);
+            return OpenFile(file, 0, true);
         }
         static bool IsTiffTiled(string imagePath)
         {
@@ -7706,9 +7688,9 @@ namespace Bio
         /// @param series The series number of the image to open.
         /// 
         /// @return A BioImage object
-        public static BioImage OpenFile(string file, int series)
+        public static BioImage OpenFile(string file, int series, bool newTab)
         {
-            return OpenFile(file, series, false, 0, 0, 1920, 1080);
+            return OpenFile(file, series, newTab, true, false, 0, 0, 1920, 1080);
         }
         /// It opens a file, reads the metadata, reads the image data, and then calculates the image
         /// statistics
@@ -7717,7 +7699,7 @@ namespace Bio
         /// @param series The series number of the image to open.
         /// 
         /// @return A BioImage object
-        public static BioImage OpenFile(string file, int series, bool tile, int x, int y, int w, int h)
+        public static BioImage OpenFile(string file, int series, bool newTab, bool addToImages, bool tile, int x, int y, int w, int h)
         {
             if (isOME(file))
             {
@@ -7995,7 +7977,7 @@ namespace Bio
             else
                 b.StackThreshold(false);
             Recorder.AddLine("Bio.BioImage.Open(" + '"' + file + '"' + ");");
-            Images.AddImage(b);
+            Images.AddImage(b,newTab);
             pr.Close();
             pr.Dispose();
             st.Stop();
@@ -8954,7 +8936,7 @@ namespace Bio
         /// @return A list of BioImages.
         public static BioImage OpenOME(string file)
         {
-            return OpenOMESeries(file)[0];
+            return OpenOMESeries(file, true, true)[0];
         }
         /// > OpenOME(string file, int serie)
         /// 
@@ -8964,10 +8946,10 @@ namespace Bio
         /// @param serie the image series to open
         /// 
         /// @return A BioImage object.
-        public static BioImage OpenOME(string file, int serie)
+        public static BioImage OpenOME(string file, int serie, bool newTab, bool addToImages)
         {
             Recorder.AddLine("Bio.BioImage.OpenOME(\"" + file + "\"," + serie + ");");
-            return OpenOME(file, serie, true, false, 0, 0, 0, 0);
+            return OpenOME(file, serie, newTab, addToImages, true, false, 0, 0, 0, 0);
         }
         /// It takes a list of files, and creates a new BioImage object with the first file in the list,
         /// then adds the buffers from the rest of the files to the new BioImage object
@@ -8987,7 +8969,7 @@ namespace Bio
                 b.Buffers.AddRange(bb.Buffers);
             }
             b.UpdateCoords(sizeZ, sizeC, sizeT);
-            Images.AddImage(b);
+            Images.AddImage(b,true);
             return b;
         }
         /// It takes a folder of images and creates a stack from them
@@ -9024,11 +9006,11 @@ namespace Bio
             }
             else
                 b.UpdateCoords(z + 1, c + 1, t + 1);
-            Images.AddImage(b);
+            Images.AddImage(b,true);
             Recorder.AddLine("BioImage.FolderToStack(\"" + path + "\");");
             return b;
         }
-        public static BioImage OpenOME(string file, int serie, bool progress, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        public static BioImage OpenOME(string file, int serie, bool newTab, bool addToImages, bool progress, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
             //We wait incase OME has not initialized yet.
             if (!initialized)
@@ -9626,7 +9608,8 @@ namespace Bio
                 b.StackThreshold(true);
             else
                 b.StackThreshold(false);
-            Images.AddImage(b);
+            if(addToImages)
+            Images.AddImage(b,newTab);
             b.Loading = false;
             if (progress)
             {
@@ -9950,7 +9933,7 @@ namespace Bio
         /// @param file the path to the file
         /// 
         /// @return An array of BioImage objects.
-        public static BioImage[] OpenOMESeries(string file)
+        public static BioImage[] OpenOMESeries(string file, bool newTab, bool addToImages)
         {
             reader = new ImageReader();
             var meta = service.createOMEXMLMetadata();
@@ -9965,7 +9948,7 @@ namespace Bio
             if (tile)
             {
                 bs = new BioImage[1];
-                bs[0] = OpenOME(file, 0, true, true, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+                bs[0] = OpenOME(file, 0, newTab, addToImages, true, true, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                 return bs;
             }
             else
@@ -9973,7 +9956,7 @@ namespace Bio
             reader.close();
             for (int i = 0; i < count; i++)
             {
-                bs[i] = OpenOME(file, i);
+                bs[i] = OpenOME(file, i,newTab,addToImages);
                 if (bs[i] == null)
                     return null;
             }
@@ -10009,7 +9992,7 @@ namespace Bio
         /// @return A BioImage object.
         public static BioImage OpenFile(string file, int series, bool tab, bool addToImages)
         {
-            return OpenFile(file, series, tab, addToImages);
+            return OpenFile(file, series, tab, addToImages, false, 0,0,0,0);
         }
 
         static string openfile;
@@ -10119,7 +10102,7 @@ namespace Bio
         {
             foreach (string f in openOMEfile)
             {
-                OpenOME(f, 0, true, false, 0,0,0,0);
+                OpenOME(f, 0, true, true, true, false, 0,0,0,0);
             }
             openOMEfile.Clear();
         }
@@ -10182,7 +10165,7 @@ namespace Bio
                     bs[0] = OpenOME(files[i]);
                 else
                 {
-                    bs[i] = OpenFile(files[i], 0);
+                    bs[i] = OpenFile(files[i], 0, true);
                 }
             }
             BioImage b = BioImage.CopyInfo(bs[0], true, true);

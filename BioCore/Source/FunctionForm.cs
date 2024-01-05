@@ -1,7 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using BioCore;
+using Newtonsoft.Json;
 using WindowsInput;
 
-namespace Bio
+namespace BioCore
 {
     public partial class FunctionForm : Form
     {
@@ -507,7 +508,7 @@ namespace Bio
             }
             if (FuncType == Function.FunctionType.ImageJ)
             {
-                ImageJ.RunOnImage(script, false, BioConsole.onTab, BioConsole.useBioformats);
+                ImageJ.RunOnImage(script, false, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
 
             if (FuncType == Function.FunctionType.Key)

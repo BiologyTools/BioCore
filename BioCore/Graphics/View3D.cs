@@ -1,8 +1,8 @@
 ﻿using AForge;
-using Bio.Graphics;
+using BioCore.Graphics;
 using SharpDX;
 
-namespace Bio
+namespace BioCore
 {
     public partial class View3D : Form
     {

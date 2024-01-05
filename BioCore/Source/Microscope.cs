@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Bio
+namespace BioCore
 {
     public class Stage
     {

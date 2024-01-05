@@ -1,4 +1,6 @@
-namespace Bio
+using BioCore;
+
+namespace BioCore
 {
     public class App
     {
@@ -45,6 +47,7 @@ namespace Bio
         {
             BioImage.Initialize();
             Microscope.Initialize();
+            ImageJ.Initialize(true);
             tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
@@ -67,22 +70,131 @@ namespace Bio
             seriesTool.Hide();
             console.Hide();
         }
-        /// If the ImageJ path is not set, prompt the user to set it
+        /// It takes a string and a function, and adds the function to the menu item specified by the
+        /// string
         /// 
-        /// @return The return value is a boolean.
-        public static bool SetImageJPath()
+        /// @param s The path to the menu item.
+        /// @param Function 
+        /// 
+        /// @return A ToolStripItem
+        public static ToolStripItem GetMenuItemFromPath(string s)
         {
-            MessageBox.Show("ImageJ path not set. Set the ImageJ executable location.");
-            OpenFileDialog file = new OpenFileDialog();
-            file.Title = "Set the ImageJ executable location.";
-            if (file.ShowDialog() != DialogResult.OK)
-                return false;
-            Properties.Settings.Default.ImageJPath = file.FileName;
-            Properties.Settings.Default.Save();
-            file.Dispose();
-            ImageJ.Initialize(file.FileName);
-            return true;
+            if (s == "" || s == null)
+                return null;
+            string[] sts = s.Split('/');
+        start:
+            List<ToolStripMenuItem> allItems = GetMenuItems();
+            //Find path or create it.
+            bool found = false;
+            ToolStripMenuItem item = null;
+
+            for (int t = 0; t < sts.Length; t++)
+            {
+                found = false;
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    if (allItems[i].Text == sts[t])
+                    {
+                        item = allItems[i];
+                        found = true;
+                        if (t == sts.Length - 1)
+                            return allItems[i];
+                    }
+                }
+                if (!found)
+                {
+                    if (t == 0)
+                    {
+                        tabsView.MainMenuStrip.Items.Add(sts[t]);
+                        goto start;
+                    }
+                    else if (t > 0 && t < sts.Length)
+                    {
+                        ToolStripMenuItem itm = new ToolStripMenuItem();
+                        itm.Text = Path.GetFileName(s);
+                        item.DropDownItems.Add(Path.GetFileName(s), null, ItemClicked);
+                        return item;
+                    }
+                    else
+                    {
+                        item.DropDownItems.Add(sts[t]);
+                    }
+                }
+            }
+            return item;
         }
+        /// It takes a string and a function, and adds the function to the context menu at the location
+        /// specified by the string
+        /// 
+        /// @param s The path to the item.
+        /// @param Function 
+        /// 
+        /// @return A ToolStripItem
+        public static ToolStripItem GetContextMenuItemFromPath(string s)
+        {
+            if (s == "" || s == null)
+                return null;
+            string[] sts = s.Split('/');
+        start:
+            List<ToolStripMenuItem> allItems = GetContextItems();
+            //Find path or create it.
+            bool found = false;
+            ToolStripMenuItem item = null;
+
+            for (int t = 0; t < sts.Length; t++)
+            {
+                found = false;
+                for (int i = 0; i < allItems.Count; i++)
+                {
+                    if (allItems[i].Text == sts[t])
+                    {
+                        item = allItems[i];
+                        found = true;
+                        if (t == sts.Length - 1)
+                            return allItems[i];
+                    }
+                }
+                if (!found)
+                {
+                    if (t == 0)
+                    {
+                        viewer.ViewContextMenu.Items.Add(sts[t]);
+                        goto start;
+                    }
+                    else if (t > 0 && t < sts.Length)
+                    {
+                        ToolStripMenuItem itm = new ToolStripMenuItem();
+                        itm.Name = Path.GetFileName(s);
+                        item.DropDownItems.Add(Path.GetFileName(s), null, ItemClicked);
+                        return item;
+                    }
+                    else
+                    {
+                        item.DropDownItems.Add(sts[t]);
+                    }
+                }
+            }
+            return item;
+        }
+
+        /// It takes a string and a function and adds the function to the menu item specified by the
+        /// string
+        /// 
+        /// @param menu The menu path to add the menu item to.
+        /// @param Function The function that will be called when the menu item is clicked.
+        public static void AddMenu(string menu)
+        {
+            GetMenuItemFromPath(menu);
+        }
+        /// It takes a string and a function and adds a context menu item to the context menu
+        /// 
+        /// @param menu The path to the menu item.
+        /// @param Function The function that will be called when the menu item is clicked.
+        public static void AddContextMenu(string menu)
+        {
+            GetContextMenuItemFromPath(menu);
+        }
+
 
         /// It returns a list of all the items in a menu, including submenus
         /// 
@@ -263,8 +375,20 @@ namespace Bio
         private static void ItemClicked(object sender, EventArgs e)
         {
             ToolStripMenuItem ts = (ToolStripMenuItem)sender;
-            Function f = (Function)ts.Tag;
-            f.PerformFunction(true);
+            if (ts.Text.EndsWith(".dll"))
+            {
+                Plugin.Plugins[ts.Text].Execute(new string[] { });
+            }
+            else if (ts.Text.EndsWith(".ijm"))
+            {
+                string s =  File.ReadAllText(Path.GetDirectoryName(ImageJ.ImageJPath) + "/macros/" + ts.Text);
+                ImageJ.RunOnImage(s, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+            }
+            else
+            {
+                Function f = (Function)ts.Tag;
+                f.PerformFunction(true);
+            }
         }
         /// It takes a string, converts it to a ROI, and adds it to the list of ROIs
         /// 

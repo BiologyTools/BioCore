@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Bio
+namespace BioCore
 {
     public partial class Progress : Form
     {

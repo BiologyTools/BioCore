@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Bio
+namespace BioCore
 {
     [Serializable]
     public struct PointD

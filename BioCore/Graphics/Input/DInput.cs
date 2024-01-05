@@ -1,4 +1,4 @@
-﻿namespace Bio.Graphics
+﻿namespace BioCore.Graphics
 {
     public class DInput                 // 31 lines
     {
