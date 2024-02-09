@@ -113,6 +113,10 @@ namespace BioCore
             runToolStripMenuItem1 = new ToolStripMenuItem();
             openImageJDialog = new OpenFileDialog();
             saveImageJDialog = new SaveFileDialog();
+            importQuPathROIToolStripMenuItem = new ToolStripMenuItem();
+            exportQuPathROIToolStripMenuItem = new ToolStripMenuItem();
+            saveQuPathDialog = new SaveFileDialog();
+            openQuPathDialog = new OpenFileDialog();
             panel.SuspendLayout();
             tabContextMenuStrip.SuspendLayout();
             menuStrip.SuspendLayout();
@@ -440,7 +444,7 @@ namespace BioCore
             // 
             // rOIToolStripMenuItem
             // 
-            rOIToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { rOIManagerToolStripMenuItem, exportCSVToolStripMenuItem, importCSVToolStripMenuItem, exportROIsOfFolderOfImagesToolStripMenuItem, importImageJROIToolStripMenuItem, exportImageJROIToolStripMenuItem });
+            rOIToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { rOIManagerToolStripMenuItem, exportCSVToolStripMenuItem, importCSVToolStripMenuItem, exportROIsOfFolderOfImagesToolStripMenuItem, importImageJROIToolStripMenuItem, exportImageJROIToolStripMenuItem, importQuPathROIToolStripMenuItem, exportQuPathROIToolStripMenuItem });
             rOIToolStripMenuItem.Name = "rOIToolStripMenuItem";
             rOIToolStripMenuItem.Size = new Size(38, 20);
             rOIToolStripMenuItem.Text = "ROI";
@@ -689,6 +693,33 @@ namespace BioCore
             saveImageJDialog.Filter = "ROI Files (*.roi)|*.roi|All files (*.*)|*.*";
             saveImageJDialog.Title = "Save ROIs to CSV";
             // 
+            // importQuPathROIToolStripMenuItem
+            // 
+            importQuPathROIToolStripMenuItem.Name = "importQuPathROIToolStripMenuItem";
+            importQuPathROIToolStripMenuItem.Size = new Size(282, 22);
+            importQuPathROIToolStripMenuItem.Text = "Import QuPath ROI";
+            importQuPathROIToolStripMenuItem.Click += importQuPathROIToolStripMenuItem_Click;
+            // 
+            // exportQuPathROIToolStripMenuItem
+            // 
+            exportQuPathROIToolStripMenuItem.Name = "exportQuPathROIToolStripMenuItem";
+            exportQuPathROIToolStripMenuItem.Size = new Size(282, 22);
+            exportQuPathROIToolStripMenuItem.Text = "Export QuPath ROI";
+            exportQuPathROIToolStripMenuItem.Click += exportQuPathROIToolStripMenuItem_Click;
+            // 
+            // saveQuPathDialog
+            // 
+            saveQuPathDialog.DefaultExt = "roi";
+            saveQuPathDialog.Filter = "QuPath GeoJSON Files (*.geojson)|*.roi|All files (*.*)|*.*";
+            saveQuPathDialog.Title = "Save ROIs to CSV";
+            // 
+            // openQuPathDialog
+            // 
+            openQuPathDialog.DefaultExt = "roi";
+            openQuPathDialog.Filter = "QuPath GeoJSON Files (*.geojson)|*.roi|All files (*.*)|*.*";
+            openQuPathDialog.Multiselect = true;
+            openQuPathDialog.Title = "Import ROI from CSV";
+            // 
             // TabsView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -802,5 +833,9 @@ namespace BioCore
         private ToolStripMenuItem recentToolStripMenuItem;
         private ToolStripMenuItem commandToolStripMenuItem;
         private ToolStripMenuItem runToolStripMenuItem1;
+        private ToolStripMenuItem importQuPathROIToolStripMenuItem;
+        private ToolStripMenuItem exportQuPathROIToolStripMenuItem;
+        private SaveFileDialog saveQuPathDialog;
+        private OpenFileDialog openQuPathDialog;
     }
 }

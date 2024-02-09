@@ -20,6 +20,7 @@ using RectangleF = System.Drawing.RectangleF;
 using Size = System.Drawing.Size;
 using IntRange = AForge.IntRange;
 using OpenSlideGTK;
+
 namespace BioCore
 {
     /* A class declaration. */
@@ -645,7 +646,8 @@ namespace BioCore
             Polyline,
             Freeform,
             Ellipse,
-            Label
+            Label,
+            Mask
         }
         /* A property of a class. */
         public PointD Point
@@ -764,7 +766,6 @@ namespace BioCore
                 Recorder.AddLine("App.AddROI(" + BioImage.ROIToString(this) + ");");
             }
         }
-
         public Type type;
         public static float selectBoxSize = 8f;
         private List<PointD> Points = new List<PointD>();
@@ -877,6 +878,180 @@ namespace BioCore
                 return TextRenderer.MeasureText(text, font);
             }
         }
+        public Mask roiMask { get; set; }
+        /// <summary>
+        /// Represents a Mask layer.
+        /// </summary>
+        public class Mask : IDisposable
+        {
+            public float min = 0;
+            float[] mask;
+            int width;
+            int height;
+            public int Width { get { return width; } set { width = value; } }
+            public int Height { get { return height; } set { height = value; } }
+            public double PhysicalSizeX { get; set; }
+            public double PhysicalSizeY { get; set; }
+            bool updatePixbuf = true;
+            bool updateColored = true;
+            BufferInfo pixbuf;
+            BufferInfo colored;
+            bool selected = false;
+            internal bool Selected
+            {
+                get { return selected; }
+                set
+                {
+                    selected = value;
+                    if (selected)
+                        UpdateColored(System.Drawing.Color.Blue);
+                    else
+                        updateColored = true;
+                }
+            }
+            public bool IsSelected(int x, int y)
+            {
+                int ind = y * width + x;
+                if (ind > mask.Length)
+                    throw new ArgumentException("Point " + x + "," + y + " is outside the mask.");
+                if (mask[ind] > min)
+                {
+                    return true;
+                }
+                return false;
+            }
+            public float GetValue(int x, int y)
+            {
+                int ind = y * width + x;
+                if (ind > mask.Length)
+                    throw new ArgumentException("Point " + x + "," + y + " is outside the mask.");
+                return mask[ind];
+            }
+            public void SetValue(int x, int y, float val)
+            {
+                int ind = y * width + x;
+                if (ind > mask.Length)
+                    throw new ArgumentException("Point " + x + "," + y + " is outside the mask.");
+                mask[ind] = val;
+                updatePixbuf = true;
+                updateColored = true;
+            }
+            public Mask(float[] fts, int width, int height, double physX, double physY)
+            {
+                this.width = width;
+                this.height = height;
+                PhysicalSizeX = physX;
+                PhysicalSizeY = physY;
+                mask = fts;
+            }
+            public Mask(byte[] bts, int width, int height, double physX, double physY)
+            {
+                this.width = width;
+                this.height = height;
+                PhysicalSizeX = physX;
+                PhysicalSizeY = physY;
+                mask = new float[bts.Length];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int ind = y * width + x;
+                        mask[ind] = (float)BitConverter.ToSingle(bts, ind * 4);
+                    }
+                }
+            }
+            public BufferInfo Bitmap
+            {
+                get
+                {
+                    if (updatePixbuf)
+                    {
+                        if (pixbuf != null)
+                            pixbuf.Dispose();
+                        byte[] pixelData = new byte[width * height * 4];
+                        for (int y = 0; y < height; y++)
+                        {
+                            for (int x = 0; x < width; x++)
+                            {
+                                int ind = y * width + x;
+                                if (mask[ind] > 0)
+                                {
+                                    pixelData[4 * ind] = (byte)(mask[ind] / 255);// Blue
+                                    pixelData[4 * ind + 1] = (byte)(mask[ind] / 255);// Green
+                                    pixelData[4 * ind + 2] = (byte)(mask[ind] / 255);// Red
+                                    pixelData[4 * ind + 3] = 125;// Alpha
+                                }
+                                else
+                                    pixelData[4 * ind + 3] = 0;
+                            }
+                        }
+                        pixbuf = new BufferInfo("",width,height,PixelFormat.Format32bppArgb,pixelData, new ZCT(), 0);
+                        updatePixbuf = false;
+                        return pixbuf;
+                    }
+                    else
+                        return pixbuf;
+                }
+            }
+            void UpdateColored(System.Drawing.Color col)
+            {
+                byte[] pixelData = new byte[width * height * 4];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int ind = y * width + x;
+                        if (mask[ind] > 0)
+                        {
+                            pixelData[4 * ind] = col.R;
+                            pixelData[4 * ind + 1] = col.G;
+                            pixelData[4 * ind + 2] = col.B;
+                            pixelData[4 * ind + 3] = 125;
+                        }
+                        else
+                            pixelData[4 * ind + 3] = 0;
+                    }
+                }
+                colored = new BufferInfo(width, height, PixelFormat.Format32bppArgb, pixelData, new ZCT(), "");
+                updateColored = false;
+            }
+            public BufferInfo GetColored(System.Drawing.Color col, bool forceUpdate = false)
+            {
+                if (updateColored || forceUpdate)
+                {
+                    UpdateColored(col);
+                    return colored;
+                }
+                else
+                    return colored;
+            }
+            public byte[] GetBytes()
+            {
+                byte[] pixelData = new byte[width * height * 4];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int ind = y * width + x;
+                        byte[] bt = BitConverter.GetBytes(mask[ind]);
+                        pixelData[4 * ind] = bt[0];
+                        pixelData[4 * ind + 1] = bt[1];
+                        pixelData[4 * ind + 2] = bt[2];
+                        pixelData[4 * ind + 3] = bt[3];
+                    }
+                }
+                return pixelData;
+            }
+            public void Dispose()
+            {
+                if (pixbuf != null)
+                    pixbuf.Dispose();
+                if (colored != null)
+                    colored.Dispose();
+                mask = null;
+            }
+        }
+
         public ROI()
         {
             coord = new ZCT(0, 0, 0);
@@ -1036,6 +1211,24 @@ namespace BioCore
             an.type = Type.Freeform;
             an.AddPoints(pts);
             an.closed = true;
+            return an;
+        }
+        public static ROI CreateMask(ZCT coord, float[] mask, int width, int height, PointD loc, double physicalX, double physicalY)
+        {
+            ROI an = new ROI();
+            an.coord = coord;
+            an.type = Type.Mask;
+            an.roiMask = new Mask(mask, width, height, physicalX, physicalY);
+            an.AddPoint(loc);
+            return an;
+        }
+        public static ROI CreateMask(ZCT coord, byte[] mask, int width, int height, PointD loc, double physicalX, double physicalY)
+        {
+            ROI an = new ROI();
+            an.coord = coord;
+            an.type = Type.Mask;
+            an.roiMask = new Mask(mask, width, height, physicalX, physicalY);
+            an.AddPoint(loc);
             return an;
         }
         /// This function updates the point at the specified index
@@ -5218,6 +5411,75 @@ namespace BioCore
     }
     public class BioImage : IDisposable
     {
+        public class WellPlate
+        {
+            public class Well
+            {
+                public string ID { get; set; }
+                public int Index { get; set; }
+                public int Column { get; set; }
+                public int Row { get; set; }
+                public System.Drawing.Color Color { get; set; }
+                public List<Sample> Samples = new List<Sample>();
+                public class Sample
+                {
+                    public string ID { get; set; }
+                    public int Index { get; set; }
+                    public PointD Position { get; set; }
+                    public Timestamp Time { get; set; }
+                }
+            }
+            public List<Well> Wells = new List<Well>();
+        
+            public PointD Origin;
+            public string ID;
+            public string Name;
+            public WellPlate(BioImage b)
+            {
+                ID = b.meta.getPlateID(b.series);
+                Name = b.meta.getPlateName(b.series);
+                double x, y;
+                if (b.meta.getPlateWellOriginX(b.series) != null)
+                    x = b.meta.getPlateWellOriginX(b.series).value().doubleValue();
+                else
+                    x = 0;
+                if (b.meta.getPlateWellOriginY(b.series) != null)
+                    y = b.meta.getPlateWellOriginY(b.series).value().doubleValue();
+                else
+                    y = 0;
+                Origin = new PointD(x, y);
+                int ws = b.meta.getWellCount(b.series);
+                for (int i = 0; i < ws; i++)
+                {
+                    Well w = new Well();
+                    w.ID = b.meta.getWellID(b.series, i);
+                    w.Column = b.meta.getWellColumn(b.series, i).getNumberValue().intValue();
+                    w.Row = b.meta.getWellRow(b.series, i).getNumberValue().intValue();
+                    int wsc = b.meta.getWellSampleCount(b.series, i);
+                    for (int s = 0; s < wsc; s++)
+                    {
+                        Well.Sample sa = new Well.Sample();
+                        sa.Time = b.meta.getWellSampleTimepoint(b.series, i, s);
+                        sa.Index = b.meta.getWellSampleIndex(b.series, i, s).getNumberValue().intValue();
+                        double sx, sy;
+                        if (b.meta.getWellSamplePositionX(b.series, i, s) != null)
+                            sx = b.meta.getWellSamplePositionX(b.series, i, s).value().doubleValue();
+                        else sx = 0;
+                        if (b.meta.getWellSamplePositionY(b.series, i, s) != null)
+                            sy = b.meta.getWellSamplePositionY(b.series, i, s).value().doubleValue();
+                        else sy = 0;
+                        sa.Position = new PointD(sx, sy);
+                        sa.ID = b.meta.getWellSampleID(b.series, i, s);
+                        w.Samples.Add(sa);
+                    }
+                    ome.xml.model.primitives.Color c = b.meta.getWellColor(b.series, i);
+                    if(c!=null)
+                    w.Color = System.Drawing.Color.FromArgb(c.getAlpha(),c.getRed(),c.getGreen(),c.getBlue());
+                    Wells.Add(w);
+                }
+
+            }
+        }
         public int[,,] Coords;
         private ZCT coordinate;
         /* A property. */
@@ -5232,15 +5494,27 @@ namespace BioCore
                 coordinate = value;
             }
         }
-
+        public enum ImageType
+        {
+            pyramidal,
+            stack,
+            well
+        }
         private string id;
+        private ImageType type = ImageType.stack;
+        public WellPlate Plate = null;
+        public ImageType Type
+        {
+            get { return type; }
+            set 
+            { 
+                type = value;
+            }
+        }
         public List<Channel> Channels = new List<Channel>();
         public List<Resolution> Resolutions = new List<Resolution>();
         public List<BufferInfo> Buffers = new List<BufferInfo>();
-        public VolumeD Volume
-        {
-            get { return new VolumeD(new Point3D(StageSizeX, StageSizeY, StageSizeZ), new Point3D(SizeX * PhysicalSizeX, SizeY * PhysicalSizeY, SizeZ * PhysicalSizeZ)); }
-        }
+        public VolumeD Volume {  get; set; }
         public List<ROI> Annotations = new List<ROI>();
         public OpenSlideImage slideImage;
         public string filename = "";
@@ -5376,7 +5650,7 @@ namespace BioCore
             if (copyAnnotations)
                 foreach (ROI an in b.Annotations)
                 {
-                    bi.Annotations.Add(an);
+                    bi.Annotations.Add(an.Copy());
                 }
             if (copyChannels)
                 foreach (Channel c in b.Channels)
@@ -5417,15 +5691,15 @@ namespace BioCore
         }
         public double PhysicalSizeX
         {
-            get { return Resolution.PhysicalSizeX; }
+            get { return Resolutions[resolution].PhysicalSizeX; }
         }
         public double PhysicalSizeY
         {
-            get { return Resolution.PhysicalSizeY; }
+            get { return Resolutions[resolution].PhysicalSizeY; }
         }
         public double PhysicalSizeZ
         {
-            get { return imageInfo.PhysicalSizeZ; }
+            get { return Resolutions[resolution].PhysicalSizeZ; }
         }
         public int TileX
         {
@@ -5439,28 +5713,48 @@ namespace BioCore
         {
             get
             {
-                return imageInfo.StageSizeX + (PhysicalSizeX * tileX);
+                return Resolutions[Resolution].StageSizeX;
             }
+            set { imageInfo.StageSizeX = value; }
         }
         public double StageSizeY
         {
-            get
-            {
-                return imageInfo.StageSizeY + (PhysicalSizeY * tileY);
-            }
+            get { return Resolutions[Resolution].StageSizeY; }
+            set { imageInfo.StageSizeY = value; }
         }
         public double StageSizeZ
         {
-            get
-            {
-                return imageInfo.StageSizeZ;
-            }
+            get { return Resolutions[Resolution].StageSizeZ; }
+            set { imageInfo.StageSizeZ = value; }
         }
-        public Resolution Resolution
+        public int Resolution
         {
-            get
+            get { return resolution; }
+            set
             {
-                return Resolutions[resolution];
+                if (value > Resolutions.Count - 1 || value < 0)
+                    return;
+                
+                resolution = value;
+                if (Type == ImageType.well)
+                {
+                    reader.setId(file);
+                    reader.setSeries(value);
+                    // read the image data bytes
+                    int pages = reader.getImageCount();
+                    bool inter = reader.isInterleaved();
+                    PixelFormat pf = Buffers[0].PixelFormat;
+                    int w = Buffers[0].SizeX; int h = Buffers[0].SizeY;
+                    Buffers.Clear();
+                    for (int p = 0; p < pages; p++)
+                    {
+                        BufferInfo bf;
+                        byte[] bytes = reader.openBytes(p);
+                        bf = new BufferInfo(file, w, h, pf, bytes, new ZCT(), p, null, littleEndian, inter);
+                        Buffers.Add(bf);
+                        bf.Stats = Statistics.FromBytes(bf);
+                    }
+                }
             }
         }
         public int series
@@ -6446,7 +6740,7 @@ namespace BioCore
             if (isPyramidal)
                 return d;
             else
-                return d / Resolution.PhysicalSizeX;
+                return d / Resolutions[resolution].PhysicalSizeX;
         }
         /// Convert a physical distance to an image distance
         /// 
@@ -6458,7 +6752,7 @@ namespace BioCore
             if (isPyramidal)
                 return d;
             else
-                return d / Resolution.PhysicalSizeY;
+                return d / Resolutions[resolution].PhysicalSizeY;
         }
         /// > Convert a stage coordinate to an image coordinate
         /// 
@@ -6470,7 +6764,7 @@ namespace BioCore
             if (isPyramidal)
                 return x;
             else
-                return (float)((x - StageSizeX) / Resolution.PhysicalSizeX);
+                return (float)((x - StageSizeX) / Resolutions[resolution].PhysicalSizeX);
         }
         /// > Convert a Y coordinate from stage space to image space
         /// 
@@ -6482,7 +6776,7 @@ namespace BioCore
             if (isPyramidal)
                 return y;
             else
-                return (float)((y - StageSizeY) / Resolution.PhysicalSizeY);
+                return (float)((y - StageSizeY) / Resolutions[resolution].PhysicalSizeY);
         }
         /// > The function takes a point in the stage coordinate system and returns a point in the image
         /// coordinate system
@@ -6534,10 +6828,10 @@ namespace BioCore
         {
             System.Drawing.RectangleF r = new RectangleF();
             System.Drawing.Point pp = new System.Drawing.Point();
-            r.X = (int)((p.X - StageSizeX) / Resolution.PhysicalSizeX);
-            r.Y = (int)((p.Y - StageSizeY) / Resolution.PhysicalSizeY);
-            r.Width = (int)(p.W / Resolution.PhysicalSizeX);
-            r.Height = (int)(p.H / Resolution.PhysicalSizeY);
+            r.X = (int)((p.X - StageSizeX) / Resolutions[resolution].PhysicalSizeX);
+            r.Y = (int)((p.Y - StageSizeY) / Resolutions[resolution].PhysicalSizeY);
+            r.Width = (int)(p.W / Resolutions[resolution].PhysicalSizeX);
+            r.Height = (int)(p.H / Resolutions[resolution].PhysicalSizeY);
             return r;
         }
         /// > The function takes a point in the volume space and returns a point in the stage space
@@ -6548,8 +6842,8 @@ namespace BioCore
         public PointD ToStageSpace(PointD p)
         {
             PointD pp = new PointD();
-            pp.X = ((p.X * Resolution.PhysicalSizeX) + Volume.Location.X);
-            pp.Y = ((p.Y * Resolution.PhysicalSizeY) + Volume.Location.Y);
+            pp.X = ((p.X * Resolutions[resolution].PhysicalSizeX) + Volume.Location.X);
+            pp.Y = ((p.Y * Resolutions[resolution].PhysicalSizeY) + Volume.Location.Y);
             return pp;
         }
         /// > The function takes a point in the volume space and converts it to a point in the stage
@@ -6580,8 +6874,8 @@ namespace BioCore
             RectangleD r = new RectangleD();
             r.X = ((p.X * PhysicalSizeX) + Volume.Location.X);
             r.Y = ((p.Y * PhysicalSizeY) + Volume.Location.Y);
-            r.W = (p.W * Resolution.PhysicalSizeX);
-            r.H = (p.H * Resolution.PhysicalSizeY);
+            r.W = (p.W * Resolutions[resolution].PhysicalSizeX);
+            r.H = (p.H * Resolutions[resolution].PhysicalSizeY);
             return r;
         }
         /// > This function takes a rectangle in the coordinate space of the image and converts it to the
@@ -8428,31 +8722,33 @@ namespace BioCore
             Dictionary<double, Point3D> max = new Dictionary<double, Point3D>();
             for (int i = 0; i < bms.Length; i++)
             {
-                if (bis.ContainsKey(bms[i].Resolution.PhysicalSizeX))
+                Resolution r = bms[i].Resolutions[bms[i].resolution];
+                if (bis.ContainsKey(r.PhysicalSizeX))
                 {
-                    bis[bms[i].Resolution.PhysicalSizeX].Add(bms[i]);
-                    if (bms[i].StageSizeX < min[bms[i].Resolution.PhysicalSizeX].X || bms[i].StageSizeY < min[bms[i].Resolution.PhysicalSizeX].Y)
+                    bis[r.PhysicalSizeX].Add(bms[i]);
+                    if (bms[i].StageSizeX < min[r.PhysicalSizeX].X || bms[i].StageSizeY < min[r.PhysicalSizeX].Y)
                     {
-                        min[bms[i].Resolution.PhysicalSizeX] = bms[i].Volume.Location;
+                        min[r.PhysicalSizeX] = bms[i].Volume.Location;
                     }
-                    if (bms[i].StageSizeX > max[bms[i].Resolution.PhysicalSizeX].X || bms[i].StageSizeY > max[bms[i].Resolution.PhysicalSizeX].Y)
+                    if (bms[i].StageSizeX > max[r.PhysicalSizeX].X || bms[i].StageSizeY > max[r.PhysicalSizeX].Y)
                     {
-                        max[bms[i].Resolution.PhysicalSizeX] = bms[i].Volume.Location;
+                        max[r.PhysicalSizeX] = bms[i].Volume.Location;
                     }
                 }
                 else
                 {
-                    bis.Add(bms[i].Resolution.PhysicalSizeX, new List<BioImage>());
-                    min.Add(bms[i].Resolution.PhysicalSizeX, new Point3D(bms[i].StageSizeX, bms[i].StageSizeY, bms[i].StageSizeZ));
-                    max.Add(bms[i].Resolution.PhysicalSizeX, new Point3D(bms[i].StageSizeX, bms[i].StageSizeY, bms[i].StageSizeZ));
-                    bis[bms[i].Resolution.PhysicalSizeX].Add(bms[i]);
+                    bis.Add(r.PhysicalSizeX, new List<BioImage>());
+                    min.Add(r.PhysicalSizeX, new Point3D(bms[i].StageSizeX, bms[i].StageSizeY, bms[i].StageSizeZ));
+                    max.Add(r.PhysicalSizeX, new Point3D(bms[i].StageSizeX, bms[i].StageSizeY, bms[i].StageSizeZ));
+                    bis[r.PhysicalSizeX].Add(bms[i]);
                 }
             }
             int s = 0;
             foreach (double px in bis.Keys)
             {
-                int xi = 1 + (int)Math.Ceiling((max[px].X - min[px].X) / bis[px][0].Resolution.VolumeWidth);
-                int yi = 1 + (int)Math.Ceiling((max[px].Y - min[px].Y) / bis[px][0].Resolution.VolumeHeight);
+                Resolution rr = bis[px][0].Resolutions[bis[px][0].resolution];
+                int xi = 1 + (int)Math.Ceiling((max[px].X - min[px].X) / rr.VolumeWidth);
+                int yi = 1 + (int)Math.Ceiling((max[px].Y - min[px].Y) / rr.VolumeHeight);
                 BioImage b = bis[px][0];
                 int serie = s;
                 // create OME-XML metadata store.
@@ -8724,8 +9020,9 @@ namespace BioCore
                     BioImage b = bis[px][i];
                     writer.setTileSizeX(b.SizeX);
                     writer.setTileSizeY(b.SizeY);
-                    double dx = Math.Ceiling((bis[px][i].StageSizeX - min[px].X) / bis[px][i].Resolution.VolumeWidth);
-                    double dy = Math.Ceiling((bis[px][i].StageSizeY - min[px].Y) / bis[px][i].Resolution.VolumeHeight);
+                    Resolution r = bis[px][i].Resolutions[bis[px][i].resolution];
+                    double dx = Math.Ceiling((bis[px][i].StageSizeX - min[px].X) / r.VolumeWidth);
+                    double dy = Math.Ceiling((bis[px][i].StageSizeY - min[px].Y) / r.VolumeHeight);
                     for (int bu = 0; bu < b.Buffers.Count; bu++)
                     {
                         byte[] bt = b.Buffers[bu].GetSaveBytes(BitConverter.IsLittleEndian);
@@ -8947,7 +9244,7 @@ namespace BioCore
         public static BioImage OpenOME(string file, int serie, bool newTab, bool addToImages)
         {
             Recorder.AddLine("Bio.BioImage.OpenOME(\"" + file + "\"," + serie + ");");
-            return OpenOME(file, serie, newTab, addToImages, true, false, 0, 0, 0, 0);
+            return OpenOME(file, serie, newTab, addToImages, false, 0, 0, 0, 0);
         }
         /// It takes a list of files, and creates a new BioImage object with the first file in the list,
         /// then adds the buffers from the rest of the files to the new BioImage object
@@ -9008,64 +9305,35 @@ namespace BioCore
             Recorder.AddLine("BioImage.FolderToStack(\"" + path + "\");");
             return b;
         }
-        public static BioImage OpenOME(string file, int serie, bool newTab, bool addToImages, bool progress, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        public static BioImage OpenOME(string file, int serie, bool tab, bool addToImages, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY)
         {
-            //We wait incase OME has not initialized yet.
-            if (!initialized)
-                do
-                {
-                    Thread.Sleep(100);
-                    Application.DoEvents();
-                } while (!Initialized);
             if (file == null || file == "")
                 throw new InvalidDataException("File is empty or null");
-            Progress pr = null;
-            if (progress)
+            //We wait incase OME has not initialized.
+            do
             {
-                pr = new Progress(file, "Opening OME");
-                pr.Show();
-            }
+                Thread.Sleep(10);
+            } while (!initialized);
+            Console.WriteLine("OpenOME " + file);
+            if (tileSizeX == 0)
+                tileSizeX = 1920;
+            if (tileSizeY == 0)
+                tileSizeY = 1080;
+            Progress pr = new Progress(file, "Opening OME");
+            pr.Show();
             Application.DoEvents();
-            st.Start();
             BioImage b = new BioImage(file);
+            b.Type = ImageType.stack;
             b.Loading = true;
-            b.meta = (IMetadata)((OMEXMLService)new ServiceFactory().getInstance(typeof(OMEXMLService))).createOMEXMLMetadata();
-            reader = new ImageReader();
-            reader.setMetadataStore((MetadataStore)b.meta);
-            vips = VipsSupport(file);
-            string str = reader.getCurrentFile();
-            if (str == null)
-                str = "";
-            str = str.Replace("\\", "/");
-            file = file.Replace("\\", "/");
-            if (str != file)
-                reader.setId(file);
-            if (reader.getSeries() != serie)
-                reader.setSeries(serie);
-            b.resolution = serie;
+            if (b.meta == null)
+                b.meta = service.createOMEXMLMetadata();
+            reader.close();
+            reader.setMetadataStore(b.meta);
+            reader.setId(file);
+            pr.Status = "Reading Metadata";
+            //status = "Reading OME Metadata.";
+            reader.setSeries(serie);
             int RGBChannelCount = reader.getRGBChannelCount();
-            b.bitsPerPixel = reader.getBitsPerPixel();
-            if (b.bitsPerPixel > 16)
-            {
-                pr.Close();
-                MessageBox.Show("Image bit depth of " + b.bitsPerPixel + " is not supported.");
-                return null;
-            }
-            b.id = file;
-            b.file = file;
-            int SizeX, SizeY;
-            SizeX = reader.getSizeX();
-            SizeY = reader.getSizeY();
-            int SizeZ = reader.getSizeZ();
-            b.sizeC = reader.getSizeC();
-            b.sizeZ = reader.getSizeZ();
-            b.sizeT = reader.getSizeT();
-            b.littleEndian = reader.isLittleEndian();
-            b.seriesCount = reader.getSeriesCount();
-            b.imagesPerSeries = reader.getImageCount();
-            b.series = serie;
-
-            string order = reader.getDimensionOrder();
             //OME reader.getBitsPerPixel(); sometimes returns incorrect bits per pixel, like when opening ImageJ images.
             //So we check the pixel type from xml metadata and if it fails we use the readers value.
             PixelFormat PixelFormat;
@@ -9078,31 +9346,123 @@ namespace BioCore
                 PixelFormat = GetPixelFormat(RGBChannelCount, reader.getBitsPerPixel());
             }
 
+            b.id = file;
+            b.file = file;
+            int SizeX, SizeY;
+            SizeX = reader.getSizeX();
+            SizeY = reader.getSizeY();
+            int SizeZ = reader.getSizeZ();
+            b.sizeC = reader.getSizeC();
+            b.sizeZ = reader.getSizeZ();
+            b.sizeT = reader.getSizeT();
+            b.littleEndian = reader.isLittleEndian();
+            b.seriesCount = reader.getSeriesCount();
+            b.imagesPerSeries = reader.getImageCount();
+            b.bitsPerPixel = reader.getBitsPerPixel();
+            b.series = serie;
+            string order = reader.getDimensionOrder();
 
-            int sx = tileSizeX;
-            int sy = tileSizeY;
-            if (tile)
+            //Lets get the channels and initialize them
+            int i = 0;
+            pr.Status = "Reading Channels";
+            int sumSamples = 0;
+            while (true)
             {
-                if (tilex < 0)
-                    tilex = 0;
-                if (tiley < 0)
-                    tiley = 0;
-                if (tilex >= SizeX)
-                    tilex = SizeX - 1;
-                if (tiley >= SizeY)
-                    tiley = SizeY - 1;
+                Channel ch = new Channel(i, b.bitsPerPixel, 1);
+                bool def = false;
+                try
+                {
+                    if (b.meta.getChannelSamplesPerPixel(serie, i) != null)
+                    {
+                        int s = b.meta.getChannelSamplesPerPixel(serie, i).getNumberValue().intValue();
+                        ch.SamplesPerPixel = s;
+                        sumSamples += s;
+                        def = true;
+                    }
+                    if (b.meta.getChannelName(serie, i) != null)
+                        ch.Name = b.meta.getChannelName(serie, i);
+                    if (b.meta.getChannelAcquisitionMode(serie, i) != null)
+                        ch.AcquisitionMode = b.meta.getChannelAcquisitionMode(serie, i);
+                    if (b.meta.getChannelID(serie, i) != null)
+                        ch.info.ID = b.meta.getChannelID(serie, i);
+                    if (b.meta.getChannelFluor(serie, i) != null)
+                        ch.Fluor = b.meta.getChannelFluor(serie, i);
+                    if (b.meta.getChannelColor(serie, i) != null)
+                    {
+                        ome.xml.model.primitives.Color cc = b.meta.getChannelColor(serie, i);
+                        ch.Color = System.Drawing.Color.FromArgb(cc.getRed(), cc.getGreen(), cc.getBlue());
+                    }
+                    if (b.meta.getChannelIlluminationType(serie, i) != null)
+                        ch.IlluminationType = b.meta.getChannelIlluminationType(serie, i);
+                    if (b.meta.getChannelContrastMethod(serie, i) != null)
+                        ch.ContrastMethod = b.meta.getChannelContrastMethod(serie, i);
+                    if (b.meta.getChannelEmissionWavelength(serie, i) != null)
+                        ch.Emission = b.meta.getChannelEmissionWavelength(serie, i).value().intValue();
+                    if (b.meta.getChannelExcitationWavelength(serie, i) != null)
+                        ch.Excitation = b.meta.getChannelExcitationWavelength(serie, i).value().intValue();
+                    if (b.meta.getLightEmittingDiodePower(serie, i) != null)
+                        ch.LightSourceIntensity = b.meta.getLightEmittingDiodePower(serie, i).value().doubleValue();
+                    if (b.meta.getLightEmittingDiodeID(serie, i) != null)
+                        ch.DiodeName = b.meta.getLightEmittingDiodeID(serie, i);
+                    if (b.meta.getChannelLightSourceSettingsAttenuation(serie, i) != null)
+                        ch.LightSourceAttenuation = b.meta.getChannelLightSourceSettingsAttenuation(serie, i).toString();
 
-                if (tilex + tileSizeX > SizeX)
-                    sx -= (tilex + tileSizeX) - (SizeX);
-
-                if (tiley + tileSizeY > SizeY)
-                    sy -= (tiley + tileSizeY) - (SizeY);
-                if (sx <= 0)
-                    return null;
-                if (sy <= 0)
-                    return null;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                //If this channel is not defined we have loaded all the channels in the file.
+                if (!def)
+                    break;
+                else
+                    b.Channels.Add(ch);
+                if (i == 0)
+                {
+                    b.rgbChannels[0] = 0;
+                }
+                else
+                if (i == 1)
+                {
+                    b.rgbChannels[1] = 1;
+                }
+                else
+                if (i == 2)
+                {
+                    b.rgbChannels[2] = 2;
+                }
+                i++;
             }
+            //If the file doens't have channels we initialize them.
+            if (b.Channels.Count == 0)
+            {
+                b.Channels.Add(new Channel(0, b.bitsPerPixel, RGBChannelCount));
+            }
+
+            //Bioformats gives a size of 3 for C when saved in ImageJ as RGB. We need to correct for this as C should be 1 for RGB.
+            if (RGBChannelCount >= 3)
+            {
+                b.sizeC = sumSamples / b.Channels[0].SamplesPerPixel;
+            }
+            b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
+
             int resc = reader.getResolutionCount();
+            try
+            {
+                int wells = b.meta.getWellCount(0);
+                if (wells > 0)
+                {
+                    b.Type = ImageType.well;
+                    b.Plate = new WellPlate(b);
+                    tile = false;
+                }
+                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
             for (int s = 0; s < b.seriesCount; s++)
             {
                 reader.setSeries(s);
@@ -9163,106 +9523,19 @@ namespace BioCore
                 }
             }
             reader.setSeries(serie);
-            if (resc > 1)
-            {
-                b.ispyramidal = true;
-                tile = true;
-                if(tileSizeX == 0)
-                    tileSizeX = Screen.PrimaryScreen.WorkingArea.Width;
-                if (tileSizeY == 0)
-                    tileSizeY = Screen.PrimaryScreen.WorkingArea.Height;
-            }
-            //Lets get the channels amd initialize them
-            int i = 0;
-            while (true)
-            {
-                Channel ch = new Channel(i, b.bitsPerPixel, 1);
-                bool def = false;
-                try
-                {
-                    if (b.meta.getChannelName(serie, i) != null)
-                        ch.Name = b.meta.getChannelName(serie, i);
-                    if (b.meta.getChannelSamplesPerPixel(serie, i) != null)
-                    {
-                        int s = b.meta.getChannelSamplesPerPixel(serie, i).getNumberValue().intValue();
-                        ch.SamplesPerPixel = s;
-                        def = true;
-                    }
-                    if (b.meta.getChannelAcquisitionMode(serie, i) != null)
-                        ch.AcquisitionMode = b.meta.getChannelAcquisitionMode(serie, i);
-                    if (b.meta.getChannelID(serie, i) != null)
-                        ch.info.ID = b.meta.getChannelID(serie, i);
-                    if (b.meta.getChannelFluor(serie, i) != null)
-                        ch.Fluor = b.meta.getChannelFluor(serie, i);
-                    if (b.meta.getChannelColor(serie, i) != null)
-                    {
-                        ome.xml.model.primitives.Color cc = b.meta.getChannelColor(serie, i);
-                        ch.Color = System.Drawing.Color.FromArgb(cc.getRed(), cc.getGreen(), cc.getBlue());
-                    }
-                    if (b.meta.getChannelIlluminationType(serie, i) != null)
-                        ch.IlluminationType = b.meta.getChannelIlluminationType(serie, i);
-                    if (b.meta.getChannelContrastMethod(serie, i) != null)
-                        ch.ContrastMethod = b.meta.getChannelContrastMethod(serie, i);
-                    if (b.meta.getChannelEmissionWavelength(serie, i) != null)
-                        ch.Emission = b.meta.getChannelEmissionWavelength(serie, i).value().intValue();
-                    if (b.meta.getChannelExcitationWavelength(serie, i) != null)
-                        ch.Excitation = b.meta.getChannelExcitationWavelength(serie, i).value().intValue();
-                    if (b.meta.getLightEmittingDiodePower(serie, i) != null)
-                        ch.LightSourceIntensity = b.meta.getLightEmittingDiodePower(serie, i).value().doubleValue();
-                    if (b.meta.getLightEmittingDiodeID(serie, i) != null)
-                        ch.DiodeName = b.meta.getLightEmittingDiodeID(serie, i);
-                    if (b.meta.getChannelLightSourceSettingsAttenuation(serie, i) != null)
-                        ch.LightSourceAttenuation = b.meta.getChannelLightSourceSettingsAttenuation(serie, i).toString();
 
-                }
-                catch (Exception e)
+            //We need to determine if this image is pyramidal or not.
+            //We do this by seeing if the resolutions are downsampled or not.
+            if (b.Resolutions.Count > 1 && b.Type != ImageType.well)
+                if (b.Resolutions[0].PhysicalSizeX < b.Resolutions[1].PhysicalSizeX)
                 {
-                    Console.WriteLine(e.Message);
+                    b.Type = ImageType.pyramidal;
+                    tile = true;
                 }
-                if (i == 0 && def)
-                {
-                    b.rgbChannels[0] = 0;
-                }
-                else
-                if (i == 1 && def)
-                {
-                    b.rgbChannels[1] = 1;
-                }
-                else
-                if (i == 2 && def)
-                {
-                    b.rgbChannels[2] = 2;
-                }
-                //If this channel is not defined we have loaded all the channels in the file.
-                if (!def)
-                    break;
-                else
-                    b.Channels.Add(ch);
-                i++;
-            }
 
-            //Bioformats gives a size of 3 for C when saved in ImageJ as RGB. We need to correct for this as C should be 1 for RGB.
-            if ((PixelFormat == PixelFormat.Format24bppRgb || PixelFormat == PixelFormat.Format32bppArgb || PixelFormat == PixelFormat.Format48bppRgb) && b.SizeC == 3)
-            {
-                b.sizeC = 1;
-            }
-            b.Coords = new int[b.SizeZ, b.SizeC, b.SizeT];
-            if (tile)
-            {
-                b.ispyramidal = true;
-            }
 
-            try
-            {
-                string st = OpenSlideGTK.OpenSlideImage.DetectVendor(file);
-                if (st != null)
-                    b.slideImage = OpenSlideGTK.OpenSlideImage.Open(file);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message.ToString());
-            }
-
+            b.Volume = new VolumeD(new Point3D(b.StageSizeX, b.StageSizeY, b.StageSizeZ), new Point3D(b.PhysicalSizeX * SizeX, b.PhysicalSizeY * SizeY, b.PhysicalSizeZ * SizeZ));
+            pr.Status = "Reading ROIs";
             int rc = b.meta.getROICount();
             for (int im = 0; im < rc; im++)
             {
@@ -9303,9 +9576,13 @@ namespace BioCore
                         if (nt != null)
                             an.coord.T = nt.getNumberValue().intValue();
                         an.Text = b.meta.getPointText(im, sc);
+                        int fs = 8;
                         ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getPointStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9338,9 +9615,13 @@ namespace BioCore
                             co.T = nt.getNumberValue().intValue();
                         an.coord = co;
                         an.Text = b.meta.getLineText(im, sc);
-                        ome.units.quantity.Length fl = b.meta.getLineFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getLineStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9373,9 +9654,13 @@ namespace BioCore
                         an.coord = co;
 
                         an.Text = b.meta.getRectangleText(im, sc);
-                        ome.units.quantity.Length fl = b.meta.getRectangleFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getRectangleStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9396,7 +9681,7 @@ namespace BioCore
                         double py = b.meta.getEllipseY(im, sc).doubleValue();
                         double ew = b.meta.getEllipseRadiusX(im, sc).doubleValue();
                         double eh = b.meta.getEllipseRadiusY(im, sc).doubleValue();
-                        //We convert the ellipse radius to System.Drawing.Rectangle
+                        //We convert the ellipse radius to Rectangle
                         double w = ew * 2;
                         double h = eh * 2;
                         double x = px - ew;
@@ -9413,9 +9698,13 @@ namespace BioCore
                             co.T = nt.getNumberValue().intValue();
                         an.coord = co;
                         an.Text = b.meta.getEllipseText(im, sc);
-                        ome.units.quantity.Length fl = b.meta.getEllipseFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getEllipseStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9451,9 +9740,13 @@ namespace BioCore
                             co.T = nt.getNumberValue().intValue();
                         an.coord = co;
                         an.Text = b.meta.getPolygonText(im, sc);
-                        ome.units.quantity.Length fl = b.meta.getPolygonFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getPolygonStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9487,9 +9780,13 @@ namespace BioCore
                             co.T = nt.getNumberValue().intValue();
                         an.coord = co;
                         an.Text = b.meta.getPolylineText(im, sc);
-                        ome.units.quantity.Length fl = b.meta.getPolylineFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getPolylineStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9517,9 +9814,13 @@ namespace BioCore
                             co.T = nt.getNumberValue().intValue();
                         an.coord = co;
 
-                        ome.units.quantity.Length fl = b.meta.getLabelFontSize(im, sc);
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
                         if (fl != null)
-                            an.font = new Font(SystemFonts.DefaultFont.FontFamily, (float)fl.value().doubleValue(), FontStyle.Regular);
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
                         ome.xml.model.primitives.Color col = b.meta.getLabelStrokeColor(im, sc);
                         if (col != null)
                             an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
@@ -9533,45 +9834,95 @@ namespace BioCore
                         an.AddPoint(b.ToStageSpace(p));
                         an.Text = b.meta.getLabelText(im, sc);
                     }
-                    if (b.Volume.Intersects(an.BoundingBox))
-                        b.Annotations.Add(an);
+                    else
+                    if (type == "Mask")
+                    {
+                        byte[] bts = b.meta.getMaskBinData(im, sc);
+                        bool end = b.meta.getMaskBinDataBigEndian(im, sc).booleanValue();
+                        an = ROI.CreateMask(co, bts, b.Resolutions[0].SizeX, b.Resolutions[0].SizeY, new PointD(b.StageSizeX, b.StageSizeY), b.PhysicalSizeX, b.PhysicalSizeY);
+                        an.Text = b.meta.getMaskText(im, sc);
+                        an.id = b.meta.getMaskID(im, sc);
+                        ome.xml.model.primitives.NonNegativeInteger nz = b.meta.getMaskTheZ(im, sc);
+                        if (nz != null)
+                            co.Z = nz.getNumberValue().intValue();
+                        ome.xml.model.primitives.NonNegativeInteger nc = b.meta.getMaskTheC(im, sc);
+                        if (nc != null)
+                            co.C = nc.getNumberValue().intValue();
+                        ome.xml.model.primitives.NonNegativeInteger nt = b.meta.getMaskTheT(im, sc);
+                        if (nt != null)
+                            co.T = nt.getNumberValue().intValue();
+                        an.coord = co;
+
+                        int fs = 8;
+                        ome.units.quantity.Length fl = b.meta.getPointFontSize(im, sc);
+                        if (fl != null)
+                            fs = fl.value().intValue();
+                        ome.xml.model.enums.FontFamily ff = b.meta.getPointFontFamily(im, sc);
+                        if (ff != null)
+                            an.font = new Font(new FontFamily(ff.name()), fs);
+                        ome.xml.model.primitives.Color col = b.meta.getMaskStrokeColor(im, sc);
+                        if (col != null)
+                            an.strokeColor = System.Drawing.Color.FromArgb(col.getAlpha(), col.getRed(), col.getGreen(), col.getBlue());
+                        ome.units.quantity.Length fw = b.meta.getMaskStrokeWidth(im, sc);
+                        if (fw != null)
+                            an.strokeWidth = (float)fw.value().floatValue();
+                        ome.xml.model.primitives.Color colf = b.meta.getMaskFillColor(im, sc);
+                        if (colf != null)
+                            an.fillColor = System.Drawing.Color.FromArgb(colf.getAlpha(), colf.getRed(), colf.getGreen(), colf.getBlue());
+                    }
+                    b.Annotations.Add(an);
                 }
             }
-            b.Buffers = new List<BufferInfo>();
+
+            List<string> serFiles = new List<string>();
+            serFiles.AddRange(reader.getSeriesUsedFiles());
+            try
+            {
+                string st = OpenSlideGTK.OpenSlideImage.DetectVendor(file);
+                if (st != null)
+                {
+                    b.slideImage = OpenSlideGTK.OpenSlideImage.Open(file);
+                    b.Type = ImageType.pyramidal;
+                    tile = true;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message.ToString());
+            }
+
             // read the image data bytes
             int pages = reader.getImageCount();
+            bool inter = reader.isInterleaved();
             int z = 0;
             int c = 0;
             int t = 0;
-            bool inter = reader.isInterleaved();
-            for (int p = 0; p < pages; p++)
-            {
-                BufferInfo bf;
-                if (vips && tile)
+            pr.Status = "Reading Image Data";
+            if (!tile)
+                for (int p = 0; p < pages; p++)
                 {
-                    OpenVip(b, p, tilex, tiley, tileSizeX, tileSizeY);
-                }
-                else
-                if (tile)
-                {
-                    bf = BioImage.GetTile(b, b.coordinate, serie, tilex, tiley, sx, sy);
-                    b.Buffers.Add(bf);
-                    Statistics.CalcStatistics(bf);
-
-                }
-                else
-                {
+                    BufferInfo bf;
+                    pr.UpdateProgressF((float)p / (float)pages);
                     byte[] bytes = reader.openBytes(p);
-                    bf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(z, c, t), p, b.littleEndian, inter);
+                    bf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(z, c, t), p, null, b.littleEndian, inter);
                     b.Buffers.Add(bf);
-                    Statistics.CalcStatistics(bf);
+                    Statistics.CalcStatistics(b.Buffers.Last());
                 }
-                if (progress)
-                    pr.UpdateProgressF(((float)p / (float)pages));
-                Application.DoEvents();
+            else
+            {
+                b.Buffers.Add(GetTile(b, new ZCT(z, c, t), serie, tilex, tiley, tileSizeX, tileSizeY));
+                Statistics.CalcStatistics(b.Buffers.Last());
             }
-
-            int pls = b.meta.getPlaneCount(serie);
+            int pls;
+            try
+            {
+                pls = b.meta.getPlaneCount(serie);
+            }
+            catch (Exception)
+            {
+                pls = 0;
+            }
+            pr.Status = "Reading Plane Data";
             if (pls == b.Buffers.Count)
                 for (int bi = 0; bi < b.Buffers.Count; bi++)
                 {
@@ -9588,10 +9939,11 @@ namespace BioCore
                     int cc = 0; int zc = 0; int tc = 0;
                     if (b.meta.getPlaneTheC(serie, bi) != null)
                         cc = b.meta.getPlaneTheC(serie, bi).getNumberValue().intValue();
-                    if (b.meta.getPlaneTheC(serie, bi) != null)
+                    if (b.meta.getPlaneTheZ(serie, bi) != null)
                         zc = b.meta.getPlaneTheZ(serie, bi).getNumberValue().intValue();
-                    if (b.meta.getPlaneTheC(serie, bi) != null)
+                    if (b.meta.getPlaneTheT(serie, bi) != null)
                         tc = b.meta.getPlaneTheT(serie, bi).getNumberValue().intValue();
+                    pl.Coordinate = new ZCT(zc, cc, tc);
                     if (b.meta.getPlaneDeltaT(serie, bi) != null)
                         pl.Delta = b.meta.getPlaneDeltaT(serie, bi).value().doubleValue();
                     if (b.meta.getPlaneExposureTime(serie, bi) != null)
@@ -9600,31 +9952,37 @@ namespace BioCore
                 }
 
             b.UpdateCoords(b.SizeZ, b.SizeC, b.SizeT, order);
-            reader.close();
-            //We wait for threshold image statistics calculation
-            if(b.Buffers.Count != 0)
+            //We wait for histogram image statistics calculation
             do
             {
                 Thread.Sleep(50);
             } while (b.Buffers[b.Buffers.Count - 1].Stats == null);
             Statistics.ClearCalcBuffer();
-
-            AutoThreshold(b, false);
+            AutoThreshold(b, true);
             if (b.bitsPerPixel > 8)
                 b.StackThreshold(true);
             else
                 b.StackThreshold(false);
-            if (b.isPyramidal)
-                b.SetLabelMacroResolutions();
-            if(addToImages)
-            Images.AddImage(b,newTab);
-            b.Loading = false;
-            if (progress)
+            if (addToImages)
+                Images.AddImage(b, tab);
+            //We use a try block to close the reader as sometimes this will cause an error.
+            bool stop = false;
+            do
             {
-                pr.Close();
-                pr.Dispose();
-            }
-            
+                try
+                {
+                    reader.close();
+                    stop = true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            } while (!stop);
+            b.Loading = false;
+            b.SetLabelMacroResolutions();
+            Console.WriteLine("Opening complete " + file);
+            pr.Close();
             return b;
         }
         public ImageReader imRead = new ImageReader();
@@ -9955,7 +10313,7 @@ namespace BioCore
             if (tile)
             {
                 bs = new BioImage[1];
-                bs[0] = OpenOME(file, 0, newTab, addToImages, true, true, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+                bs[0] = OpenOME(file, 0, newTab, addToImages, true, 0, 0, Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
                 return bs;
             }
             else
@@ -10109,7 +10467,7 @@ namespace BioCore
         {
             foreach (string f in openOMEfile)
             {
-                OpenOME(f, 0, true, true, true, false, 0,0,0,0);
+                OpenOME(f, 0, true, true, false, 0,0,0,0);
             }
             openOMEfile.Clear();
         }

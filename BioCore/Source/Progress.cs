@@ -43,5 +43,11 @@ namespace BioCore
         {
             timeLabel.Text = watch.Elapsed.Seconds + "." + watch.Elapsed.Milliseconds + "s";
         }
+
+        public string Status 
+        {  
+            get { return statusLabel.Text; } 
+            set { statusLabel.Text = value; }
+        }
     }
 }

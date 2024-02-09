@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.6.0</Version>
+	  <Version>3.7.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.6.0</AssemblyVersion>
-    <FileVersion>3.6.0</FileVersion>
-    <PackageReleaseNotes>Added plugins see example plugin. Improved ImageJ integration. BioConsole autocomplete.</PackageReleaseNotes>
+    <AssemblyVersion>3.7.0</AssemblyVersion>
+    <FileVersion>3.7.0</FileVersion>
+    <PackageReleaseNotes>Well plate support and QuPath GeoJSon ROI support.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -45,11 +45,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Bio.ico" />
-    <Content Include="bioformats_package.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Pack>True</Pack>
-      <PackagePath>lib\net6.0-windows7.0</PackagePath>
-    </Content>
     <Content Include="Graphics\Shaders\color-gs.hlsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -69,23 +64,24 @@
 
   <ItemGroup>
     <PackageReference Include="AForgeImagingCore" Version="2.2.5" />
+    <PackageReference Include="BioFormats.NET6" Version="7.2.0" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
-    <PackageReference Include="CS-Script" Version="4.8.13" />
+    <PackageReference Include="CS-Script" Version="4.8.14" />
     <PackageReference Include="FlaUI.Core" Version="4.0.0" />
     <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="H.InputSimulator" Version="1.4.1" />
-    <PackageReference Include="IKVM" Version="8.6.4" />
+    <PackageReference Include="IKVM" Version="8.7.5" />
     <PackageReference Include="MouseKeyHook" Version="5.7.1" />
     <PackageReference Include="NetVips" Version="2.4.0" />
-    <PackageReference Include="NetVips.Native" Version="8.15.0" />
-    <PackageReference Include="NetVips.Native.win-x64" Version="8.15.0" />
+    <PackageReference Include="NetVips.Native" Version="8.15.1" />
+    <PackageReference Include="NetVips.Native.win-x64" Version="8.15.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.8.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="OpenSlideGTK" Version="1.3.1" />
-    <PackageReference Include="ScottPlot" Version="4.1.70" />
+    <PackageReference Include="ScottPlot" Version="5.0.21" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
@@ -123,11 +119,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Graphics\Graphics\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="bioformats_package">
-      <HintPath>bioformats_package.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md">

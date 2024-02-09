@@ -1334,7 +1334,7 @@ namespace BioCore
 
         private void TabsView_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(Viewer==null) return;
+            if (Viewer == null) return;
             Viewer.ImageView_KeyPress(Viewer, e);
         }
 
@@ -1342,6 +1342,30 @@ namespace BioCore
         {
             if (Viewer == null) return;
             Viewer.ImageView_KeyUp(Viewer, e);
+        }
+
+        private void importQuPathROIToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (openQuPathDialog.ShowDialog() != DialogResult.OK)
+                return;
+            foreach (string item in openQuPathDialog.FileNames)
+            {
+                ROI[] rois = QuPath.ReadROI(item, ImageView.SelectedImage);
+                foreach (ROI r in rois)
+                {
+                    ImageView.SelectedImage.Annotations.Add(r);
+                }
+            }
+        }
+
+        private void exportQuPathROIToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (saveQuPathDialog.ShowDialog() != DialogResult.OK)
+                return;
+            foreach (string item in saveQuPathDialog.FileNames)
+            {
+                QuPath.Save(item, ImageView.SelectedImage);
+            }
         }
     }
 }

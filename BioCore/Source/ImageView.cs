@@ -882,7 +882,7 @@ namespace BioCore
             UpdateRGBChannels();
             init = true;
         }
-        /// This function is called from the Unity Editor when the user changes the size of the select
+        /// This function is called when the user changes the size of the select
         /// box
         /// 
         /// @param size The size of the box that will be drawn around the ROI.
@@ -911,17 +911,20 @@ namespace BioCore
         {
             if (SelectedImage == null)
                 return;
+            string well = "";
+            if (SelectedImage.Type == BioImage.ImageType.well)
+                well = "Well:" + SelectedImage.Resolution;
             if (Mode == ViewMode.RGBImage)
             {
                 if (timeEnabled)
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (tBar.Value + 1) + "/" + (tBar.Maximum + 1) + ", " +
-                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") ";
+                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + well;
                 }
                 else
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString()
-                        + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") ";
+                        + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + well;
                 }
 
             }
@@ -930,12 +933,12 @@ namespace BioCore
                 if (timeEnabled)
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + (tBar.Value + 1) + "/" + (tBar.Maximum + 1) + ", " +
-                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") ";
+                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + well;
                 }
                 else
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", " +
-                        SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") ";
+                        SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + well;
                 }
             }
         }
@@ -994,8 +997,6 @@ namespace BioCore
                     if (x == selectedIndex)
                         dx.RenderTarget2D.DrawRectangle(ToRawRectF(r.X, r.Y, r.Width, r.Height), blue);
                 }
-                SetCoordinate(zBar.Value, cBar.Value, tBar.Value);
-
                 bool bounds = showBounds;
                 bool labels = showText;
                 foreach (BioImage bi in Images)
@@ -1385,7 +1386,8 @@ namespace BioCore
                         dBitmaps[bi].Dispose();
                         dBitmaps[bi] = null;
                     }
-                    dBitmaps[bi] = DBitmap.FromImage(dx.RenderTarget2D, bitmap);
+                    BufferInfo bf = new BufferInfo("", bitmap, new ZCT(), 0);
+                    dBitmaps[bi] = DBitmap.FromImage(dx.RenderTarget2D, (Bitmap)bf.ImageRGB);
                 }
                 else
                     Bitmaps.Add(bitmap);
@@ -2372,6 +2374,13 @@ namespace BioCore
             mousePoint = "(" + (p.X) + ", " + (p.Y) + ")";
             if (e.Button == MouseButtons.XButton1 && !x1State && !Ctrl && Mode != ViewMode.RGBImage)
             {
+                if (SelectedImage.Type == BioImage.ImageType.well)
+                {
+                    SelectedImage.Resolution++;
+                    UpdateImages();
+                    UpdateView();
+                }
+                else
                 if (cBar.Value < cBar.Maximum)
                     cBar.Value++;
                 x1State = true;
@@ -2387,6 +2396,13 @@ namespace BioCore
 
             if (e.Button == MouseButtons.XButton2 && !x2State && !Ctrl && Mode != ViewMode.RGBImage)
             {
+                if (SelectedImage.Type == BioImage.ImageType.well)
+                {
+                    SelectedImage.Resolution--;
+                    UpdateImages();
+                    UpdateView();
+                }
+                else
                 if (cBar.Value > cBar.Minimum)
                     cBar.Value--;
                 x2State = true;

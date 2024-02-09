@@ -46,12 +46,17 @@ namespace BioCore
 
         public void UpdateImage()
         {
-            plot = new ScottPlot.Plot(Width, Height);
+            /*
+            plot = new ScottPlot.Plot();
             foreach (double[] val in data) 
             {
-                plot.AddBar(val);
+                Bar b = new Bar();
+                b.Value = val;
+
+                plot.Add.Bar(val);
             }
             file = plot.SaveFig(name + ".png");
+            */
             this.Text = name;
             bitmap = (Bitmap)Bitmap.FromFile(file);
             pictureBox.Image = bitmap;
