@@ -5582,7 +5582,6 @@ namespace BioCore
         public long loadTimeMS = 0;
         public long loadTimeTicks = 0;
         public bool selected = false;
-        private bool ispyramidal = false;
         public int resolution = 0;
         public Statistics Statistics
         {
@@ -6010,7 +6009,10 @@ namespace BioCore
         {
             get
             {
-                return ispyramidal;
+                if (Type == ImageType.pyramidal)
+                    return true;
+                else
+                    return false;
             }
         }
         public string file;
@@ -8006,7 +8008,9 @@ namespace BioCore
             BioImage b = new BioImage(file);
             bool tiled = IsTiffTiled(file);
             if (tiled)
-                b.ispyramidal = true;
+            {
+                b.Type = ImageType.pyramidal;
+            }
             b.series = series;
             b.file = file;
             string fn = Path.GetFileNameWithoutExtension(file);
