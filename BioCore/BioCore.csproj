@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.7.0</Version>
+	  <Version>3.8.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.7.0</AssemblyVersion>
-    <FileVersion>3.7.0</FileVersion>
-    <PackageReleaseNotes>Well plate support and QuPath GeoJSon ROI support.</PackageReleaseNotes>
+    <AssemblyVersion>3.8.0</AssemblyVersion>
+    <FileVersion>3.8.0</FileVersion>
+    <PackageReleaseNotes>Multi-pyramid file support.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

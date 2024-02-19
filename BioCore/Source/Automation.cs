@@ -817,30 +817,27 @@ namespace BioCore
 
                 }
                 List<AutomationElement> result = new List<AutomationElement>();
-                
                 int index = 0;
-                /*
                 if (items != null)
-                    foreach (AutomationElement item in items)
+                foreach (AutomationElement item in items)
+                {
+                    try
                     {
-                        try
+                        int[] r = item.Properties.RuntimeId;
+                        if (item.ClassName == classname && item.AutomationId == id && item.Name == name)
                         {
-                            int[] r = item.Properties.RuntimeId;
-                            if (item.ClassName == classname && item.AutomationId == id && item.Name == name)
-                            {
-                                result.Add(item);
-                            }
-                            if (item.BoundingRectangle.IntersectsWith(new Rectangle(p.X, p.Y, 1, 1)) && result.Count > 0)
-                            {
-                                index = result.Count - 1;
-                            }
+                            result.Add(item);
                         }
-                        catch (Exception)
+                        if (item.BoundingRectangle.IntersectsWith(new Rectangle(p.X, p.Y, 1, 1)) && result.Count > 0)
                         {
-
+                            index = result.Count - 1;
                         }
                     }
-                */
+                    catch (Exception)
+                    {
+
+                    }
+                }
                 return index;
             }
             public static int[] StringToRuntimeID(string s)

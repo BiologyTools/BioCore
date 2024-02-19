@@ -20,6 +20,7 @@ using RectangleF = System.Drawing.RectangleF;
 using Size = System.Drawing.Size;
 using IntRange = AForge.IntRange;
 using OpenSlideGTK;
+using Bio;
 
 namespace BioCore
 {
@@ -3160,6 +3161,102 @@ namespace BioCore
             }
             throw new NotSupportedException("Pixelformat " + px + " is not supported.");
         }
+        /// It takes a byte array of RGB data and returns a pointer to a 32 bit ARGB image
+        /// 
+        /// @param w width of the image
+        /// @param h height of the image
+        /// @param PixelFormat The pixel format of the image.
+        /// @param bts the byte array of the image
+        /// 
+        /// @return A pointer to the first byte of the image data.
+        public static unsafe byte[] GetRGBBuffer(int w, int h, PixelFormat px, byte[] bts)
+        {
+            if (px == PixelFormat.Format24bppRgb)
+            {
+                //opening a 8 bit per pixel jpg image
+                BufferInfo bmp = new BufferInfo(w, h, PixelFormat.Format32bppArgb);
+                // The destination array will be larger due to the added alpha channel.
+                int destLength = (bts.Length / 3) * 4; // For every 3 bytes in the source, there will be 4 bytes in the destination.
+                byte[] dest = new byte[destLength];
+
+                for (int i = 0, j = 0; i < bts.Length; i += 3, j += 4)
+                {
+                    // Copy RGB components directly.
+                    dest[j] = bts[i];     // Red
+                    dest[j + 1] = bts[i + 1]; // Green
+                    dest[j + 2] = bts[i + 2]; // Blue
+                    dest[j + 3] = 255;       // Alpha (fully opaque)
+                }
+                return bmp.Bytes;
+            }
+            else
+            if (px == PixelFormat.Format48bppRgb)
+            {
+                // Initialize the destination array.
+                int pixelCount = bts.Length / 6; // 6 bytes per pixel in source, 4 bytes per pixel in destination.
+                byte[] dest = new byte[pixelCount * 4];
+
+                for (int i = 0, j = 0; i < bts.Length; i += 6, j += 4)
+                {
+                    // Use BitConverter to convert two bytes to a single ushort, then downsample by shifting.
+                    ushort red = BitConverter.ToUInt16(bts, i);
+                    ushort green = BitConverter.ToUInt16(bts, i + 2);
+                    ushort blue = BitConverter.ToUInt16(bts, i + 4);
+
+                    // Downsample to 8 bits by shifting right 8 bits.
+                    // This effectively takes the higher 8 bits of each 16-bit color value.
+                    dest[j] = (byte)(red >> 8);       // Red
+                    dest[j + 1] = (byte)(green >> 8); // Green
+                    dest[j + 2] = (byte)(blue >> 8);  // Blue
+                    dest[j + 3] = 255;                // Alpha (fully opaque)
+                }
+                return dest;
+            }
+            else
+            if (px == PixelFormat.Format8bppIndexed)
+            {
+                int pixelCount = bts.Length; // 1 byte per pixel in source, 4 bytes per pixel in destination.
+                byte[] dest = new byte[pixelCount * 4];
+
+                for (int i = 0, j = 0; i < bts.Length; i++, j += 4)
+                {
+                    byte gray = bts[i];
+
+                    // Set RGB channels to the grayscale value and Alpha to 255 (fully opaque).
+                    dest[j] = gray;     // Red
+                    dest[j + 1] = gray; // Green
+                    dest[j + 2] = gray; // Blue
+                    dest[j + 3] = 255;  // Alpha
+                }
+
+                return dest;
+            }
+            else
+            if (px == PixelFormat.Format16bppGrayScale)
+            {
+                int pixelCount = bts.Length / 2; // 2 bytes per pixel in source, 4 bytes per pixel in destination.
+                byte[] dest = new byte[pixelCount * 4];
+
+                for (int i = 0, j = 0; i < bts.Length; i += 2, j += 4)
+                {
+                    // Convert two bytes to a single ushort to get the 16-bit grayscale value.
+                    ushort gray = BitConverter.ToUInt16(bts, i);
+
+                    // Downsample to 8 bits by taking the higher byte.
+                    // This is a simple method and may not preserve the full dynamic range.
+                    byte gray8bit = (byte)(gray >> 8);
+
+                    // Set RGB channels to the grayscale value and Alpha to 255 (fully opaque).
+                    dest[j] = gray8bit;     // Red
+                    dest[j + 1] = gray8bit; // Green
+                    dest[j + 2] = gray8bit; // Blue
+                    dest[j + 3] = 255;      // Alpha
+                }
+
+                return dest;
+            }
+            throw new NotSupportedException("Pixelformat " + px + " is not supported.");
+        }
         /// It takes a byte array of image data, and returns a bitmap
         /// 
         /// @param w width of the image
@@ -3581,6 +3678,16 @@ namespace BioCore
                 Bitmap bmp = ((Bitmap)Image).Clone(r, PixelFormat);
                 return new BufferInfo(ID, bmp, Coordinate, 0);
             }
+        }
+        /* Creating a new BufferInfo object. */
+        public BufferInfo(int w, int h, PixelFormat px)
+        {
+            ID = CreateID("", 0);
+            SizeX = w;
+            SizeY = h;
+            pixelFormat = px;
+            Coordinate = new ZCT();
+            Bytes = new byte[Stride * h];
         }
         /* Creating a new BufferInfo object. */
         public BufferInfo(string file, int w, int h, PixelFormat px, byte[] bts, ZCT coord, int index)
@@ -4014,7 +4121,7 @@ namespace BioCore
             bImage.Dispose();
             return image;
         }
-
+        public byte[] RGBBytes => GetRGBBuffer(SizeX, SizeY, PixelFormat, Bytes);
         /// It creates a new byte array, copies the bytes from the original array into the new array, and
         /// then creates a new BufferInfo object with the new byte array
         /// 
@@ -5516,7 +5623,10 @@ namespace BioCore
         public List<BufferInfo> Buffers = new List<BufferInfo>();
         public VolumeD Volume {  get; set; }
         public List<ROI> Annotations = new List<ROI>();
-        public OpenSlideImage slideImage;
+        public OpenSlideImage openSlideImage;
+        public OpenSlideBase openSlideBase;
+        public SlideBase slideBase;
+        public SlideImage slideImage;
         public string filename = "";
         public string script = "";
         public string Filename
@@ -5582,7 +5692,8 @@ namespace BioCore
         public long loadTimeMS = 0;
         public long loadTimeTicks = 0;
         public bool selected = false;
-        public int resolution = 0;
+        private double resolution = 1;
+        public double Resolution { get { return resolution; } set { resolution = value; } }
         public Statistics Statistics
         {
             get
@@ -5597,6 +5708,7 @@ namespace BioCore
         private int sizeZ, sizeC, sizeT;
         private Statistics statistics;
         int tileX, tileY;
+        private int level = 0;
         ImageInfo imageInfo = new ImageInfo();
         public static BioImage Copy(BioImage b, bool rois)
         {
@@ -5690,15 +5802,15 @@ namespace BioCore
         }
         public double PhysicalSizeX
         {
-            get { return Resolutions[resolution].PhysicalSizeX; }
+            get { return Resolutions[Level].PhysicalSizeX; }
         }
         public double PhysicalSizeY
         {
-            get { return Resolutions[resolution].PhysicalSizeY; }
+            get { return Resolutions[Level].PhysicalSizeY; }
         }
         public double PhysicalSizeZ
         {
-            get { return Resolutions[resolution].PhysicalSizeZ; }
+            get { return Resolutions[Level].PhysicalSizeZ; }
         }
         public int TileX
         {
@@ -5712,31 +5824,49 @@ namespace BioCore
         {
             get
             {
-                return Resolutions[Resolution].StageSizeX;
+                return Resolutions[Level].StageSizeX;
             }
             set { imageInfo.StageSizeX = value; }
         }
         public double StageSizeY
         {
-            get { return Resolutions[Resolution].StageSizeY; }
+            get { return Resolutions[Level].StageSizeY; }
             set { imageInfo.StageSizeY = value; }
         }
         public double StageSizeZ
         {
-            get { return Resolutions[Resolution].StageSizeZ; }
+            get { return Resolutions[Level].StageSizeZ; }
             set { imageInfo.StageSizeZ = value; }
         }
-        public int Resolution
+        Size s = new Size(1920, 1080);
+        public Size PyramidalSize { get { return s; } set { s = value; } }
+        PointD pyramidalOrigin = new PointD(0, 0);
+        public PointD PyramidalOrigin
         {
-            get { return resolution; }
+            get { return pyramidalOrigin; }
             set
             {
-                if (value > Resolutions.Count - 1 || value < 0)
+                if (Resolutions[Level].SizeX < value.X || Resolutions[Level].SizeY < value.Y || value.X < 0 || value.Y < 0)
                     return;
-                
-                resolution = value;
+                pyramidalOrigin = value;
+            }
+        }
+        public int Level
+        {
+            get
+            {
+                if (openSlideBase != null)
+                    return OpenSlideGTK.TileUtil.GetLevel(openSlideBase.Schema.Resolutions, Resolution);
+                else
+                    if (slideBase != null)
+                    return LevelFromResolution(Resolution);
+                return level;
+            }
+            set
+            {
                 if (Type == ImageType.well)
                 {
+                    level = value;
                     reader.setId(file);
                     reader.setSeries(value);
                     // read the image data bytes
@@ -5751,10 +5881,90 @@ namespace BioCore
                         byte[] bytes = reader.openBytes(p);
                         bf = new BufferInfo(file, w, h, pf, bytes, new ZCT(), p, null, littleEndian, inter);
                         Buffers.Add(bf);
-                        bf.Stats = Statistics.FromBytes(bf);
                     }
                 }
             }
+        }
+        /// <summary>
+        /// Get the downsampling factor of a given level.
+        /// </summary>
+        /// <param name="level">The desired level.</param>
+        /// <return>
+        /// The downsampling factor for this level.
+        /// </return> 
+        /// <exception cref="OpenSlideException"/>
+        public double GetLevelDownsample(int level)
+        {
+            int originalWidth = Resolutions[0].SizeX; // Width of the original level
+            int nextLevelWidth = Resolutions[level].SizeX; // Width of the next level (downsampled)
+            return (double)originalWidth / (double)nextLevelWidth;
+        }
+        /// <summary>
+        /// Returns the level of a given resolution.
+        /// </summary>
+        /// <param name="Resolution"></param>
+        /// <returns></returns>
+        public int LevelFromResolution(double Resolution)
+        {
+            double[] ds = new double[Resolutions.Count];
+            for (int i = 0; i < Resolutions.Count; i++)
+            {
+                ds[i] = Resolutions[0].PhysicalSizeX * GetLevelDownsample(i);
+            }
+            for (int i = 0; i < ds.Length; i++)
+            {
+                if (ds[i] > Resolution)
+                    return i - 1;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// Get Unit Per Pixel for pyramidal images.
+        /// </summary>
+        /// <param name="level"></param>
+        /// <returns></returns>
+        public double GetUnitPerPixel(int level)
+        {
+            return Resolutions[0].PhysicalSizeX * GetLevelDownsample(level);
+        }
+        /// <summary>
+        /// Updates the Buffers based on current pyramidal origin and resolution.
+        /// </summary>
+        public void UpdateBuffersPyramidal()
+        {
+            for (int i = 0; i < Buffers.Count; i++)
+            {
+                Buffers[i].Dispose();
+            }
+            Buffers.Clear();
+            for (int i = 0; i < imagesPerSeries; i++)
+            {
+                if (openSlideImage != null)
+                {
+                    byte[] bts = openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
+                    Buffers.Add(new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), ""));
+                }
+                else
+                {
+                start:
+                    byte[] bts = slideBase.GetSlice(new Bio.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
+                    if (bts == null)
+                    {
+                        if (PyramidalOrigin.X == 0 && PyramidalOrigin.Y == 0)
+                        {
+                            Resolution = 1;
+                        }
+                        pyramidalOrigin = new PointD(0, 0);
+                        goto start;
+                    }
+                    Buffers.Add(new BufferInfo((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), ""));
+                }
+            }
+            BioImage.AutoThreshold(this, true);
+            if (bitsPerPixel > 8)
+                StackThreshold(true);
+            else
+                StackThreshold(false);
         }
         public int series
         {
@@ -6742,7 +6952,7 @@ namespace BioCore
             if (isPyramidal)
                 return d;
             else
-                return d / Resolutions[resolution].PhysicalSizeX;
+                return d / Resolutions[Level].PhysicalSizeX;
         }
         /// Convert a physical distance to an image distance
         /// 
@@ -6754,7 +6964,7 @@ namespace BioCore
             if (isPyramidal)
                 return d;
             else
-                return d / Resolutions[resolution].PhysicalSizeY;
+                return d / Resolutions[Level].PhysicalSizeY;
         }
         /// > Convert a stage coordinate to an image coordinate
         /// 
@@ -6766,7 +6976,7 @@ namespace BioCore
             if (isPyramidal)
                 return x;
             else
-                return (float)((x - StageSizeX) / Resolutions[resolution].PhysicalSizeX);
+                return (float)((x - StageSizeX) / Resolutions[Level].PhysicalSizeX);
         }
         /// > Convert a Y coordinate from stage space to image space
         /// 
@@ -6778,7 +6988,7 @@ namespace BioCore
             if (isPyramidal)
                 return y;
             else
-                return (float)((y - StageSizeY) / Resolutions[resolution].PhysicalSizeY);
+                return (float)((y - StageSizeY) / Resolutions[Level].PhysicalSizeY);
         }
         /// > The function takes a point in the stage coordinate system and returns a point in the image
         /// coordinate system
@@ -6830,10 +7040,10 @@ namespace BioCore
         {
             System.Drawing.RectangleF r = new RectangleF();
             System.Drawing.Point pp = new System.Drawing.Point();
-            r.X = (int)((p.X - StageSizeX) / Resolutions[resolution].PhysicalSizeX);
-            r.Y = (int)((p.Y - StageSizeY) / Resolutions[resolution].PhysicalSizeY);
-            r.Width = (int)(p.W / Resolutions[resolution].PhysicalSizeX);
-            r.Height = (int)(p.H / Resolutions[resolution].PhysicalSizeY);
+            r.X = (int)((p.X - StageSizeX) / Resolutions[Level].PhysicalSizeX);
+            r.Y = (int)((p.Y - StageSizeY) / Resolutions[Level].PhysicalSizeY);
+            r.Width = (int)(p.W / Resolutions[Level].PhysicalSizeX);
+            r.Height = (int)(p.H / Resolutions[Level].PhysicalSizeY);
             return r;
         }
         /// > The function takes a point in the volume space and returns a point in the stage space
@@ -6844,8 +7054,8 @@ namespace BioCore
         public PointD ToStageSpace(PointD p)
         {
             PointD pp = new PointD();
-            pp.X = ((p.X * Resolutions[resolution].PhysicalSizeX) + Volume.Location.X);
-            pp.Y = ((p.Y * Resolutions[resolution].PhysicalSizeY) + Volume.Location.Y);
+            pp.X = ((p.X * Resolutions[Level].PhysicalSizeX) + Volume.Location.X);
+            pp.Y = ((p.Y * Resolutions[Level].PhysicalSizeY) + Volume.Location.Y);
             return pp;
         }
         /// > The function takes a point in the volume space and converts it to a point in the stage
@@ -6876,8 +7086,8 @@ namespace BioCore
             RectangleD r = new RectangleD();
             r.X = ((p.X * PhysicalSizeX) + Volume.Location.X);
             r.Y = ((p.Y * PhysicalSizeY) + Volume.Location.Y);
-            r.W = (p.W * Resolutions[resolution].PhysicalSizeX);
-            r.H = (p.H * Resolutions[resolution].PhysicalSizeY);
+            r.W = (p.W * Resolutions[Level].PhysicalSizeX);
+            r.H = (p.H * Resolutions[Level].PhysicalSizeY);
             return r;
         }
         /// > This function takes a rectangle in the coordinate space of the image and converts it to the
@@ -8726,7 +8936,7 @@ namespace BioCore
             Dictionary<double, Point3D> max = new Dictionary<double, Point3D>();
             for (int i = 0; i < bms.Length; i++)
             {
-                Resolution r = bms[i].Resolutions[bms[i].resolution];
+                Resolution r = bms[i].Resolutions[bms[i].Level];
                 if (bis.ContainsKey(r.PhysicalSizeX))
                 {
                     bis[r.PhysicalSizeX].Add(bms[i]);
@@ -8750,7 +8960,7 @@ namespace BioCore
             int s = 0;
             foreach (double px in bis.Keys)
             {
-                Resolution rr = bis[px][0].Resolutions[bis[px][0].resolution];
+                Resolution rr = bis[px][0].Resolutions[bis[px][0].Level];
                 int xi = 1 + (int)Math.Ceiling((max[px].X - min[px].X) / rr.VolumeWidth);
                 int yi = 1 + (int)Math.Ceiling((max[px].Y - min[px].Y) / rr.VolumeHeight);
                 BioImage b = bis[px][0];
@@ -9024,7 +9234,7 @@ namespace BioCore
                     BioImage b = bis[px][i];
                     writer.setTileSizeX(b.SizeX);
                     writer.setTileSizeY(b.SizeY);
-                    Resolution r = bis[px][i].Resolutions[bis[px][i].resolution];
+                    Resolution r = bis[px][i].Resolutions[bis[px][i].Level];
                     double dx = Math.Ceiling((bis[px][i].StageSizeX - min[px].X) / r.VolumeWidth);
                     double dy = Math.Ceiling((bis[px][i].StageSizeY - min[px].Y) / r.VolumeHeight);
                     for (int bu = 0; bu < b.Buffers.Count; bu++)
@@ -9103,7 +9313,7 @@ namespace BioCore
             Dictionary<double, Point3D> max = new Dictionary<double, Point3D>();
             for (int i = 0; i < bms.Length; i++)
             {
-                Resolution res = bms[i].Resolutions[bms[i].resolution];
+                Resolution res = bms[i].Resolutions[bms[i].Level];
                 if (bis.ContainsKey(res.PhysicalSizeX))
                 {
                     bis[res.PhysicalSizeX].Add(bms[i]);
@@ -9309,7 +9519,7 @@ namespace BioCore
             Recorder.AddLine("BioImage.FolderToStack(\"" + path + "\");");
             return b;
         }
-        public static BioImage OpenOME(string file, int serie, bool tab, bool addToImages, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY)
+        public static BioImage OpenOME(string file, int serie, bool tab, bool addToImages, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY, bool useOpenSlide = false)
         {
             if (file == null || file == "")
                 throw new InvalidDataException("File is empty or null");
@@ -9466,7 +9676,7 @@ namespace BioCore
             {
                 Console.WriteLine(e.Message);
             }
-
+            List<Resolution> rss = new List<Resolution>();
             for (int s = 0; s < b.seriesCount; s++)
             {
                 reader.setSeries(s);
@@ -9480,7 +9690,7 @@ namespace BioCore
                         PixelFormat px;
                         try
                         {
-                            px = GetPixelFormat(rgbc, b.meta.getPixelsType(s));
+                            px = GetPixelFormat(rgbc, b.meta.getPixelsType(r));
                         }
                         catch (Exception)
                         {
@@ -9489,30 +9699,30 @@ namespace BioCore
                         res.PixelFormat = px;
                         res.SizeX = reader.getSizeX();
                         res.SizeY = reader.getSizeY();
-                        if (b.meta.getPixelsPhysicalSizeX(s) != null)
+                        if (b.meta.getPixelsPhysicalSizeX(r) != null)
                         {
-                            res.PhysicalSizeX = b.meta.getPixelsPhysicalSizeX(s).value().doubleValue();
+                            res.PhysicalSizeX = b.meta.getPixelsPhysicalSizeX(r).value().doubleValue();
                         }
                         else
                             res.PhysicalSizeX = (96 / 2.54) / 1000;
-                        if (b.meta.getPixelsPhysicalSizeY(s) != null)
+                        if (b.meta.getPixelsPhysicalSizeY(r) != null)
                         {
-                            res.PhysicalSizeY = b.meta.getPixelsPhysicalSizeY(s).value().doubleValue();
+                            res.PhysicalSizeY = b.meta.getPixelsPhysicalSizeY(r).value().doubleValue();
                         }
                         else
                             res.PhysicalSizeY = (96 / 2.54) / 1000;
 
-                        if (b.meta.getStageLabelX(s) != null)
-                            res.StageSizeX = b.meta.getStageLabelX(s).value().doubleValue();
-                        if (b.meta.getStageLabelY(s) != null)
-                            res.StageSizeY = b.meta.getStageLabelY(s).value().doubleValue();
-                        if (b.meta.getStageLabelZ(s) != null)
-                            res.StageSizeZ = b.meta.getStageLabelZ(s).value().doubleValue();
+                        if (b.meta.getStageLabelX(r) != null)
+                            res.StageSizeX = b.meta.getStageLabelX(r).value().doubleValue();
+                        if (b.meta.getStageLabelY(r) != null)
+                            res.StageSizeY = b.meta.getStageLabelY(r).value().doubleValue();
+                        if (b.meta.getStageLabelZ(r) != null)
+                            res.StageSizeZ = b.meta.getStageLabelZ(r).value().doubleValue();
                         else
                             res.StageSizeZ = 1;
-                        if (b.meta.getPixelsPhysicalSizeZ(s) != null)
+                        if (b.meta.getPixelsPhysicalSizeZ(r) != null)
                         {
-                            res.PhysicalSizeZ = b.meta.getPixelsPhysicalSizeZ(s).value().doubleValue();
+                            res.PhysicalSizeZ = b.meta.getPixelsPhysicalSizeZ(r).value().doubleValue();
                         }
                         else
                         {
@@ -9523,20 +9733,60 @@ namespace BioCore
                     {
                         Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + res.PhysicalSizeX + "," + res.PhysicalSizeY + "," + res.PhysicalSizeZ + ")");
                     }
-                    b.Resolutions.Add(res);
+                    rss.Add(res);
                 }
             }
             reader.setSeries(serie);
 
+
             //We need to determine if this image is pyramidal or not.
             //We do this by seeing if the resolutions are downsampled or not.
-            if (b.Resolutions.Count > 1 && b.Type != ImageType.well)
-                if (b.Resolutions[0].PhysicalSizeX < b.Resolutions[1].PhysicalSizeX)
+            if (rss.Count > 1 && b.Type != ImageType.well)
+            {
+                if (rss[0].SizeX > rss[1].SizeX)
                 {
                     b.Type = ImageType.pyramidal;
                     tile = true;
+                    //We need to determine number of pyramids in this image and which belong to the series we are opening.
+                    List<Tuple<int, int>> ims = new List<Tuple<int, int>>();
+                    int? sr = null;
+                    for (int r = 0; r < rss.Count - 1; r++)
+                    {
+                        if (rss[r].SizeX > rss[r + 1].SizeX)
+                        {
+                            if (sr == null)
+                            {
+                                sr = r;
+                                ims.Add(new Tuple<int, int>(r, 0));
+                            }
+                        }
+                        else
+                        {
+                            ims[ims.Count - 1] = new Tuple<int, int>(ims[ims.Count - 1].Item1, r);
+                            sr = null;
+                        }
+                    }
+                    if (ims[serie].Item2 == 0)
+                    {
+                        ims[serie] = new Tuple<int, int>(ims[serie].Item1, rss.Count);
+                    }
+                    for (int r = ims[serie].Item1; r < ims[serie].Item2; r++)
+                    {
+                        b.Resolutions.Add(rss[r]);
+                    }
+                    if (b.Resolutions.Last().PixelFormat == b.Resolutions.First().PixelFormat && rss.Last().PixelFormat != b.Resolutions.Last().PixelFormat)
+                    {
+                        b.Resolutions.Add(rss.Last());
+                        b.Resolutions.Add(rss[rss.Count - 2]);
+                    }
                 }
-
+                else
+                {
+                    b.Resolutions.AddRange(rss);
+                }
+            }
+            else
+                b.Resolutions.AddRange(rss);
 
             b.Volume = new VolumeD(new Point3D(b.StageSizeX, b.StageSizeY, b.StageSizeZ), new Point3D(b.PhysicalSizeX * SizeX, b.PhysicalSizeY * SizeY, b.PhysicalSizeZ * SizeZ));
             pr.Status = "Reading ROIs";
@@ -9880,20 +10130,27 @@ namespace BioCore
 
             List<string> serFiles = new List<string>();
             serFiles.AddRange(reader.getSeriesUsedFiles());
-            try
-            {
-                string st = OpenSlideGTK.OpenSlideImage.DetectVendor(file);
-                if (st != null)
+
+            b.Buffers = new List<BufferInfo>();
+            if (b.Type == ImageType.pyramidal)
+                try
                 {
-                    b.slideImage = OpenSlideGTK.OpenSlideImage.Open(file);
-                    b.Type = ImageType.pyramidal;
-                    tile = true;
+                    string st = OpenSlideImage.DetectVendor(file);
+                    if (st != null && !file.EndsWith("ome.tif") && useOpenSlide)
+                    {
+                        b.openSlideImage = OpenSlideImage.Open(file);
+                        b.openSlideBase = (OpenSlideBase)OpenSlideGTK.SlideSourceBase.Create(file);
+                    }
+                    else
+                    {
+                        b.slideBase = new SlideBase(b);
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message.ToString());
-            }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message.ToString());
+                    b.slideBase = new SlideBase(b);
+                }
 
             // read the image data bytes
             int pages = reader.getImageCount();
@@ -9967,8 +10224,7 @@ namespace BioCore
                 b.StackThreshold(true);
             else
                 b.StackThreshold(false);
-            if (addToImages)
-                Images.AddImage(b, tab);
+            
             //We use a try block to close the reader as sometimes this will cause an error.
             bool stop = false;
             do
@@ -9987,6 +10243,8 @@ namespace BioCore
             b.SetLabelMacroResolutions();
             Console.WriteLine("Opening complete " + file);
             pr.Close();
+            if (addToImages)
+                Images.AddImage(b, tab);
             return b;
         }
         public ImageReader imRead = new ImageReader();
@@ -10098,9 +10356,9 @@ namespace BioCore
                 return ExtractRegionFromTiledTiff(b, tilex, tiley, tileSizeX, tileSizeY, serie);
             }
             //We check if we can open this with OpenSlide as this is faster than Bioformats with IKVM.
-            if (b.slideImage != null && OpenSlide)
+            if (b.openSlideImage != null && OpenSlide && !b.file.EndsWith("ome.tif"))
             {
-                return new BufferInfo(tileSizeX, tileSizeY, PixelFormat.Format32bppArgb, b.slideImage.ReadRegion(serie, tilex, tiley, tileSizeX, tileSizeY), coord, "");
+                return new BufferInfo(tileSizeX, tileSizeY, PixelFormat.Format32bppArgb, b.openSlideImage.ReadRegion(serie, tilex, tiley, tileSizeX, tileSizeY), coord, "");
             }
             if (b.imRead == null)
                 b.imRead = new ImageReader();
@@ -10133,9 +10391,66 @@ namespace BioCore
                 return null;
             if (sy <= 0)
                 return null;
-            byte[] bytesr = b.imRead.openBytes(b.Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
+            try
+            {
+                byte[] bytesr = b.imRead.openBytes(b.Coords[coord.Z, coord.C, coord.T], tilex, tiley, sx, sy);
+                bool interleaved = b.imRead.isInterleaved();
+                BufferInfo bm = new BufferInfo(b.file, sx, sy, px, bytesr, coord, p, null, littleEndian, interleaved);
+                return bm;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+            
+        }
+        public static BufferInfo GetTile(BioImage b, int index, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY, bool OpenSlide = true)
+        {
+            if ((b.file.EndsWith("ome.tif") && vips) || (b.file.EndsWith(".tif") && vips))
+            {
+                //We can get a tile faster with libvips rather than bioformats.
+                //and incase we are on mac we can't use bioformats due to IKVM not supporting mac.
+                return ExtractRegionFromTiledTiff(b, tilex, tiley, tileSizeX, tileSizeY, serie);
+            }
+            //We check if we can open this with OpenSlide as this is faster than Bioformats with IKVM.
+            if (b.openSlideImage != null && OpenSlide && !b.file.EndsWith("ome.tif"))
+            {
+                return new BufferInfo(tileSizeX, tileSizeY, PixelFormat.Format32bppArgb, b.openSlideImage.ReadRegion(serie, tilex, tiley, tileSizeX, tileSizeY), new ZCT(), "");
+            }
+            if (b.imRead == null)
+                b.imRead = new ImageReader();
+            string s = b.imRead.getCurrentFile();
+            b.file = b.file.Replace("\\", "/");
+            if (s == null)
+                b.imRead.setId(b.file);
+            if (b.imRead.getSeries() != serie)
+                b.imRead.setSeries(serie);
+            int SizeX = b.imRead.getSizeX();
+            int SizeY = b.imRead.getSizeY();
+            bool littleEndian = b.imRead.isLittleEndian();
+            PixelFormat px = b.Resolutions[serie].PixelFormat;
+            if (tilex < 0)
+                tilex = 0;
+            if (tiley < 0)
+                tiley = 0;
+            if (tilex >= SizeX)
+                tilex = SizeX - 1;
+            if (tiley >= SizeY)
+                tiley = SizeY - 1;
+            int sx = tileSizeX;
+            if (tilex + tileSizeX > SizeX)
+                sx -= (tilex + tileSizeX) - (SizeX);
+            int sy = tileSizeY;
+            if (tiley + tileSizeY > SizeY)
+                sy -= (tiley + tileSizeY) - (SizeY);
+            if (sx <= 0)
+                return null;
+            if (sy <= 0)
+                return null;
+            byte[] bytesr = b.imRead.openBytes(index, tilex, tiley, sx, sy);
             bool interleaved = b.imRead.isInterleaved();
-            BufferInfo bm = new BufferInfo(b.file, sx, sy, px, bytesr, coord, p, null, littleEndian, interleaved);
+            BufferInfo bm = new BufferInfo(b.file, sx, sy, px, bytesr, new ZCT(), index, null, littleEndian, interleaved);
             return bm;
         }
         public Bitmap GetTileRGB(ZCT coord, int serie, int tilex, int tiley, int tileSizeX, int tileSizeY)
