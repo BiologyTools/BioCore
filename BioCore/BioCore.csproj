@@ -80,6 +80,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="OpenSlideGTK" Version="1.5.0" />
     <PackageReference Include="ScottPlot" Version="5.0.21" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
@@ -124,8 +125,5 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\OpenSlideGTK\src\OpenSlideSharp\OpenSlideGTK.csproj" />
   </ItemGroup>
 </Project>

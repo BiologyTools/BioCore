@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using BioCore.Graphics;
 using Point = System.Drawing.Point;
 using AForge.Imaging.Filters;
+using org.checkerframework.checker.units.qual;
 
 namespace BioCore
 {
@@ -674,7 +675,7 @@ namespace BioCore
                 if (!openSlide)
                     l = SelectedImage.Level;
                 else
-                    l = OpenSlideGTK.TileUtil.GetLevel(_slideBase.Schema.Resolutions, Resolution);
+                    l = OpenSlideGTK.TileUtil.GetLevel(_openSlideBase.Schema.Resolutions, Resolution);
                 return l;
             }
         }
@@ -695,10 +696,7 @@ namespace BioCore
                 if (SelectedImage != null)
                     if (SelectedImage.isPyramidal)
                     {
-                        if (openSlide)
-                            Tools.selectBoxSize = (float)(ROI.selectBoxSize * Resolution);
-                        else
-                            Tools.selectBoxSize = ROI.selectBoxSize;
+                        Tools.selectBoxSize = (float)(ROI.selectBoxSize * Resolution);
                     }
                     else
                         Tools.selectBoxSize = ROI.selectBoxSize * Scale.Width;
@@ -1947,10 +1945,7 @@ namespace BioCore
                     float width = (float)ToViewSizeW(ROI.selectBoxSize / w);
                     if (SelectedImage.isPyramidal)
                     {
-                        if (openSlide)
-                            width = (float)(ROI.selectBoxSize * Resolution);
-                        else
-                            width = ROI.selectBoxSize;
+                        width = (float)(ROI.selectBoxSize * Resolution);
                     }
                     if (an.type == ROI.Type.Point)
                     {
@@ -2422,7 +2417,8 @@ namespace BioCore
             {
                 if (!OpenSlide)
                 {
-                    double dsx = SelectedImage.GetUnitPerPixel(Level) / Resolution;
+                    double up = SelectedImage.GetUnitPerPixel(Level);
+                    double dsx = (SelectedImage.PhysicalSizeX / Resolution);
                     Resolution rs = SelectedImage.Resolutions[(int)Level];
                     double dx = ((double)e.X / overview.Width) * (rs.SizeX * dsx);
                     double dy = ((double)e.Y / overview.Height) * (rs.SizeY * dsx);
@@ -2468,7 +2464,7 @@ namespace BioCore
             {
                 float width = (float)ToViewSizeW(ROI.selectBoxSize / Scale.Width);
                 float height = (float)ToViewSizeH(ROI.selectBoxSize / Scale.Height);
-                if (openSlide)
+                if (SelectedImage.isPyramidal)
                 {
                     width = Tools.selectBoxSize;
                     height = Tools.selectBoxSize;
@@ -2749,12 +2745,7 @@ namespace BioCore
         {
             if (SelectedImage.isPyramidal)
             {
-                if (openSlide)
-                {
-                    return new PointD((PyramidalOrigin.X + x) * Resolution, (PyramidalOrigin.Y + y) * Resolution);
-                }
-                else
-                    return new PointD(PyramidalOrigin.X + x, PyramidalOrigin.Y + y);
+                return new PointD((PyramidalOrigin.X + x) * Resolution, (PyramidalOrigin.Y + y) * Resolution);
             }
             else
                 return ToViewSpace(x, y);
@@ -2788,14 +2779,9 @@ namespace BioCore
         {
             if (SelectedImage.isPyramidal)
             {
-                if (openSlide)
-                {
-                    double ddx = x / Resolution;
-                    double ddy = y / Resolution;
-                    return new PointD(ddx, ddy);
-                }
-                else
-                    return new PointD(PyramidalOrigin.X + x, PyramidalOrigin.Y + y);
+                double ddx = x / Resolution;
+                double ddy = y / Resolution;
+                return new PointD(ddx, ddy);
             }
 
             double dx = (ToViewSizeW(x - (pictureBox.Width / 2)) / Scale.Width) - Origin.X;
@@ -2809,7 +2795,7 @@ namespace BioCore
         /// @return The return value is the size of the object in pixels.
         private double ToViewSizeW(double d)
         {
-            if (openSlide)
+            if (SelectedImage.isPyramidal)
             {
                 return d / Resolution;
             }
@@ -2823,7 +2809,7 @@ namespace BioCore
         /// @return The return value is the size of the object in pixels.
         public double ToViewSizeH(double d)
         {
-            if (openSlide)
+            if (SelectedImage.isPyramidal)
             {
                 return d / Resolution;
             }
@@ -2960,29 +2946,13 @@ namespace BioCore
         public System.Drawing.RectangleF ToScreenRectF(double x, double y, double w, double h)
         {
             if (SelectedImage == null)
-            {
-                PointD pf;
-                if (HardwareAcceleration)
-                {
-                    double dx = (pxWmicron * (-Origin.X)) * Scale.Width;
-                    double dy = (pxHmicron * (-Origin.Y)) * Scale.Height;
-                    System.Drawing.RectangleF rf = new System.Drawing.RectangleF((float)(PxWmicron * -x * Scale.Width + dx), (float)(PxHmicron * -y * Scale.Height + dy), (float)(PxWmicron * -w * Scale.Width), (float)(PxHmicron * -h * Scale.Height));
-                    return rf;
-                }
-                pf = ToScreenSpace(x, y);
-                return new System.Drawing.RectangleF((float)pf.X, (float)pf.Y, ToScreenScaleW(w), ToScreenScaleH(h));
-            }
+                return new RectangleF();
             if (SelectedImage.isPyramidal)
             {
-                if (openSlide)
-                {
-                    PointD d = ToViewSpace(x, y);
-                    double dw = ToViewSizeW(w);
-                    double dh = ToViewSizeH(h);
-                    return new System.Drawing.RectangleF((float)(d.X - PyramidalOrigin.X), (float)(d.Y - PyramidalOrigin.Y), (float)dw, (float)dh);
-                }
-                else
-                    return new System.Drawing.RectangleF((float)(x - pyramidalOrigin.X), (float)(y - pyramidalOrigin.Y), (float)w, (float)h);
+                PointD d = ToViewSpace(x, y);
+                double dw = ToViewSizeW(w);
+                double dh = ToViewSizeH(h);
+                return new System.Drawing.RectangleF((float)(d.X - PyramidalOrigin.X), (float)(d.Y - PyramidalOrigin.Y), (float)dw, (float)dh);
             }
             else
             {
@@ -3081,10 +3051,6 @@ namespace BioCore
         /// @return The return value is a float.
         public float ToScreenW(double x)
         {
-            if (HardwareAcceleration)
-            {
-                return (float)(x * PxWmicron);
-            }
             return (float)(x * PxWmicron);
         }
         /// > Convert a value in microns to a value in pixels
@@ -3094,10 +3060,6 @@ namespace BioCore
         /// @return The return value is a float.
         public float ToScreenH(double y)
         {
-            if (HardwareAcceleration)
-            {
-                return (float)(y * PxHmicron);
-            }
             return (float)(y * PxHmicron);
         }
         /// If the user presses the "C" key while holding down the "Control" key, then the function
@@ -3216,6 +3178,7 @@ namespace BioCore
                     {
                         int lev = MacroResolution.Value - 1;
                         Resolution = Math.Round(SelectedImage.GetUnitPerPixel(lev),2);
+                        PyramidalOrigin = new PointD(0, 0);
                     }
                     else
                     {

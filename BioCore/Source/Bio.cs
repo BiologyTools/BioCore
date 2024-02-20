@@ -5846,11 +5846,6 @@ namespace BioCore
             get { return pyramidalOrigin; }
             set
             {
-                if (Resolutions[Level].SizeX < value.X || Resolutions[Level].SizeY < value.Y || value.X < 0 || value.Y < 0)
-                {
-                    pyramidalOrigin = new PointD(Resolutions[Level].SizeX - s.Width, Resolutions[Level].SizeY - s.Height);
-                    return;
-                }
                 pyramidalOrigin = value;
             }
         }
@@ -5945,7 +5940,9 @@ namespace BioCore
                 if (openSlideImage != null)
                 {
                     byte[] bts = openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
-                    Buffers.Add(new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), ""));
+                    BufferInfo bf = new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                    bf.Stats = Statistics.FromBytes(bf);
+                    Buffers.Add(bf);
                 }
                 else
                 {
@@ -5960,10 +5957,12 @@ namespace BioCore
                         pyramidalOrigin = new PointD(0, 0);
                         goto start;
                     }
-                    Buffers.Add(new BufferInfo((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), ""));
+                    BufferInfo bf = new BufferInfo((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                    bf.Stats = Statistics.FromBytes(bf);
+                    Buffers.Add(bf);
                 }
             }
-            BioImage.AutoThreshold(this, true);
+            BioImage.AutoThreshold(this, false);
             if (bitsPerPixel > 8)
                 StackThreshold(true);
             else
@@ -9522,7 +9521,7 @@ namespace BioCore
             Recorder.AddLine("BioImage.FolderToStack(\"" + path + "\");");
             return b;
         }
-        public static BioImage OpenOME(string file, int serie, bool tab, bool addToImages, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY, bool useOpenSlide = false)
+        public static BioImage OpenOME(string file, int serie, bool tab, bool addToImages, bool tile, int tilex, int tiley, int tileSizeX, int tileSizeY, bool useOpenSlide = true)
         {
             if (file == null || file == "")
                 throw new InvalidDataException("File is empty or null");

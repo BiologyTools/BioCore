@@ -85,7 +85,7 @@ namespace Bio
             var dstPixelWidth = sliceInfo.Parame.DstPixelWidth > 0 ? sliceInfo.Parame.DstPixelWidth : dstPixelExtent.Width;
             destExtent = new Extent(0, 0, dstPixelWidth, dstPixelHeight);
             sourceExtent = srcPixelExtent;
-            /*
+            
             if (UseVips)
             {
                 try
@@ -101,7 +101,7 @@ namespace Bio
                     Console.WriteLine(e.Message);
                 }
             }
-            */
+            
             try
             {
                 Image<Rgb24> im = OpenSlideGTK.ImageUtil.Join(tiles, srcPixelExtent, new Extent(0, 0, dstPixelWidth, dstPixelHeight));
