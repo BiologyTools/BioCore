@@ -11,6 +11,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "BioCoreSetup", "..\BioCoreS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PluginExampleWIN", "..\PluginExampleWIN\PluginExampleWIN.csproj", "{4350D3BC-54DE-439B-8544-C1BAAB8C1FC9}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSlideGTK", "..\OpenSlideGTK\src\OpenSlideSharp\OpenSlideGTK.csproj", "{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,18 @@ Global
 		{4350D3BC-54DE-439B-8544-C1BAAB8C1FC9}.Release|x64.Build.0 = Release|Any CPU
 		{4350D3BC-54DE-439B-8544-C1BAAB8C1FC9}.Release|x86.ActiveCfg = Release|Any CPU
 		{4350D3BC-54DE-439B-8544-C1BAAB8C1FC9}.Release|x86.Build.0 = Release|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|x64.ActiveCfg = Debug|x64
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|x64.Build.0 = Debug|x64
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Debug|x86.Build.0 = Debug|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|x64.ActiveCfg = Release|x64
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|x64.Build.0 = Release|x64
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|x86.ActiveCfg = Release|Any CPU
+		{1675E8BA-EA48-4883-B7BA-CCA6211E9D21}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

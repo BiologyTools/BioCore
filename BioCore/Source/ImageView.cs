@@ -572,7 +572,7 @@ namespace BioCore
                 UpdateView();
             }
         }
-        ///A property of the class ImageViewer. It is a getter and setter for the resolution of the image.
+        ///A property of the class ImageViewer. It is a getter and setter for the Resolution of the image.
         public double Resolution
         {
             get
@@ -606,23 +606,24 @@ namespace BioCore
             }
             else
             {
-                hScrollBar.Maximum = SelectedImage.Resolutions[Level].SizeX;
-                vScrollBar.Maximum = SelectedImage.Resolutions[Level].SizeY;
+                double dsx = SelectedImage.GetUnitPerPixel(Level) / Resolution;
+                hScrollBar.Maximum = (int)(SelectedImage.Resolutions[Level].SizeX * dsx);
+                vScrollBar.Maximum = (int)(SelectedImage.Resolutions[Level].SizeY * dsx);
             }
         }
 
         ///Setting the Level of the image. */
-        private int LevelFromResolution(double resolution)
+        private int LevelFromResolution(double Resolution)
         {
             int lev;
             if (MacroResolution.HasValue)
             {
-                if (resolution >= MacroResolution.Value)
+                if (Resolution >= MacroResolution.Value)
                 {
                     int r = 0;
                     for (int i = 0; i < SelectedImage.Resolutions.Count; i++)
                     {
-                        if (i <= resolution - 1)
+                        if (i <= Resolution - 1)
                             r = i;
                     }
                     if (r - 1 <= MacroResolution.Value)
@@ -631,14 +632,14 @@ namespace BioCore
                         lev = r - 1;
                 }
                 else
-                    return (int)resolution;
+                    return (int)Resolution;
             }
             else
             {
                 int r = 0;
                 for (int i = 0; i < SelectedImage.Resolutions.Count; i++)
                 {
-                    if (i <= resolution - 1)
+                    if (i <= Resolution - 1)
                         r = i;
                 }
                 lev = r;
@@ -671,9 +672,9 @@ namespace BioCore
             {
                 int l = 0;
                 if (!openSlide)
-                    l = OpenSlideGTK.TileUtil.GetLevel(_slideBase.Schema.Resolutions, Resolution);
-                else
                     l = SelectedImage.Level;
+                else
+                    l = OpenSlideGTK.TileUtil.GetLevel(_slideBase.Schema.Resolutions, Resolution);
                 return l;
             }
         }
@@ -695,7 +696,7 @@ namespace BioCore
                     if (SelectedImage.isPyramidal)
                     {
                         if (openSlide)
-                            Tools.selectBoxSize = (float)(ROI.selectBoxSize * resolution);
+                            Tools.selectBoxSize = (float)(ROI.selectBoxSize * Resolution);
                         else
                             Tools.selectBoxSize = ROI.selectBoxSize;
                     }
@@ -1947,7 +1948,7 @@ namespace BioCore
                     if (SelectedImage.isPyramidal)
                     {
                         if (openSlide)
-                            width = (float)(ROI.selectBoxSize * resolution);
+                            width = (float)(ROI.selectBoxSize * Resolution);
                         else
                             width = ROI.selectBoxSize;
                     }
@@ -2169,16 +2170,18 @@ namespace BioCore
                 g.DrawRectangle(Pens.Gray, overview.X, overview.Y, overview.Width, overview.Height);
                 if (!openSlide)
                 {
+                    double up = SelectedImage.GetUnitPerPixel(Level);
+                    double dsx = (SelectedImage.PhysicalSizeX / Resolution);
                     Resolution rs = SelectedImage.Resolutions[Level];
-                    double dx = ((double)PyramidalOrigin.X / rs.SizeX) * overview.Width;
-                    double dy = ((double)PyramidalOrigin.Y / rs.SizeY) * overview.Height;
-                    double dw = ((double)pictureBox.Width / rs.SizeX) * overview.Width;
-                    double dh = ((double)pictureBox.Height / rs.SizeY) * overview.Height;
-                    g.DrawRectangle(Pens.Red, (int)dx, (int)dy, (int)dw, (int)dh);
+                    double dx = ((double)PyramidalOrigin.X / (rs.SizeX * dsx)) * overview.Width;
+                    double dy = ((double)PyramidalOrigin.Y / (rs.SizeY * dsx)) * overview.Height;
+                    double dw = ((double)pictureBox.Width / (rs.SizeX * dsx)) * overview.Width;
+                    double dh = ((double)pictureBox.Height / (rs.SizeY * dsx)) * overview.Height;
+                    g.DrawRectangle(Pens.Red, (int)(dx), (int)(dy), (int)(dw), (int)(dh));
                 }
                 else
                 {
-                    double dsx = SelectedImage.openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / resolution;
+                    double dsx = SelectedImage.openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
                     Resolution rs = SelectedImage.Resolutions[Level];
                     double dx = ((double)PyramidalOrigin.X / (rs.SizeX * dsx)) * overview.Width;
                     double dy = ((double)PyramidalOrigin.Y / (rs.SizeY * dsx)) * overview.Height;
@@ -2191,8 +2194,6 @@ namespace BioCore
             update = false;
             drawing = false;
         }
-
-        private double resolution;
         private double scaleorig = 0;
         /// It draws the view.
         /// 
@@ -2421,14 +2422,17 @@ namespace BioCore
             {
                 if (!OpenSlide)
                 {
+                    double dsx = SelectedImage.GetUnitPerPixel(Level) / Resolution;
                     Resolution rs = SelectedImage.Resolutions[(int)Level];
-                    double dx = ((double)e.X / overview.Width) * rs.SizeX;
-                    double dy = ((double)e.Y / overview.Height) * rs.SizeY;
-                    PyramidalOrigin = new PointD(dx, dy);
+                    double dx = ((double)e.X / overview.Width) * (rs.SizeX * dsx);
+                    double dy = ((double)e.Y / overview.Height) * (rs.SizeY * dsx);
+                    double w = (double)pictureBox.Width / 2;
+                    double h = (double)pictureBox.Height / 2;
+                    PyramidalOrigin = new PointD(dx - w, dy - h);
                 }
                 else
                 {
-                    double dsx = SelectedImage.openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / resolution;
+                    double dsx = SelectedImage.openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
                     Resolution rs = SelectedImage.Resolutions[(int)Level];
                     double dx = ((double)e.X / overview.Width) * (rs.SizeX * dsx);
                     double dy = ((double)e.Y / overview.Height) * (rs.SizeY * dsx);

@@ -72,8 +72,8 @@ namespace Bio
                 {
                     cache = _bgraCache[t.Index];
                 }
-                if (cache == null)
-                {
+                else
+                { 
                     cache = GetTile(t);
                     _bgraCache.Add(t.Index, cache);
                 }

@@ -5847,7 +5847,10 @@ namespace BioCore
             set
             {
                 if (Resolutions[Level].SizeX < value.X || Resolutions[Level].SizeY < value.Y || value.X < 0 || value.Y < 0)
+                {
+                    pyramidalOrigin = new PointD(Resolutions[Level].SizeX - s.Width, Resolutions[Level].SizeY - s.Height);
                     return;
+                }
                 pyramidalOrigin = value;
             }
         }
@@ -5914,7 +5917,7 @@ namespace BioCore
             for (int i = 0; i < ds.Length; i++)
             {
                 if (ds[i] > Resolution)
-                    return i - 1;
+                    return i;
             }
             return 0;
         }
