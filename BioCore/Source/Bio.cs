@@ -47,16 +47,23 @@ namespace BioCore
             im.Filename = GetImageName(im.ID);
             im.ID = im.Filename;
             images.Add(im);
-            if (newtab)
-                App.tabsView.AddTab(im);
-            else
+            System.Threading.Tasks.Task.Run(() =>
             {
-                if (!App.viewer.Images.Contains(im))
+                App.tabsView.Invoke((MethodInvoker)delegate
                 {
-                    App.viewer.AddImage(im);
-                    App.viewer.Update();
-                }
-            }
+                    if (newtab)
+                        App.tabsView.AddTab(im);
+                    else
+                    {
+                        if (App.viewer != null)
+                            App.viewer.AddImage(im);
+                        else
+                            App.tabsView.AddTab(im);
+                    }
+                    Console.WriteLine("Added image " + im.Filename + " to Images Table.");
+                    App.nodeView.UpdateNodes();
+                });
+            });
         }
         /// It takes a string as an argument, and returns the number of times that string appears in the
         /// list of images

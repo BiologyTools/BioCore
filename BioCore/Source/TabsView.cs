@@ -1,6 +1,5 @@
 ﻿using BioCore;
 using System.Diagnostics;
-
 namespace BioCore
 {
     public partial class TabsView : Form
