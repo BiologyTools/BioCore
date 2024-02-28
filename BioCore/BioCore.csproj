@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.8.0</Version>
+	  <Version>3.9.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.8.0</AssemblyVersion>
-    <FileVersion>3.8.0</FileVersion>
-    <PackageReleaseNotes>Multi-pyramid file support and OME pyramidal viewing improvements.</PackageReleaseNotes>
+    <AssemblyVersion>3.9.0</AssemblyVersion>
+    <FileVersion>3.9.0</FileVersion>
+    <PackageReleaseNotes>Viewing multiple pyramid files at the same time &amp; viewing improvements for pyramidal images.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

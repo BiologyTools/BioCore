@@ -6,7 +6,6 @@ using System.Drawing.Imaging;
 using BioCore.Graphics;
 using Point = System.Drawing.Point;
 using AForge.Imaging.Filters;
-using org.checkerframework.checker.units.qual;
 
 namespace BioCore
 {
@@ -260,7 +259,7 @@ namespace BioCore
         /// </summary>
         private void InitPreview()
         {
-            if (SelectedImage.Resolutions.Count == 1)
+            if (!SelectedImage.isPyramidal)
                 return;
             overview = new Rectangle(0, 0, 120, 120);
             if (MacroResolution.HasValue)
@@ -281,8 +280,19 @@ namespace BioCore
                 overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
                 Bitmap bm;
                 ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
-                BufferInfo bts = BioImage.GetTile(SelectedImage, GetCoordinate(), SelectedImage.Resolutions.Count - 1, 0, 0, res.SizeX, res.SizeY);
-                bm = re.Apply((Bitmap)bts.ImageRGB);
+                byte[] bts;
+                BufferInfo bf;
+                if (_openSlideBase != null)
+                {
+                    bts = _openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level)));
+                    bf = new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                }
+                else
+                {
+                    bts = _slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level))).Result;
+                    bf = new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                }
+                bm = re.Apply((Bitmap)bf.ImageRGB);
                 overviewBitmap = bm;
             }
             ShowOverview = true;
@@ -3429,8 +3439,8 @@ namespace BioCore
         #region OpenSlide
         private OpenSlideBase _openSlideBase;
         private OpenSlideGTK.ISlideSource _openSlideSource;
-        private Bio.ISlideSource _slideSource;
-        private Bio.SlideBase _slideBase;
+        private ISlideSource _slideSource;
+        private SlideBase _slideBase;
         /// <summary>
         /// Open slide file
         /// </summary>

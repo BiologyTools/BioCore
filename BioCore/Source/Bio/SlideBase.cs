@@ -9,19 +9,16 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using BioCore;
 
-namespace Bio
+namespace BioCore
 {
     public class SlideBase : SlideSourceBase
     {
         public readonly SlideImage SlideImage;
-        private readonly bool _enableCache;
-        private readonly MemoryCache<byte[]> _tileCache = new MemoryCache<byte[]>();
-
-        public SlideBase(BioImage source, bool enableCache = true)
+        public SlideBase(BioCore.BioImage source, SlideImage im, bool enableCache = true)
         {
             Source = source.file;
-            _enableCache = enableCache;
-            SlideImage = SlideImage.Open(source);
+            SlideImage = im;
+            Image = im;
             double minUnitsPerPixel;
             if (source.PhysicalSizeX < source.PhysicalSizeY) minUnitsPerPixel = source.PhysicalSizeX; else minUnitsPerPixel = source.PhysicalSizeY;
             MinUnitsPerPixel = UseRealResolution ? minUnitsPerPixel : 1;
@@ -81,12 +78,8 @@ namespace Bio
 
             return image;
         }
-        public override byte[] GetTile(TileInfo tileInfo)
+        public byte[] GetTile(TileInfo tileInfo)
         {
-            if (tileInfo == null)
-                return null;
-            if (_enableCache && _tileCache.Find(tileInfo.Index) is byte[] output)
-                return output;
             var r = Schema.Resolutions[tileInfo.Index.Level].UnitsPerPixel;
             var tileWidth = Schema.Resolutions[tileInfo.Index.Level].TileWidth;
             var tileHeight = Schema.Resolutions[tileInfo.Index.Level].TileHeight;
@@ -99,8 +92,6 @@ namespace Bio
             if (bgraData.Length != curTileWidth * curTileHeight * 4)
                 return null;
             byte[] bm = ConvertRgbaToRgb(bgraData);
-            if (_enableCache && bgraData != null)
-                _tileCache.Add(tileInfo.Index, bm);
             return bm;
         }
         public static byte[] ConvertRgbaToRgb(byte[] rgbaArray)
@@ -111,17 +102,12 @@ namespace Bio
             for (int i = 0, j = 0; i < rgbaArray.Length; i += 4, j += 3)
             {
                 // Copy the R, G, B values, skip the A value
-                rgbArray[j] = rgbaArray[i + 2];     // B
+                rgbArray[j] = rgbaArray[i];     // B
                 rgbArray[j + 1] = rgbaArray[i + 1]; // G
-                rgbArray[j + 2] = rgbaArray[i]; // R
+                rgbArray[j + 2] = rgbaArray[i + 2]; // R
             }
 
             return rgbArray;
-        }
-
-        public override async Task<byte[]> GetTileAsync(TileInfo tileInfo)
-        {
-            throw new NotImplementedException();
         }
 
         protected void InitResolutions(IDictionary<int, BruTile.Resolution> resolutions, int tileWidth, int tileHeight)
@@ -137,7 +123,7 @@ namespace Bio
                 var th = useInternalSize ? h : tileHeight;
                 resolutions.Add(i, new Resolution(i, MinUnitsPerPixel * SlideImage.GetLevelDownsample(i), tw, th));
                 */
-                resolutions.Add(i, new BruTile.Resolution(i, SlideImage.BioImage.GetUnitPerPixel(SlideImage.BioImage.Level), tileWidth, tileHeight));
+                resolutions.Add(i, new BruTile.Resolution(i, SlideImage.BioImage.GetUnitPerPixel(i), tileWidth, tileHeight));
             }
         }
 

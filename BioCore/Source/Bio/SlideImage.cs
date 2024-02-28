@@ -1,5 +1,4 @@
-﻿using BioCore;
-using OpenSlideGTK;
+﻿using OpenSlideGTK;
 using OpenSlideGTK.Interop;
 using org.checkerframework.common.returnsreceiver.qual;
 using System;
@@ -9,8 +8,9 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
-namespace Bio
+namespace BioCore
 {
     /// <summary>
     /// openslide wrapper
@@ -238,11 +238,14 @@ namespace Bio
         /// <returns></returns>
         public unsafe bool TryReadRegion(int level, long x, long y, long width, long height, out byte[] data)
         {
-            data = BioImage.GetTile(BioImage, App.viewer.GetCoordinate(), level, (int)x, (int)y, (int)width, (int)height).RGBBytes;
-            if (data == null)
-                return false;
-            else
+            BufferInfo bm = BioImage.GetTile(BioImage, App.viewer.GetCoordinate(), level, (int)x, (int)y, (int)width, (int)height);
+            if (bm!=null)
+            {
+                data = bm.RGBBytes;
                 return true;
+            }
+            data = null;
+            return false;
         }
 
         ///<summary>
@@ -291,6 +294,20 @@ namespace Bio
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        public async Task<byte[]> ReadRegionAsync(int level, long curLevelOffsetXPixel, long curLevelOffsetYPixel, int curTileWidth, int curTileHeight)
+        {
+            try
+            {
+                byte[] bts;
+                TryReadRegion(level, curLevelOffsetXPixel, curLevelOffsetYPixel, curTileWidth, curTileHeight,out bts);
+                return bts;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
         #endregion
     }

@@ -56,7 +56,7 @@
             App.nodeView = this;
             foreach (string s in args)
             {
-                BioImage.OpenAsync(s,true,true,true).Wait();
+                BioImage.OpenAsync(s,true,true,true,0).Wait();
             }
             Show();
         }

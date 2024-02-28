@@ -20,7 +20,6 @@ using RectangleF = System.Drawing.RectangleF;
 using Size = System.Drawing.Size;
 using IntRange = AForge.IntRange;
 using OpenSlideGTK;
-using Bio;
 
 namespace BioCore
 {
@@ -5693,7 +5692,24 @@ namespace BioCore
         public long loadTimeTicks = 0;
         public bool selected = false;
         private double resolution = 1;
-        public double Resolution { get { return resolution; } set { resolution = value; } }
+        public double Resolution 
+        { 
+            get { return resolution; }
+            set 
+            {
+                if(value<0)
+                    return;
+                if (!isPyramidal)
+                    return;
+                if(MacroResolution.HasValue)
+                {
+                    if (value < GetUnitPerPixel(Level))
+                        resolution = value;
+                }
+                else
+                resolution = value; 
+            } 
+        }
         public Statistics Statistics
         {
             get
@@ -5928,7 +5944,7 @@ namespace BioCore
         /// <summary>
         /// Updates the Buffers based on current pyramidal origin and resolution.
         /// </summary>
-        public void UpdateBuffersPyramidal()
+        public async void UpdateBuffersPyramidal()
         {
             for (int i = 0; i < Buffers.Count; i++)
             {
@@ -5947,7 +5963,7 @@ namespace BioCore
                 else
                 {
                 start:
-                    byte[] bts = slideBase.GetSlice(new Bio.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
+                    byte[] bts = await slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
                     if (bts == null)
                     {
                         if (PyramidalOrigin.X == 0 && PyramidalOrigin.Y == 0)
@@ -9530,6 +9546,7 @@ namespace BioCore
             {
                 Thread.Sleep(10);
             } while (!initialized);
+            reader = new ImageReader();
             Console.WriteLine("OpenOME " + file);
             if (tileSizeX == 0)
                 tileSizeX = 1920;
@@ -9539,6 +9556,7 @@ namespace BioCore
             pr.Show();
             Application.DoEvents();
             BioImage b = new BioImage(file);
+            b.imRead = reader;
             b.Type = ImageType.stack;
             b.Loading = true;
             if (b.meta == null)
@@ -9739,8 +9757,9 @@ namespace BioCore
                 }
             }
             reader.setSeries(serie);
-
-
+            int pyramidCount = 0;
+            int pyramidResolutions = 0;
+            List<Tuple<int, int>> prs = new List<Tuple<int, int>>();
             //We need to determine if this image is pyramidal or not.
             //We do this by seeing if the resolutions are downsampled or not.
             if (rss.Count > 1 && b.Type != ImageType.well)
@@ -9750,36 +9769,37 @@ namespace BioCore
                     b.Type = ImageType.pyramidal;
                     tile = true;
                     //We need to determine number of pyramids in this image and which belong to the series we are opening.
-                    List<Tuple<int, int>> ims = new List<Tuple<int, int>>();
                     int? sr = null;
                     for (int r = 0; r < rss.Count - 1; r++)
                     {
-                        if (rss[r].SizeX > rss[r + 1].SizeX)
+                        if (rss[r].SizeX > rss[r + 1].SizeX && rss[r].PixelFormat == rss[r + 1].PixelFormat)
                         {
                             if (sr == null)
                             {
                                 sr = r;
-                                ims.Add(new Tuple<int, int>(r, 0));
+                                prs.Add(new Tuple<int, int>(r, 0));
                             }
                         }
                         else
                         {
-                            ims[ims.Count - 1] = new Tuple<int, int>(ims[ims.Count - 1].Item1, r);
+                            if (rss[prs[prs.Count - 1].Item1].PixelFormat == rss[r].PixelFormat)
+                                prs[prs.Count - 1] = new Tuple<int, int>(prs[prs.Count - 1].Item1, r);
                             sr = null;
                         }
                     }
-                    if (ims[serie].Item2 == 0)
+                    pyramidCount = prs.Count;
+                    for (int p = 0; p < prs.Count; p++)
                     {
-                        ims[serie] = new Tuple<int, int>(ims[serie].Item1, rss.Count);
+                        pyramidResolutions += (prs[p].Item2 - prs[p].Item1) + 1;
                     }
-                    for (int r = ims[serie].Item1; r < ims[serie].Item2; r++)
+
+                    if (prs[serie].Item2 == 0)
+                    {
+                        prs[serie] = new Tuple<int, int>(prs[serie].Item1, rss.Count);
+                    }
+                    for (int r = prs[serie].Item1; r < prs[serie].Item2; r++)
                     {
                         b.Resolutions.Add(rss[r]);
-                    }
-                    if (b.Resolutions.Last().PixelFormat == b.Resolutions.First().PixelFormat && rss.Last().PixelFormat != b.Resolutions.Last().PixelFormat)
-                    {
-                        b.Resolutions.Add(rss.Last());
-                        b.Resolutions.Add(rss[rss.Count - 2]);
                     }
                 }
                 else
@@ -9789,6 +9809,13 @@ namespace BioCore
             }
             else
                 b.Resolutions.AddRange(rss);
+
+            //If we have 2 resolutions that were not added they are the label & macro resolutions so we add them to the image.
+            if (rss.Count - pyramidResolutions == 2)
+            {
+                b.Resolutions.Add(rss[rss.Count - 2]);
+                b.Resolutions.Add(rss[rss.Count - 1]);
+            }
 
             b.Volume = new VolumeD(new Point3D(b.StageSizeX, b.StageSizeY, b.StageSizeZ), new Point3D(b.PhysicalSizeX * SizeX, b.PhysicalSizeY * SizeY, b.PhysicalSizeZ * SizeZ));
             pr.Status = "Reading ROIs";
@@ -10145,13 +10172,13 @@ namespace BioCore
                     }
                     else
                     {
-                        b.slideBase = new SlideBase(b);
+                        b.slideBase = new SlideBase(b,SlideImage.Open(b));
                     }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message.ToString());
-                    b.slideBase = new SlideBase(b);
+                    b.slideBase = new SlideBase(b,SlideImage.Open(b));
                 }
 
             // read the image data bytes
@@ -10162,19 +10189,57 @@ namespace BioCore
             int t = 0;
             pr.Status = "Reading Image Data";
             if (!tile)
-                for (int p = 0; p < pages; p++)
+            {
+                try
                 {
-                    BufferInfo bf;
-                    pr.UpdateProgressF((float)p / (float)pages);
-                    byte[] bytes = reader.openBytes(p);
-                    bf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(z, c, t), p, null, b.littleEndian, inter);
-                    b.Buffers.Add(bf);
-                    Statistics.CalcStatistics(b.Buffers.Last());
+                    for (int p = 0; p < pages; p++)
+                    {
+                        BufferInfo bf;
+                        pr.UpdateProgressF((float)p / (float)pages);
+                        byte[] bytes = reader.openBytes(p);
+                        bf = new BufferInfo(file, SizeX, SizeY, PixelFormat, bytes, new ZCT(z, c, t), p, null, b.littleEndian, inter);
+                        b.Buffers.Add(bf);
+                    }
                 }
+                catch (Exception)
+                {
+                    //If we failed to read an entire plane it is likely too large so we open as pyramidal.
+                    b.Type = ImageType.pyramidal;
+                    try
+                    {
+                        string st = OpenSlideImage.DetectVendor(file);
+                        if (st != null && !file.EndsWith("ome.tif") && useOpenSlide)
+                        {
+                            b.openSlideImage = OpenSlideImage.Open(file);
+                            b.openSlideBase = (OpenSlideBase)OpenSlideGTK.SlideSourceBase.Create(file);
+                        }
+                        else
+                        {
+                            b.slideBase = new SlideBase(b, SlideImage.Open(b));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message.ToString());
+                        b.slideBase = new SlideBase(b, SlideImage.Open(b));
+                    }
+                    b.imRead = reader;
+                    for (int p = 0; p < pages; p++)
+                    {
+                        b.Buffers.Add(GetTile(b, p, serie, tilex, tiley, tileSizeX, tileSizeY));
+                        Statistics.CalcStatistics(b.Buffers.Last());
+                    }
+                }
+                
+            }
             else
             {
-                b.Buffers.Add(GetTile(b, new ZCT(z, c, t), serie, tilex, tiley, tileSizeX, tileSizeY));
-                Statistics.CalcStatistics(b.Buffers.Last());
+                b.imRead = reader;
+                for (int p = 0; p < pages; p++)
+                {
+                    b.Buffers.Add(GetTile(b, p, serie, tilex, tiley, tileSizeX, tileSizeY));
+                    Statistics.CalcStatistics(b.Buffers.Last());
+                }
             }
             int pls;
             try
@@ -10651,12 +10716,13 @@ namespace BioCore
         /// It opens a file in a new thread.
         /// 
         /// @param file The file to open
-        public static async Task OpenAsync(string file, bool OME, bool newtab, bool images)
+        public static async Task OpenAsync(string file, bool OME, bool newtab, bool images, int series)
         {
             openfile = file;
             omes = OME;
             tab = newtab;
             add = images;
+            serie = series;
             await Task.Run(OpenThread);
         }
         /// It opens a file asynchronously
@@ -10666,7 +10732,7 @@ namespace BioCore
         {
             foreach (string file in files)
             {
-                await OpenAsync(file, OME, tab, images);
+                await OpenAsync(file, OME, tab, images, 0);
             }
         }
 
@@ -10878,7 +10944,110 @@ namespace BioCore
             Update(this);
         }
 
+        private static List<Resolution> GetResolutions()
+        {
+            List<Resolution> rss = new List<Resolution>();
+            int seriesCount = reader.getSeriesCount();
+            for (int s = 0; s < seriesCount; s++)
+            {
+                reader.setSeries(s);
+                IMetadata meta = (IMetadata)reader.getMetadataStore();
+                for (int r = 0; r < reader.getResolutionCount(); r++)
+                {
+                    Resolution res = new Resolution();
+                    try
+                    {
+                        int rgbc = reader.getRGBChannelCount();
+                        int bps = reader.getBitsPerPixel();
+                        PixelFormat px;
+                        try
+                        {
+                            px = GetPixelFormat(rgbc, meta.getPixelsType(r));
+                        }
+                        catch (Exception)
+                        {
+                            px = GetPixelFormat(rgbc, bps);
+                        }
+                        res.PixelFormat = px;
+                        res.SizeX = reader.getSizeX();
+                        res.SizeY = reader.getSizeY();
+                        if (meta.getPixelsPhysicalSizeX(r) != null)
+                        {
+                            res.PhysicalSizeX = meta.getPixelsPhysicalSizeX(r).value().doubleValue();
+                        }
+                        else
+                            res.PhysicalSizeX = (96 / 2.54) / 1000;
+                        if (meta.getPixelsPhysicalSizeY(r) != null)
+                        {
+                            res.PhysicalSizeY = meta.getPixelsPhysicalSizeY(r).value().doubleValue();
+                        }
+                        else
+                            res.PhysicalSizeY = (96 / 2.54) / 1000;
 
+                        if (meta.getStageLabelX(r) != null)
+                            res.StageSizeX = meta.getStageLabelX(r).value().doubleValue();
+                        if (meta.getStageLabelY(r) != null)
+                            res.StageSizeY = meta.getStageLabelY(r).value().doubleValue();
+                        if (meta.getStageLabelZ(r) != null)
+                            res.StageSizeZ = meta.getStageLabelZ(r).value().doubleValue();
+                        else
+                            res.StageSizeZ = 1;
+                        if (meta.getPixelsPhysicalSizeZ(r) != null)
+                        {
+                            res.PhysicalSizeZ = meta.getPixelsPhysicalSizeZ(r).value().doubleValue();
+                        }
+                        else
+                        {
+                            res.PhysicalSizeZ = 1;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("No Stage Coordinates. PhysicalSize:(" + res.PhysicalSizeX + "," + res.PhysicalSizeY + "," + res.PhysicalSizeZ + ")");
+                    }
+                    rss.Add(res);
+                }
+            }
+            return rss;
+        }
+        private static int GetPyramidCount()
+        {
+            List<Resolution> rss = GetResolutions();
+            //We need to determine if this image is pyramidal or not.
+            //We do this by seeing if the resolutions are downsampled or not.
+            //We also need to determine number of pyramids in this image and which belong to the series we are opening.
+            List<Tuple<int, int>> prs = new List<Tuple<int, int>>();
+            int? sr = null;
+            for (int r = 0; r < rss.Count - 1; r++)
+            {
+                if (rss[r].SizeX > rss[r + 1].SizeX && rss[r].PixelFormat == rss[r + 1].PixelFormat)
+                {
+                    if (sr == null)
+                    {
+                        sr = r;
+                        prs.Add(new Tuple<int, int>(r, 0));
+                    }
+                }
+                else
+                {
+                    if (rss[prs[prs.Count - 1].Item1].PixelFormat == rss[r].PixelFormat)
+                        prs[prs.Count - 1] = new Tuple<int, int>(prs[prs.Count - 1].Item1, r);
+                    sr = null;
+                }
+            }
+            return prs.Count;
+        }
+        public static int GetSeriesCount(string file)
+        {
+            reader.setId(file);
+            int i = reader.getSeriesCount();
+            int prs = GetPyramidCount();
+            reader.close();
+            if (prs > 0)
+                return prs;
+            else
+                return i;
+        }
 
         private static Stopwatch st = new Stopwatch();
         private static ServiceFactory factory;

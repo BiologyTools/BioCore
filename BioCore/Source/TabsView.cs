@@ -976,11 +976,18 @@ namespace BioCore
         /// @param EventArgs e
         /// 
         /// @return The BioImage[] bs is being returned.
-        private void openSeriesToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void openSeriesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openFilesDialog.ShowDialog() != DialogResult.OK)
                 return;
-            BioImage.OpenOMESeries(openFilesDialog.FileName, true, true);
+            foreach (var file in openFilesDialog.FileNames)
+            {
+                int c = BioImage.GetSeriesCount(file);
+                for (int i = 0; i < c; i++)
+                {
+                    await BioImage.OpenAsync(file, true, true, true,c);
+                }
+            }
         }
 
         /// If the user selects a file to save to, and the images are not 8 or 16 bit, ask the user if
