@@ -290,7 +290,7 @@ namespace BioCore
                 else
                 {
                     bts = _slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level))).Result;
-                    bf = new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                    bf = new BufferInfo((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
                 }
                 bm = re.Apply((Bitmap)bf.ImageRGB);
                 overviewBitmap = bm;
