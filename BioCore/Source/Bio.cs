@@ -5970,7 +5970,7 @@ namespace BioCore
                 else
                 {
                 start:
-                    byte[] bts = await slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution));
+                    byte[] bts = await slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, PyramidalSize.Width, PyramidalSize.Height, resolution, new ZCT()));
                     if (bts == null)
                     {
                         if (PyramidalOrigin.X == 0 && PyramidalOrigin.Y == 0)
@@ -7955,7 +7955,7 @@ namespace BioCore
         /// > Initialize the OME-XML library
         private static void InitOME()
         {
-            factory = new ServiceFactory();
+             factory = new ServiceFactory();
             service = (OMEXMLService)factory.getInstance(typeof(OMEXMLService));
             reader = new ImageReader();
             writer = new ImageWriter();
@@ -10321,7 +10321,7 @@ namespace BioCore
                 Images.AddImage(b, tab);
             return b;
         }
-        public ImageReader imRead = new ImageReader();
+        public ImageReader imRead = null;
         byte[] bts;
         int ssx, ssy;
         public static int FindFocus(BioImage im, int Channel, int Time)

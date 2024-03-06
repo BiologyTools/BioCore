@@ -1,6 +1,7 @@
-﻿using OpenSlideGTK;
+﻿using AForge;
+using BioCore;
+using OpenSlideGTK;
 using OpenSlideGTK.Interop;
-using org.checkerframework.common.returnsreceiver.qual;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -236,16 +237,13 @@ namespace BioCore
         /// <param name="height">The height of the region. Must be non-negative.</param>
         /// <param name="data">The BGRA pixel data of this region.</param>
         /// <returns></returns>
-        public unsafe bool TryReadRegion(int level, long x, long y, long width, long height, out byte[] data)
+        public unsafe bool TryReadRegion(int level, long x, long y, long width, long height, out byte[] data, ZCT zct)
         {
-            BufferInfo bm = BioImage.GetTile(BioImage, App.viewer.GetCoordinate(), level, (int)x, (int)y, (int)width, (int)height);
-            if (bm!=null)
-            {
-                data = bm.RGBBytes;
+            data = BioImage.GetTile(BioImage, zct, level, (int)x, (int)y, (int)width, (int)height).RGBBytes;
+            if (data == null)
+                return false;
+            else
                 return true;
-            }
-            data = null;
-            return false;
         }
 
         ///<summary>
@@ -296,12 +294,12 @@ namespace BioCore
             GC.SuppressFinalize(this);
         }
 
-        public async Task<byte[]> ReadRegionAsync(int level, long curLevelOffsetXPixel, long curLevelOffsetYPixel, int curTileWidth, int curTileHeight)
+        public async Task<byte[]> ReadRegionAsync(int level, long curLevelOffsetXPixel, long curLevelOffsetYPixel, int curTileWidth, int curTileHeight, ZCT coord)
         {
             try
             {
                 byte[] bts;
-                TryReadRegion(level, curLevelOffsetXPixel, curLevelOffsetYPixel, curTileWidth, curTileHeight,out bts);
+                TryReadRegion(level, curLevelOffsetXPixel, curLevelOffsetYPixel, curTileWidth, curTileHeight,out bts,coord);
                 return bts;
             }
             catch (Exception e)
