@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>3.9.1</Version>
+	  <Version>4.0.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -23,9 +23,9 @@
     <PackageId>BioCore</PackageId>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
-    <AssemblyVersion>3.9.1</AssemblyVersion>
-    <FileVersion>3.9.1</FileVersion>
-    <PackageReleaseNotes>Pyramidal ZCT depth support for OME type slides.</PackageReleaseNotes>
+    <AssemblyVersion>4.0.0</AssemblyVersion>
+    <FileVersion>4.0.0</FileVersion>
+    <PackageReleaseNotes>.NET8 update.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -64,24 +64,24 @@
 
   <ItemGroup>
     <PackageReference Include="AForgeImagingCore" Version="2.2.5" />
-    <PackageReference Include="BioFormats.NET6" Version="7.2.0" />
+    <PackageReference Include="BioFormats.NET8" Version="7.2.0.1" />
     <PackageReference Include="BitMiracle.LibTiff.NET" Version="2.4.649" />
     <PackageReference Include="CS-Script" Version="4.8.14" />
     <PackageReference Include="FlaUI.Core" Version="4.0.0" />
     <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="H.InputSimulator" Version="1.4.1" />
-    <PackageReference Include="IKVM" Version="8.7.5" />
+    <PackageReference Include="IKVM" Version="8.8.0" />
     <PackageReference Include="MouseKeyHook" Version="5.7.1" />
-    <PackageReference Include="NetVips" Version="2.4.0" />
-    <PackageReference Include="NetVips.Native" Version="8.15.1" />
-    <PackageReference Include="NetVips.Native.win-x64" Version="8.15.1" />
+    <PackageReference Include="NetVips" Version="2.4.1" />
+    <PackageReference Include="NetVips.Native" Version="8.15.2" />
+    <PackageReference Include="NetVips.Native.win-x64" Version="8.15.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.8.0">
+    <PackageReference Include="NuGet.Build.Tasks.Pack" Version="6.9.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenSlideGTK" Version="1.5.0" />
-    <PackageReference Include="ScottPlot" Version="5.0.21" />
+    <PackageReference Include="OpenSlideGTK" Version="1.6.0" />
+    <PackageReference Include="ScottPlot" Version="5.0.26" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
