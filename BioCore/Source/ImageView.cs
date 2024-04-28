@@ -274,28 +274,8 @@ namespace BioCore
             }
             else
             {
-                Resolution res = SelectedImage.Resolutions.Last();
-                double aspx = (double)res.SizeX / (double)res.SizeY;
-                double aspy = (double)res.SizeY / (double)res.SizeX;
-                overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
-                Bitmap bm;
-                ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
-                byte[] bts;
-                BufferInfo bf;
-                if (_openSlideBase != null)
-                {
-                    bts = _openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level)));
-                    bf = new BufferInfo((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
-                }
-                else
-                {
-                    bts = _slideBase.GetSlice(new SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level), GetCoordinate())).Result;
-                    bf = new BufferInfo((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
-                }
-                bm = re.Apply((Bitmap)bf.ImageRGB);
-                overviewBitmap = bm;
+                ShowOverview = false;
             }
-            ShowOverview = true;
             Console.WriteLine("Preview Initialized.");
         }
         public bool ShowOverview { get; set; }
@@ -593,8 +573,6 @@ namespace BioCore
             set
             {
                 if (value < 0) return;
-                if (!openSlide && value >= SelectedImage.Resolutions.Count)
-                    return;
                 if (SelectedImage.Type == BioImage.ImageType.well && value > SelectedImage.Resolutions.Count - 1)
                     return;
                 double dp = Resolution / value;
@@ -3279,6 +3257,8 @@ namespace BioCore
                 if (dBitmaps[i] != null)
                     dBitmaps[i].Dispose();
             }
+            if(SelectedImage.slideBase!=null)
+            SelectedImage.slideBase.cache.Dispose();
         }
 
         /// The function is called when the user clicks on the "Go To" menu item in the context menu.

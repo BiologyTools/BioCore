@@ -224,7 +224,7 @@ namespace BioCore
         /// <exception cref="OpenSlideException"/>
         public unsafe byte[] ReadRegion(int level, long x, long y, long width, long height)
         {
-            return BioImage.GetTile(BioImage, App.viewer.GetCoordinate(), level, (int)x, (int)y, (int)width, (int)height).RGBBytes;
+            return BioImage.GetTile(BioImage, App.viewer.GetCoordinate(), level, (int)x, (int)y, (int)width, (int)height).Bytes;
         }
 
         /// <summary>
@@ -239,7 +239,7 @@ namespace BioCore
         /// <returns></returns>
         public unsafe bool TryReadRegion(int level, long x, long y, long width, long height, out byte[] data, ZCT zct)
         {
-            data = BioImage.GetTile(BioImage, zct, level, (int)x, (int)y, (int)width, (int)height).RGBBytes;
+            data = BioImage.GetTile(BioImage, zct, level, (int)x, (int)y, (int)width, (int)height).Bytes;
             if (data == null)
                 return false;
             else
