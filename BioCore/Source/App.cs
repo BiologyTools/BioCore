@@ -1,5 +1,6 @@
+using AForge;
 using BioCore;
-
+using BioLib;
 namespace BioCore
 {
     public class App
@@ -48,7 +49,7 @@ namespace BioCore
         {
             BioImage.Initialize();
             Microscope.Initialize();
-            ImageJ.Initialize(requireImageJ);
+            ImageJ.Initialize();
             tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();

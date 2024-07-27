@@ -170,7 +170,7 @@
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            anno.strokeColor = Color.FromArgb((byte)rBox.Value, anno.strokeColor.G, anno.strokeColor.B);
+            anno.strokeColor = AForge.Color.FromArgb((byte)rBox.Value, anno.strokeColor.G, anno.strokeColor.B);
             UpdateOverlay();
         }
         /// When the user changes the value of the green slider, the green value of the stroke color is
@@ -184,7 +184,7 @@
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            anno.strokeColor = Color.FromArgb(anno.strokeColor.R, (byte)gBox.Value, anno.strokeColor.B);
+            anno.strokeColor = AForge.Color.FromArgb(anno.strokeColor.R, (byte)gBox.Value, anno.strokeColor.B);
             UpdateOverlay();
         }
         /// When the value of the blue slider changes, the blue value of the stroke color is updated
@@ -197,7 +197,7 @@
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            anno.strokeColor = Color.FromArgb(anno.strokeColor.R, anno.strokeColor.G, (byte)bBox.Value);
+            anno.strokeColor = AForge.Color.FromArgb(anno.strokeColor.R, anno.strokeColor.G, (byte)bBox.Value);
             UpdateOverlay();
         }
         /// If the user selects a new ROI type, update the ROI type and update the overlay
@@ -425,7 +425,8 @@
                 return;
             if (fontDialog.ShowDialog() != DialogResult.OK)
                 return;
-            anno.font = fontDialog.Font;
+            anno.family = fontDialog.Font.FontFamily.ToString();
+            anno.fontSize = fontDialog.Font.Size;
         }
         /// When the stroke width value changes, update the stroke width of the annotation and update
         /// the overlay

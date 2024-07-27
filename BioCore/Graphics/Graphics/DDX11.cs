@@ -3,7 +3,7 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
-namespace BioCore.Graphics
+namespace BioCore
 {
     public class DDX11                  // 270 lines
     {

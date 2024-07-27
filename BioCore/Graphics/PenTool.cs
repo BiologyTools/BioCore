@@ -1,4 +1,5 @@
-﻿namespace BioCore.Graphics
+﻿using AForge;
+namespace BioCore
 {
     public partial class PenTool : Form
     {
@@ -18,7 +19,7 @@
         public void UpdateGUI()
         {
             pen.color = new ColorS((ushort)redBox.Value, (ushort)greenBox.Value, (ushort)blueBox.Value);
-            colorPanel.BackColor = ColorS.ToColor(pen.color, pen.bitsPerPixel);
+            colorPanel.BackColor = System.Drawing.Color.FromArgb(pen.color.R, pen.color.G, pen.color.B);
             if (rBar.Value != redBox.Value)
                 redBox.Value = rBar.Value;
             if (gBar.Value != greenBox.Value)

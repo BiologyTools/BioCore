@@ -1,6 +1,4 @@
 ﻿using AForge;
-using BioCore;
-using BioCore.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;

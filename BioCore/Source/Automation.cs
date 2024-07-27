@@ -340,13 +340,13 @@ namespace BioCore
                 else
                     return AutomationHelpers.GetImage(ae);
             }
-            public Bitmap GetImage()
+            public System.Drawing.Bitmap GetImage()
             {
                 Action la = list.Last();
                 AutomationElement ae = AutomationHelpers.GetElementByProcess(la.ProcessName, la.Title, la.AutomationID, la.Name, la.ClassName, la.Index);
                 return AutomationHelpers.GetImage(ae);
             }
-            public Rectangle GetBounds()
+            public System.Drawing.Rectangle GetBounds()
             {
                 Action la = list.Last();
                 AutomationElement ae = AutomationHelpers.GetElementByProcess(la.ProcessName, la.Title, la.AutomationID, la.Name, la.ClassName, la.Index);
@@ -828,7 +828,7 @@ namespace BioCore
                         {
                             result.Add(item);
                         }
-                        if (item.BoundingRectangle.IntersectsWith(new Rectangle(p.X, p.Y, 1, 1)) && result.Count > 0)
+                        if (item.BoundingRectangle.IntersectsWith(new System.Drawing.Rectangle(p.X, p.Y, 1, 1)) && result.Count > 0)
                         {
                             index = result.Count - 1;
                         }
@@ -1021,11 +1021,11 @@ namespace BioCore
                 else
                     return false;
             }
-            public static Bitmap GetImage(AutomationElement el)
+            public static System.Drawing.Bitmap GetImage(AutomationElement el)
             {
                 System.Drawing.Graphics g;
-                Rectangle r = el.BoundingRectangle;
-                Bitmap b = new Bitmap((int)r.Width, (int)r.Height);
+                System.Drawing.Rectangle r = el.BoundingRectangle;
+                System.Drawing.Bitmap b = new System.Drawing.Bitmap((int)r.Width, (int)r.Height);
                 g = System.Drawing.Graphics.FromImage(b);
                 g.CopyFromScreen(new Point((int)r.X,(int)r.Y), new Point(0, 0),new Size(r.Width,r.Height));
                 return b;

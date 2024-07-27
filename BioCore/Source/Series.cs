@@ -72,10 +72,10 @@
             if (saveFileDialog.ShowDialog() != DialogResult.OK)
                 return;
             int i = 0;
-            List<string> sts = new List<string>();
+            List<BioImage> sts = new List<BioImage>();
             foreach (BioImage item in seriesBox.Items)
             {
-                sts.Add(item.ID);
+                sts.Add(item);
                 item.series = i;
                 i++;
             }

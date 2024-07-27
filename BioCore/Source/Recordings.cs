@@ -492,7 +492,7 @@ namespace BioCore
             if (n.type == Node.Type.action)
                 return;
             if (n.recording.List.Last().Value == Automation.Action.ValueType.Image)
-                Clipboard.SetImage((Bitmap)Automation.GetProperty(n.recording.Name));
+                Clipboard.SetImage((System.Drawing.Bitmap)Automation.GetProperty(n.recording.Name));
             else
             {
                 string s = (string)Automation.GetProperty(n.recording.Name);

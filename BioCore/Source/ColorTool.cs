@@ -1,4 +1,14 @@
-﻿namespace BioCore
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using AForge;
+namespace BioCore
 {
     public partial class ColorTool : Form
     {
@@ -21,7 +31,7 @@
         public void UpdateGUI()
         {
             color = new ColorS((ushort)redBox.Value, (ushort)greenBox.Value, (ushort)blueBox.Value);
-            colorPanel.BackColor = ColorS.ToColor(color, bitsPerPixel);
+            colorPanel.BackColor = System.Drawing.Color.FromArgb(color.R / ushort.MaxValue,color.G / ushort.MaxValue,color.B / ushort.MaxValue);
             if (rBar.Value != redBox.Value)
                 redBox.Value = rBar.Value;
             if (gBar.Value != greenBox.Value)
@@ -40,7 +50,7 @@
         {
             InitializeComponent();
             this.bitsPerPixel = bitPerPixel;
-            if (bitsPerPixel == 8)
+            if(bitsPerPixel == 8)
             {
                 rBar.Maximum = 255;
                 gBar.Maximum = 255;
@@ -58,104 +68,58 @@
             UpdateGUI();
         }
 
-        /// The function is called when the value of the redBox control changes
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void redBox_ValueChanged(object sender, EventArgs e)
         {
             UpdateGUI();
         }
 
-        /// The function is called when the value of the greenBox is changed
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void greenBox_ValueChanged(object sender, EventArgs e)
         {
             UpdateGUI();
         }
 
-        /// When the value of the blueBox changes, update the GUI
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void blueBox_ValueChanged(object sender, EventArgs e)
         {
             UpdateGUI();
         }
 
-        /// If the checkbox is checked, set the value of the variable to true. If the checkbox is not
-        /// checked, set the value of the variable to false
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
         private void rEnbaled_CheckedChanged(object sender, EventArgs e)
         {
             Tools.rEnabled = rEnbaled.Checked;
         }
 
-        /// If the checkbox is checked, set the value of the gEnabled variable to true
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void gEnabled_CheckedChanged(object sender, EventArgs e)
         {
             Tools.gEnabled = gEnabled.Checked;
         }
 
-        /// If the checkbox is checked, set the value of the bEnabled variable to true. If the checkbox
-        /// is unchecked, set the value of the bEnabled variable to false
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void bEnabled_CheckedChanged(object sender, EventArgs e)
         {
             Tools.bEnabled = bEnabled.Checked;
         }
 
-        /// This function is called when the user clicks the "Apply" button
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void applyButton_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.OK;
             Close();
         }
 
-        /// The cancel button closes the form and sets the dialog result to cancel
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void cancelBut_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
 
-        /// The function is called when the scroll bar is moved
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
         private void rBar_Scroll(object sender, EventArgs e)
         {
             UpdateGUI();
         }
 
-        /// The function is called when the scroll bar is moved
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
         private void gBar_Scroll(object sender, EventArgs e)
         {
             UpdateGUI();
         }
 
-        /// The function is called when the scroll bar is moved
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
         private void bBar_Scroll(object sender, EventArgs e)
         {
             UpdateGUI();

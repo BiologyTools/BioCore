@@ -1,4 +1,5 @@
-﻿namespace BioCore
+﻿using AForge;
+namespace BioCore
 {
     public partial class ChannelsTool : Form
     {

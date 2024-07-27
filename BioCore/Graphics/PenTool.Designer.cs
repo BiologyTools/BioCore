@@ -1,4 +1,4 @@
-﻿namespace BioCore.Graphics
+﻿namespace BioCore
 {
     partial class PenTool
     {

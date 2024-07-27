@@ -1,6 +1,6 @@
 ﻿using SharpDX;
 
-namespace BioCore.Graphics
+namespace BioCore
 {
     public class DCamera                    // 53 lines
     {

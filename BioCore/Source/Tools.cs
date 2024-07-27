@@ -13,7 +13,6 @@ using AForge.Imaging.Filters;
 using AForge.Imaging;
 using AForge.Math.Geometry;
 using AForge;
-using BioCore.Graphics;
 
 namespace BioCore
 {
@@ -364,8 +363,9 @@ namespace BioCore
                 TextInput ti = new TextInput("");
                 if (ti.ShowDialog() != DialogResult.OK)
                     return;
-                an.font = new Font(ti.font.FontFamily, ti.font.Size);
-                an.strokeColor = ti.color;
+                an.family = ti.font.FontFamily.ToString();
+                an.fontSize = ti.font.Size;
+                an.strokeColor = AForge.Color.FromArgb(ti.color.A, ti.color.R, ti.color.G, ti.color.B);
                 an.Text = ti.TextValue;
                 ImageView.SelectedImage.Annotations.Add(an);
             }
@@ -445,7 +445,7 @@ namespace BioCore
                     {
                         an.selectedPoints.Clear();
                         ImageView.selectedAnnotations.Add(an);
-                        an.selected = true;
+                        an.Selected = true;
                         RectangleD[] sels = an.GetSelectBoxes(selectBoxSize);
                         for (int i = 0; i < sels.Length; i++)
                         {
@@ -456,7 +456,7 @@ namespace BioCore
                         }
                     }
                     else
-                        an.selected = false;
+                        an.Selected = false;
                 }
                 Tools.GetTool(Tools.Tool.Type.rectSel).Rectangle = new RectangleD(0, 0, 0, 0);
             }
@@ -469,7 +469,7 @@ namespace BioCore
                 Rectangle r = new Rectangle((int)ImageView.mouseDown.X, (int)ImageView.mouseDown.Y, (int)(ImageView.mouseUp.X - ImageView.mouseDown.X), (int)(ImageView.mouseUp.Y - ImageView.mouseDown.Y));
                 if (r.Width <= 2 || r.Height <= 2)
                     return;
-                BufferInfo bf = ImageView.SelectedImage.Buffers[ImageView.SelectedImage.Coords[coord.Z, coord.C, coord.T]].GetCropBuffer(r);
+                Bitmap bf = ImageView.SelectedImage.Buffers[ImageView.SelectedImage.Coords[coord.Z, coord.C, coord.T]].GetCropBuffer(r);
                 Statistics[] sts = Statistics.FromBytes(bf);
                 Statistics st = sts[0];
                 Threshold th;
@@ -484,7 +484,7 @@ namespace BioCore
                 if (magicSel.Index == 1)
                     th = new Threshold((int)st.Median);
                 else
-                    th = new Threshold(st.Min);
+                    th = new Threshold((int)st.Min);
                 th.ApplyInPlace((Bitmap)bf.Image);
                 Invert inv = new Invert();
                 Bitmap det;
@@ -530,7 +530,7 @@ namespace BioCore
                 floodFiller.FillColor = DrawColor;
                 floodFiller.Tolerance = currentTool.tolerance;
                 floodFiller.Bitmap = ImageView.SelectedImage.Buffers[ImageView.SelectedImage.Coords[coord.C, coord.Z, coord.T]];
-                floodFiller.FloodFill(new System.Drawing.Point((int)p.X, (int)p.Y));
+                floodFiller.FloodFill(new AForge.Point((int)p.X, (int)p.Y));
                 App.viewer.UpdateImages();
             }
             else
@@ -612,7 +612,7 @@ namespace BioCore
                     {
                         an.selectedPoints.Clear();
                         ImageView.selectedAnnotations.Add(an);
-                        an.selected = true;
+                        an.Selected = true;
                         RectangleD[] sels = an.GetSelectBoxes(selectBoxSize);
                         for (int i = 0; i < sels.Length; i++)
                         {
@@ -623,7 +623,7 @@ namespace BioCore
                         }
                     }
                     else
-                        an.selected = false;
+                        an.Selected = false;
                 }
                 UpdateOverlay();
             }
@@ -669,8 +669,8 @@ namespace BioCore
             
             if (buts == MouseButtons.Left && currentTool.type == Tool.Type.eraser)
             {
-                Graphics.Graphics g = Graphics.Graphics.FromImage(ImageView.SelectedBuffer);
-                Graphics.Pen pen = new Graphics.Pen(Tools.EraseColor, (int)Tools.StrokeWidth,ImageView.SelectedBuffer.BitsPerPixel);
+                Graphics g = Graphics.FromImage(ImageView.SelectedBuffer);
+                Pen pen = new Pen(Tools.EraseColor, (int)Tools.StrokeWidth,ImageView.SelectedBuffer.BitsPerPixel);
                 g.FillEllipse(new Rectangle((int)p.X, (int)p.Y, (int)width, (int)Tools.StrokeWidth), pen.color);
                 pen.Dispose();
                 App.viewer.UpdateImage();
@@ -910,7 +910,7 @@ namespace BioCore
             UpdateSelected();
             pencilPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
-            PenTool pt = new PenTool(new Graphics.Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel));
+            PenTool pt = new PenTool(new Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel));
             if (pt.ShowDialog() != DialogResult.OK)
                 return;
             Tools.StrokeWidth = pt.Pen.width;
@@ -932,7 +932,7 @@ namespace BioCore
             UpdateSelected();
             bucketPanel.BackColor = System.Drawing.Color.LightGray;
             Cursor.Current = Cursors.Arrow;
-            FloodTool pt = new FloodTool(new Graphics.Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel),currentTool.tolerance, ImageView.SelectedBuffer.BitsPerPixel);
+            FloodTool pt = new FloodTool(new Pen(DrawColor, (int)Tools.StrokeWidth, ImageView.SelectedBuffer.BitsPerPixel),currentTool.tolerance, ImageView.SelectedBuffer.BitsPerPixel);
             if (pt.ShowDialog() != DialogResult.OK)
                 return;
             Tools.StrokeWidth = pt.Pen.width;

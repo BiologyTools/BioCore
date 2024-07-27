@@ -1,6 +1,6 @@
 ﻿using AForge;
 
-namespace BioCore.Graphics
+namespace BioCore
 {
     public class DSystem                    // 120 lines
     {

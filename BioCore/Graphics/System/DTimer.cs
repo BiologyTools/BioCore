@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace BioCore.Graphics
+namespace BioCore
 {
     public class DTimer                 // 47 lines
     {

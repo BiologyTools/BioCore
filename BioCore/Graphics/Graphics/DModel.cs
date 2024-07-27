@@ -1,8 +1,9 @@
 ﻿using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-
-namespace BioCore.Graphics
+using AForge;
+using BioLib;
+namespace BioCore
 {
     public class DModel
     {
@@ -48,9 +49,7 @@ namespace BioCore.Graphics
                     {
                         col = im.Buffers[im.Coords[z, 0, 0]].GetPixel(x, y);
                         int ind = (im.SizeX * y + x) * (z + 1);
-                        Vector4 vec = col.ToVector();
-                        float f = (float)ushort.MaxValue;
-                        vec.W = 0.5f;
+                        Vector4 vec = new Vector4(col.Rf,col.Gf,col.Bf,0.5f);
                         vertices[ind] = new DColorShader.DVertex()
                         {
                             position = new Vector3((float)x / (float)im.SizeX, (float)y / (float)im.SizeY, (z / (float)im.SizeZ) * (float)im.PhysicalSizeZ),

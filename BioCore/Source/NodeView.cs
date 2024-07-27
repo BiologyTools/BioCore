@@ -90,7 +90,7 @@
                 Node implanes = new Node(item, Node.DataType.text);
                 implanes.Text = "Planes";
 
-                foreach (BufferInfo buf in item.Buffers)
+                foreach (Bitmap buf in item.Buffers)
                 {
                     Node plane = new Node(buf, Node.DataType.buf);
                     plane.Text = buf.ID + ", " + buf.Coordinate.ToString();
@@ -273,8 +273,8 @@
                 if (input.ShowDialog() != DialogResult.OK)
                     return;
                 an.Text = input.TextValue;
-                an.font = input.font;
-                an.strokeColor = input.color;
+                an.family = input.font.FontFamily.ToString();
+                an.strokeColor = AForge.Color.FromArgb(input.color.A, input.color.R, input.color.G, input.color.B);
             }
             UpdateNodes();
             UpdateOverlay();
@@ -337,7 +337,7 @@
                 {
                     setIDToolStripMenuItem.Visible = false;
                     setTextToolStripMenuItem.Visible = false;
-                    BufferInfo buf = (BufferInfo)node.Object;
+                    Bitmap buf = (Bitmap)node.Object;
                     App.viewer.SetCoordinate(buf.Coordinate.Z, buf.Coordinate.C, buf.Coordinate.T);
                     App.viewer.GoToImage();
                 }

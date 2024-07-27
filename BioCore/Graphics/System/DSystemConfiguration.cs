@@ -1,4 +1,4 @@
-﻿namespace BioCore.Graphics
+﻿namespace BioCore
 {
     public class DSystemConfiguration                   // 52 lines
     {

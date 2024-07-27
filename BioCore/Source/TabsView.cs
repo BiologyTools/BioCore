@@ -1,4 +1,5 @@
-﻿using BioCore;
+﻿using AForge;
+using BioCore;
 using System.Diagnostics;
 namespace BioCore
 {
@@ -259,7 +260,8 @@ namespace BioCore
             int img = Images.images.Count;
             foreach (string item in openFilesDialog.FileNames)
             {
-                BioImage im = BioImage.OpenFile(item, 0, true);
+                BioImage im = BioImage.OpenFile(item, 0, true,true);
+                AddTab(im);
                 if (!App.recent.Contains(im.ID))
                     App.recent.Add(im.ID);
             }
@@ -732,7 +734,20 @@ namespace BioCore
         /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void openOMEToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            if (openFilesDialog.ShowDialog() != DialogResult.OK)
+                return;
+            int img = Images.images.Count;
+            foreach (string item in openFilesDialog.FileNames)
+            {
+                BioImage im = BioImage.OpenOME(item, true);
+                AddTab(im);
+                if (!App.recent.Contains(im.ID))
+                    App.recent.Add(im.ID);
+            }
+            foreach (string item in App.recent)
+            {
+                openRecentToolStripMenuItem.DropDownItems.Add(item, null, ItemClicked);
+            }
         }
 
         /// It saves all the images in the list of images
@@ -744,7 +759,7 @@ namespace BioCore
             List<string> sts = new List<string>();
             foreach (BioImage item in Images.images)
             {
-                BioImage.Save(Image.ID, Image.ID);
+                BioImage.SaveFile(Image.ID, Image.ID);
             }
         }
 
@@ -788,7 +803,7 @@ namespace BioCore
                 return;
             foreach (string sts in openFilesDialog.FileNames)
             {
-                BioImage im = BioImage.OpenOME(sts);
+                BioImage im = BioImage.OpenOME(sts,true);
                 if (im == null)
                     return;
                 AddTab(im);
@@ -822,7 +837,7 @@ namespace BioCore
         private void saveToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (saveTiffFileDialog.ShowDialog() == DialogResult.OK)
-                BioCore.BioImage.Save(ImageView.SelectedImage.ID, saveTiffFileDialog.FileName);
+                BioImage.SaveFile(ImageView.SelectedImage.ID, saveTiffFileDialog.FileName);
         }
 
         /// If the user clicks the "Save OME" menu item, then show the save file dialog and if the user
@@ -833,7 +848,7 @@ namespace BioCore
         private void saveOMEToolStripMenuItem1_Click(object sender, EventArgs e)
         {
             if (saveOMEFileDialog.ShowDialog() == DialogResult.OK)
-                BioCore.BioImage.Save(ImageView.SelectedImage.ID, saveOMEFileDialog.FileName);
+                BioImage.SaveFile(ImageView.SelectedImage.ID, saveOMEFileDialog.FileName);
         }
         /// It clears the dropdown menu, then adds each item in the recent list to the dropdown menu.
         /// 
@@ -858,7 +873,7 @@ namespace BioCore
             ToolStripMenuItem ts = (ToolStripMenuItem)sender;
             if (!BioImage.isOME(ts.Text))
             {
-                BioImage[] bs = BioImage.OpenSeries(ts.Text);
+                BioImage[] bs = BioImage.OpenSeries(ts.Text, false);
                 for (int i = 0; i < bs.Length; i++)
                 {
                     if (i == 0)
@@ -937,14 +952,27 @@ namespace BioCore
             {
                 if (i == 0 && tabControl.TabPages.Count == 0)
                 {
-                    BioImage.OpenOMESeries(openFilesDialog.FileNames[0], true, true);
+                    BioImage[] bms = BioImage.OpenOMESeries(openFilesDialog.FileNames[0], true, true);
+                    AddTab(bms[0]);
+                    for (int a = 1; a < bms.Length; a++)
+                    {
+                        App.viewer.AddImage(bms[a]);
+                    }
+                    App.viewer.GoToImage();
+                    return;
                 }
                 else
                 {
-                    BioImage.OpenOMESeries(openFilesDialog.FileNames[0], false, true);
+                    BioImage[] bms = BioImage.OpenOMESeries(openFilesDialog.FileNames[0], false, true);
+                    for (int a = 0; a < bms.Length; a++)
+                    {
+                        App.viewer.AddImage(bms[a]);
+                    }
+                    App.viewer.GoToImage();
+                    return;
                 }
             }
-            App.viewer.GoToImage();
+            
         }
 
         /// If the user selects a file, open it and add it to the viewer
@@ -961,10 +989,10 @@ namespace BioCore
             {
                 if (i == 0 && tabControl.TabPages.Count == 0)
                 {
-                    AddTab(BioImage.OpenOME(openFilesDialog.FileNames[0]));
+                    AddTab(BioImage.OpenOME(openFilesDialog.FileNames[0],false));
                 }
                 else
-                    App.viewer.AddImage(BioImage.OpenOME(openFilesDialog.FileNames[i]));
+                    App.viewer.AddImage(BioImage.OpenOME(openFilesDialog.FileNames[i], false));
             }
             App.viewer.GoToImage();
         }
@@ -1030,10 +1058,10 @@ namespace BioCore
                     return;
             }
 
-            string[] sts = new string[App.viewer.Images.Count];
+            BioImage[] sts = new BioImage[App.viewer.Images.Count];
             for (int i = 0; i < sts.Length; i++)
             {
-                sts[i] = App.viewer.Images[i].ID;
+                sts[i] = Images.GetImage(App.viewer.Images[i].ID);
             }
             BioImage.SaveOMESeries(sts, saveOMEFileDialog.FileName, Properties.Settings.Default.Planes);
         }
@@ -1069,7 +1097,7 @@ namespace BioCore
             BioImage[] bms = null;
             foreach (string item in openFilesDialog.FileNames)
             {
-                bms = BioImage.OpenSeries(openFilesDialog.FileName);
+                bms = BioImage.OpenSeries(openFilesDialog.FileName,true);
                 for (int i = 0; i < bms.Length; i++)
                 {
                     if (i == 0)
@@ -1119,7 +1147,7 @@ namespace BioCore
             if (ImageView.SelectedImage == null)
                 return;
             string st = e.ClickedItem.Text;
-            RotateFlipType rot = (RotateFlipType)Enum.Parse(typeof(RotateFlipType), st);
+            AForge.RotateFlipType rot = (AForge.RotateFlipType)Enum.Parse(typeof(AForge.RotateFlipType), st);
             ImageView.SelectedImage.RotateFlip(rot);
             ImageView.UpdateImage();
             ImageView.UpdateView();
@@ -1135,7 +1163,7 @@ namespace BioCore
         {
             if (rotateToolStripMenuItem.DropDownItems.Count > 0)
                 return;
-            string[] sts = Enum.GetNames(typeof(RotateFlipType));
+            string[] sts = Enum.GetNames(typeof(AForge.RotateFlipType));
             foreach (string item in sts)
             {
                 rotateToolStripMenuItem.DropDownItems.Add(item);
@@ -1177,7 +1205,7 @@ namespace BioCore
         /// @param EventArgs The event arguments.
         private void switchRedBlueToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            foreach (BufferInfo bf in ImageView.SelectedImage.Buffers)
+            foreach (Bitmap bf in ImageView.SelectedImage.Buffers)
             {
                 bf.SwitchRedBlue();
             }
@@ -1263,7 +1291,7 @@ namespace BioCore
             fd.Multiselect = true;
             if (fd.ShowDialog() != DialogResult.OK)
                 return;
-            BioImage b = BioImage.ImagesToStack(fd.FileNames);
+            BioImage b = BioImage.ImagesToStack(fd.FileNames, true);
             AddTab(b);
         }
 

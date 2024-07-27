@@ -4,9 +4,9 @@ using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
 using System.Runtime.InteropServices;
 
-namespace BioCore.Graphics
+namespace BioCore
 {
-    public class DColorShader                   // 199 lines
+    public class DColorShader                   
     {
         // Structures.
         [StructLayout(LayoutKind.Sequential)]

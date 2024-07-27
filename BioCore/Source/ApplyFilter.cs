@@ -1,4 +1,6 @@
-﻿namespace BioCore
+﻿using AForge;
+
+namespace BioCore
 {
     public partial class ApplyFilter : Form
     {
@@ -66,7 +68,7 @@
                 return (int)angleBox.Value;
             }
         }
-        public Color Color
+        public System.Drawing.Color Color
         {
             get
             {

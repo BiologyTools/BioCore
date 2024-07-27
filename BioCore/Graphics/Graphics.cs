@@ -1,4 +1,5 @@
-﻿namespace BioCore.Graphics
+﻿using AForge;
+namespace BioCore
 {
     public struct Pen : IDisposable
     {
@@ -24,10 +25,10 @@
     }
     public class Graphics : IDisposable
     {
-        public BufferInfo buf;
+        public Bitmap buf;
         public Pen pen;
         private AbstractFloodFiller filler;
-        public static Graphics FromImage(BufferInfo b)
+        public static Graphics FromImage(Bitmap b)
         {
             Graphics g = new Graphics();
             g.buf = b;
@@ -70,7 +71,7 @@
                 }
             }
         }
-        private void DrawLine(int x, int y, int x2, int y2, BufferInfo bf, ColorS c)
+        private void DrawLine(int x, int y, int x2, int y2, Bitmap bf, ColorS c)
         {
             //Bresenham's algorithm for line drawing.
             int w = x2 - x;
@@ -126,10 +127,22 @@
         }
         public void DrawRectangle(Rectangle r)
         {
-            DrawLine(new PointF(r.X, r.Y), new PointF(r.X + r.Width, r.Y));
-            DrawLine(new PointF(r.X + r.Width, r.Y), new PointF(r.X + r.Width, r.Y + r.Height));
-            DrawLine(new PointF(r.X, r.Y), new PointF(r.X, r.Y + r.Height));
-            DrawLine(new PointF(r.X, r.Y + r.Height), new PointF(r.X + r.Width, r.Y + r.Height));
+            for (int x = r.X; x < r.Width + r.X; x++)
+            {
+                for (int i = 0; i < pen.width; i++)
+                {
+                    buf.SetPixel(x + i, r.Y, pen.color);
+                    buf.SetPixel(x + i, r.Y + r.Height, pen.color);
+                }
+            }
+            for (int y = r.Y; y < r.Height + r.Y; y++)
+            {
+                for (int i = 0; i < pen.width; i++)
+                {
+                    buf.SetPixel(r.X, y + i, pen.color);
+                    buf.SetPixel(r.X + r.Width, y + i, pen.color);
+                }
+            }
         }
         public void DrawRectangle(RectangleF r)
         {
@@ -190,7 +203,7 @@
         {
             //We will use the flood fill algorithm to fill the polygon.
             //First we need to create a new Buffer incase the current Buffer contains filled pixels that could prevent flood fill from filling the whole area.
-            BufferInfo bf = buf.CopyInfo();
+            Bitmap bf = buf.CopyInfo();
             bf.Bytes = new byte[buf.Bytes.Length];
 
             DrawPolygon(pfs, bf, pen.color);
@@ -201,18 +214,18 @@
             filler.Bitmap = bf;
             //Next we need to find a point inside the polygon from where to start the flood fill.
             //We use the center points x-line till we find a point inside.
-            Point p = new Point(r.X + (r.Width / 2), r.Y + (r.Height / 2));
-            Point? pp = null;
+            System.Drawing.Point p = new System.Drawing.Point(r.X + (r.Width / 2), r.Y + (r.Height / 2));
+            System.Drawing.Point? pp = null;
             polygon = pfs;
             for (int x = r.X; x < r.Width + r.X; x++)
             {
-                if (PointInPolygon(x, p.Y))
+                if (PointInPolygon(x, (int)p.Y))
                 {
-                    pp = new Point(x, p.Y);
+                    pp = new System.Drawing.Point(x, p.Y);
                     break;
                 }
             }
-            filler.FloodFill(pp.Value);
+            filler.FloodFill(new AForge.Point(pp.Value.X,pp.Value.Y));
             //Now that we have a filled shape we draw it onto the original bitmap
             for (int x = 0; x < bf.SizeX; x++)
             {
@@ -249,7 +262,7 @@
             pen.color = c;
             FillPolygon(pfs, r);
         }
-        private void DrawPolygon(PointF[] pfs, BufferInfo bf, ColorS s)
+        private void DrawPolygon(PointF[] pfs, Bitmap bf, ColorS s)
         {
             for (int i = 0; i < pfs.Length - 1; i++)
             {

@@ -1,4 +1,16 @@
-﻿namespace BioCore
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using AForge;
+using Pen = System.Drawing.Pen;
+using Color = System.Drawing.Color;
+namespace BioCore
 {
     public partial class HistogramControl : UserControl
     {
@@ -33,13 +45,12 @@
             }
         }
         private int min = 0;
-        /* A property of a class. */
         public float Min
         {
             get { return min; }
-            set
-            {
-                if (channel != null)
+            set 
+            { 
+                if(channel!=null)
                     channel.range[App.channelsTool.SelectedSample].Min = (int)value;
                 min = (int)value;
             }
@@ -115,7 +126,7 @@
         private bool axisNumbers = true;
         public bool AxisNumbers
         {
-            get { return axisNumbers; }
+            get { return axisNumbers;}
             set { axisNumbers = value; }
         }
 
@@ -128,7 +139,7 @@
 
         private float fx = 0;
         private float fy = 0;
-        private Bitmap bm;
+        private System.Drawing.Bitmap bm;
         private System.Drawing.Graphics g;
 
         /// This function updates the channel variable with the channel that is passed in
@@ -151,7 +162,7 @@
         {
             if (graphMax == 0)
                 graphMax = ushort.MaxValue;
-            g.Clear(Color.LightGray);
+            g.Clear(System.Drawing.Color.LightGray);
             g.ResetTransform();
             g.TranslateTransform(-graphMin, 0);
             string st = "";
@@ -182,39 +193,39 @@
                     else
                         stat = channel.stats[i];
 
-                    Pen black = new Pen(Color.FromArgb(35, 0, 0, 0), bin * fx);
-                    Pen blackd = new Pen(Color.FromArgb(150, 0, 0, 0), bin * fx);
-                    Pen pen = null;
-                    Pen pend = null;
+                    System.Drawing.Pen black = new System.Drawing.Pen(System.Drawing.Color.FromArgb(35, 0, 0, 0), bin * fx);
+                    System.Drawing.Pen blackd = new System.Drawing.Pen(System.Drawing.Color.FromArgb(150, 0, 0, 0), bin * fx);
+                    System.Drawing.Pen pen = null;
+                    System.Drawing.Pen pend = null;
                     int dark = 200;
                     int light = 50;
                     if (channel.Emission != 0)
                     {
-                        pen = new Pen(SpectralColor(channel.Emission), bin * fx);
+                        pen = new System.Drawing.Pen(SpectralColor(channel.Emission), bin * fx);
                         pen.Color = Color.FromArgb(light, pen.Color);
-                        pend = new Pen(SpectralColor(channel.Emission), bin * fx);
+                        pend = new System.Drawing.Pen(SpectralColor(channel.Emission), bin * fx);
                         pend.Color = Color.FromArgb(dark, pen.Color);
                     }
                     else
                     {
                         if (i == 0)
                         {
-                            pen = new Pen(Color.FromArgb(light, 255, 0, 0), bin * fx);
-                            pend = new Pen(Color.FromArgb(dark, 255, 0, 0), bin * fx);
+                            pen = new System.Drawing.Pen(Color.FromArgb(light, 255, 0, 0), bin * fx);
+                            pend = new System.Drawing.Pen(Color.FromArgb(dark, 255, 0, 0), bin * fx);
                         }
                         else if (i == 1)
                         {
-                            pen = new Pen(Color.FromArgb(light, 0, 255, 0), bin * fx);
-                            pend = new Pen(Color.FromArgb(dark, 0, 255, 0), bin * fx);
+                            pen = new System.Drawing.Pen(Color.FromArgb(light, 0, 255, 0), bin * fx);
+                            pend = new System.Drawing.Pen(Color.FromArgb(dark, 0, 255, 0), bin * fx);
                         }
                         else
                         {
-                            pen = new Pen(Color.FromArgb(light, 0, 0, 255), bin * fx);
-                            pend = new Pen(Color.FromArgb(dark, 0, 0, 255), bin * fx);
+                            pen = new System.Drawing.Pen(Color.FromArgb(light, 0, 0, 255), bin * fx);
+                            pend = new System.Drawing.Pen(Color.FromArgb(dark, 0, 0, 255), bin * fx);
                         }
                     }
 
-                    g.DrawLine(Pens.Black, new PointF(mouseX, 0), new PointF(mouseX, this.Height));
+                    g.DrawLine(Pens.Black, new System.Drawing.PointF(mouseX, 0), new System.Drawing.PointF(mouseX, this.Height));
                     int gmax = graphMax;
                     if (App.Image.bitsPerPixel <= 8)
                         gmax = 255;
@@ -224,8 +235,8 @@
                     float sumbin = 0;
                     int binind = 0;
                     int bininds = 0;
-                    PointF? prevs = null;
-                    PointF? prev = null;
+                    System.Drawing.PointF? prevs = null;
+                    System.Drawing.PointF? prev = null;
                     for (float x = 0; x < gmax; x++)
                     {
                         if (StackHistogram && c == ImageView.SelectedImage.Channels.Count - 1)
@@ -239,10 +250,10 @@
                                 float yy = this.Height - (fy * v);
                                 if (prevs != null)
                                 {
-                                    g.DrawLine(blackd, prevs.Value, new PointF(fx * x, yy));
+                                    g.DrawLine(blackd, prevs.Value, new System.Drawing.PointF(fx * x, yy));
                                 }
-                                g.DrawLine(black, new PointF(fx * x, this.Height), new PointF(fx * x, yy));
-                                prevs = new PointF(fx * x, yy);
+                                g.DrawLine(black, new System.Drawing.PointF(fx * x, this.Height), new System.Drawing.PointF(fx * x, yy));
+                                prevs = new System.Drawing.PointF(fx * x, yy);
                                 binind = 0;
                                 sumbin = 0;
                             }
@@ -252,12 +263,12 @@
                         sumbins += rv;
                         if (bininds == bin)
                         {
-                            g.DrawLine(pen, new PointF(fx * x, this.Height), new PointF(fx * x, this.Height - (fy * (sumbins / bininds))));
+                            g.DrawLine(pen, new System.Drawing.PointF(fx * x, this.Height), new System.Drawing.PointF(fx * x, this.Height - (fy * (sumbins / bininds))));
                             if (prev != null)
                             {
-                                g.DrawLine(pend, prev.Value, new PointF(fx * x, this.Height - (fy * (sumbins / bininds))));
+                                g.DrawLine(pend, prev.Value, new System.Drawing.PointF(fx * x, this.Height - (fy * (sumbins / bininds))));
                             }
-                            prev = new PointF(fx * x, this.Height - (fy * (sumbins / bininds)));
+                            prev = new System.Drawing.PointF(fx * x, this.Height - (fy * (sumbins / bininds)));
                             bininds = 0;
                             sumbins = 0;
                         }
@@ -265,16 +276,16 @@
                         bininds++;
 
                     }
-
-                    g.DrawLine(pend, new PointF((fx * channel.range[i].Max), 0), new PointF((fx * channel.range[i].Max), this.Height));
-                    g.DrawLine(pend, new PointF(fx * channel.range[i].Min, 0), new PointF(fx * channel.range[i].Min, this.Height));
+                    
+                    g.DrawLine(pend, new System.Drawing.PointF((fx * channel.range[i].Max), 0), new System.Drawing.PointF((fx * channel.range[i].Max), this.Height));
+                    g.DrawLine(pend, new System.Drawing.PointF(fx * channel.range[i].Min, 0), new System.Drawing.PointF(fx * channel.range[i].Min, this.Height));
 
                     black.Dispose();
                     blackd.Dispose();
                     pen.Dispose();
                     pend.Dispose();
                 }
-
+                
             }
 
             float tick = 6;
@@ -284,29 +295,29 @@
                 {
                     for (float x = 0; x < graphMax; x += 2000)
                     {
-                        SizeF s = g.MeasureString(x.ToString(), SystemFonts.DefaultFont);
-                        g.DrawString(x.ToString(), SystemFonts.DefaultFont, Brushes.Black, (fx * x) - (s.Width / 2), tick + 6);
-                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick + 3));
+                        System.Drawing.SizeF s = g.MeasureString(x.ToString(), SystemFonts.DefaultFont);
+                        g.DrawString(x.ToString(), SystemFonts.DefaultFont, Brushes.Black, (fx * x) - (s.Width/2), tick + 6);
+                        g.DrawLine(Pens.Black, new System.Drawing.PointF((fx * x), 0), new System.Drawing.PointF((fx * x), tick + 3));
                     }
                     for (float x = 0; x < graphMax; x += 1000)
                     {
-                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick));
+                        g.DrawLine(Pens.Black, new System.Drawing.PointF((fx * x), 0), new System.Drawing.PointF((fx * x), tick));
                     }
                 }
                 if (graphMax <= 16383)
-                    for (float x = 0; x < graphMax; x += 100)
-                    {
-                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), tick));
-                    }
+                for (float x = 0; x < graphMax; x += 100)
+                {
+                    g.DrawLine(Pens.Black, new System.Drawing.PointF((fx * x), 0), new System.Drawing.PointF((fx * x), tick));
+                }
                 if (graphMax <= 255)
                 {
                     for (float x = 0; x < graphMax; x += 50)
                     {
-                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), 4));
+                        g.DrawLine(Pens.Black, new System.Drawing.PointF((fx * x), 0), new System.Drawing.PointF((fx * x), 4));
                     }
                     for (float x = 0; x < graphMax; x += 10)
                     {
-                        g.DrawLine(Pens.Black, new PointF((fx * x), 0), new PointF((fx * x), 2));
+                        g.DrawLine(Pens.Black,  new System.Drawing.PointF((fx * x), 0), new System.Drawing.PointF((fx * x), 2));
                     }
                 }
             }
@@ -337,13 +348,13 @@
                     st = "(" + (mouseX / fx).ToString() + "," + ImageView.SelectedImage.Channels[0].stats[0].StackValues[x].ToString() + ")";
 
             }
-            SizeF sf = g.MeasureString(st, SystemFonts.DefaultFont);
+            System.Drawing.SizeF sf = g.MeasureString(st, SystemFonts.DefaultFont);
             g.DrawString(st, SystemFonts.DefaultFont, Brushes.Black, mouseX, mouseY + sf.Height);
 
             e.Graphics.DrawImage(bm, 0, 0);
         }
 
-        /// The function is called when the mouse is clicked on the histogram control
+        /// The function is called when the user clicks the mouse on the histogram control
         /// 
         /// @param sender The object that raised the event.
         /// @param MouseEventArgs 
@@ -381,7 +392,7 @@
         {
             if (Width == 0 || Height == 0)
                 return;
-            bm = new Bitmap(Width, Height);
+            bm = new System.Drawing.Bitmap(Width, Height);
             if (g != null)
                 g.Dispose();
             g = System.Drawing.Graphics.FromImage(bm);
@@ -408,10 +419,10 @@
             App.viewer.UpdateImage();
         }
 
-        /// When the user clicks on the "Set Min" menu item, the selected channel's range's min value is
-        /// set to the current mouse position
+        /// When the user clicks on the "Set Min" menu item, the selected channel's range's minimum
+        /// value is set to the current mouse position
         /// 
-        /// @param sender System.Object
+        /// @param sender The object that raised the event.
         /// @param EventArgs e
         private void setMinToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -420,9 +431,9 @@
             App.viewer.UpdateImage();
         }
 
-        /// This function sets the maximum value of the selected channel to the current mouse position
+        /// It sets the maximum value of the selected channel to the current mouse position.
         /// 
-        /// @param sender System.Object
+        /// @param sender The object that raised the event.
         /// @param EventArgs e
         private void setMaxAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -451,7 +462,7 @@
         }
         /// > The function takes a wavelength in nanometers and returns a color
         /// 
-        /// @param l The wavelength of the light in nanometers.
+        /// @param l the wavelength of the light in nanometers
         /// 
         /// @return A color.
         Color SpectralColor(double l) // RGB <0,1> <- lambda l <400,700> [nm]

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using ScottPlot;
-
+using AForge;
 namespace BioCore
 {
     public partial class Plot : Form
@@ -16,14 +16,14 @@ namespace BioCore
         public ScottPlot.Plot plot;
         string file;
         string name;
-        Bitmap bitmap;
+        System.Drawing.Bitmap bitmap;
         List<double[]> data = new List<double[]>();
         public List<double[]> Data
         {
             get { return data; }
             set { data = value; UpdateImage(); }
         }
-        public Bitmap Image
+        public System.Drawing.Bitmap Image
         {
             get { return bitmap; }
             set { bitmap = value; }
@@ -58,7 +58,7 @@ namespace BioCore
             file = plot.SaveFig(name + ".png");
             */
             this.Text = name;
-            bitmap = (Bitmap)Bitmap.FromFile(file);
+            bitmap = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromFile(file);
             pictureBox.Image = bitmap;
         }
 

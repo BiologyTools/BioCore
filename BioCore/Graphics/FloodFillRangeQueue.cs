@@ -1,4 +1,4 @@
-namespace BioCore.Graphics
+namespace BioCore
 {
     /// <summary>A queue of FloodFillRanges.</summary>
 	public class FloodFillRangeQueue

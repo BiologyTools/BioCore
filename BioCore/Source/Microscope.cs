@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-
+using AForge;
 namespace BioCore
 {
     public class Stage

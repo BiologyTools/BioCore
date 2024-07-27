@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using CSScripting;
 using AForge;
-using BioCore;
+using Color = AForge.Color;
+using RectangleD = AForge.RectangleD;
 namespace BioCore
 {
     public class ImageJ
@@ -97,8 +98,8 @@ namespace BioCore
             }
         }
         public static List<Macro.Command> Macros = new List<Macro.Command>();
-        public static string ImageJPath;
         public static List<Process> processes = new List<Process>();
+        public static string ImageJPath = Settings.GetSettings("ImageJPath");
         private static Random rng = new Random();
         static bool init = false;
         public static bool Initialized { get { return init; } private set { } }
@@ -112,7 +113,7 @@ namespace BioCore
         {
             if(!Initialized)
             {
-                Initialize(true);
+                Initialize();
             }
             file.Replace("/", "\\");
             Process pr = new Process();
@@ -134,7 +135,7 @@ namespace BioCore
         {
             if (!Initialized)
             {
-                Initialize(true);
+                Initialize();
             }
             Process pr = new Process();
             pr.StartInfo.FileName = ImageJPath;
@@ -176,17 +177,17 @@ namespace BioCore
         /// 
         /// @param con The ImageJ macro to run.
         /// @param headless Whether to run ImageJ in headless mode.
-        /// @param onTab If true, the image will be opened in a new tab. If false, the image will be
-        /// opened in the current tab.
+        /// @param onTab Whether to run the macro on current tab of images.
         /// @param bioformats If the image is a bioformats image, it will use the bioformats importer to
         /// open the image.
+        /// @param newTab Whether or not the result should open in a new tab.
         /// 
         /// @return The return value is the result of the last statement in the script.
         public static void RunOnImage(string con, bool headless, bool onTab, bool bioformats, bool newTab)
         {
             if (!Initialized)
             {
-                Initialize(true);
+                Initialize();
             }
             string filename = "";
             string dir = Path.GetDirectoryName(ImageView.SelectedImage.file);
@@ -224,9 +225,9 @@ namespace BioCore
             if (ImageView.SelectedImage.Filename != filename + ".ome.tif" || ImageView.SelectedImage.Filename != filename + ".tif")
             {
                 if (ImageView.SelectedImage.filename.EndsWith(".tif"))
-                    BioImage.OpenFile(ffile, 0, newTab, true);
+                    BioImage.OpenFile(ffile, newTab);
                 else
-                    BioImage.OpenFile(ffile, 0, true, true);
+                    BioImage.OpenFile(ffile, true);
             }
             else
             {
@@ -240,10 +241,8 @@ namespace BioCore
         /// This function is used to initialize the path of the ImageJ.exe file
         /// 
         /// @param path The path to the ImageJ executable.
-        public static bool Initialize(bool imagej)
+        public static bool Initialize()
         {
-            if (!imagej)
-                return false;
             if (!SetImageJPath())
                 return false;
             Macro.Initialize();
@@ -260,23 +259,25 @@ namespace BioCore
         /// @return The return value is a boolean.
         public static bool SetImageJPath()
         {
-            if (BioCore.Properties.Settings.Default.ImageJPath != "")
+            if (Properties.Settings.Default.ImageJPath == "")
             {
-                ImageJPath = BioCore.Properties.Settings.Default.ImageJPath;
+                MessageBox.Show("ImageJ path not set. Set the ImageJ executable location.");
+                OpenFileDialog file = new OpenFileDialog();
+                file.Title = "Set the ImageJ executable location.";
+                if (file.ShowDialog() != DialogResult.OK)
+                    return false;
+                Properties.Settings.Default.ImageJPath = file.FileName;
+                Properties.Settings.Default.Save();
+                ImageJPath = file.FileName;
                 init = true;
+                file.Dispose();
                 return true;
             }
-            MessageBox.Show("ImageJ path not set. Set the ImageJ executable location.");
-            OpenFileDialog file = new OpenFileDialog();
-            file.Title = "Set the ImageJ executable location.";
-            if (file.ShowDialog() != DialogResult.OK)
-                return false;
-            BioCore.Properties.Settings.Default.ImageJPath = file.FileName;
-            BioCore.Properties.Settings.Default.Save();
-            ImageJPath = file.FileName;
-            init = true;
-            file.Dispose();
-            return true;
+            else
+            {
+                ImageJPath = Properties.Settings.Default.ImageJPath;
+                return true;
+            }
         }
 
         /* It reads a binary file and returns a ROI object */
@@ -788,7 +789,8 @@ namespace BioCore
                 double angle = version >= 225 ? getFloat(hdrSize + 16 + nameLength * 2 + textLength * 2) : 0f;
                 //Font font = new Font(new string(name), style, size);
                 string fam = new string(name);
-                roi.font = new Font(fam, size);
+                roi.family = fam;
+                roi.fontSize = size;
                 roi.Text = new string(text);
                 /*
                 if (roi.subPixel)
@@ -924,12 +926,12 @@ namespace BioCore
                 return ((b0 << 24) + (b1 << 16) + (b2 << 8) + b3);
             }
 
-/// It takes a base address, reads 4 bytes from that address, converts those 4 bytes into a float, and
-/// returns the float
-/// 
-/// @param bas The base address of the value you want to read.
-/// 
-/// @return The float value of the integer at the base address.
+            /// It takes a base address, reads 4 bytes from that address, converts those 4 bytes into a float, and
+            /// returns the float
+            /// 
+            /// @param bas The base address of the value you want to read.
+            /// 
+            /// @return The float value of the integer at the base address.
             float getFloat(int bas)
             {
                 //return BitConverter.ToSingle(getInt(bas));
@@ -1141,7 +1143,7 @@ namespace BioCore
             /// @return The data is being returned as a byte array.
             void write(ROI roi, FileStream f)
             {
-                RectangleD r = roi.Rect;
+                RectangleD r = new RectangleD(roi.Rect.X, roi.Rect.Y, roi.Rect.W, roi.Rect.H);
                 //if (r.width > 60000 || r.height > 60000 || r.x > 60000 || r.y > 60000)
                 //    roi.enableSubPixelResolution();
                 //int roiType = GetImageJType(roi);
@@ -1233,6 +1235,7 @@ namespace BioCore
                 putShort(RoiDecoder.LEFT, (int)px);
                 putShort(RoiDecoder.BOTTOM, (int)(py + ph));
                 putShort(RoiDecoder.RIGHT, (int)(px + pw));
+                var PointsImage = ImageView.SelectedImage.ToImageSpace(roi.PointsD);
                 if (subres && (type == rect || type == oval))
                 {
                     //FloatPolygon p = null;
@@ -1251,15 +1254,15 @@ namespace BioCore
                         else
                             p = roi.getFloatPolygon();
                     }
-                        */
+                        */   
                     if (roi.PointsD.Count == 4)
                     {
-                        putFloat(RoiDecoder.XD, (float)roi.PointsImage[0].X);
-                        putFloat(RoiDecoder.YD, (float)roi.PointsImage[0].Y);
+                        putFloat(RoiDecoder.XD, (float)PointsImage[0].X);
+                        putFloat(RoiDecoder.YD, (float)PointsImage[0].Y);
                         //putFloat(RoiDecoder.WIDTHD, p.xpoints[1] - roi.PointsD[0]);
                         //putFloat(RoiDecoder.HEIGHTD, p.ypoints[2] - p.ypoints[1]);
-                        putFloat(RoiDecoder.WIDTHD, (float)roi.PointsImage[1].X - (float)roi.PointsImage[0].X);
-                        putFloat(RoiDecoder.HEIGHTD, (float)roi.PointsImage[2].Y - (float)roi.PointsImage[1].Y);
+                        putFloat(RoiDecoder.WIDTHD, (float)PointsImage[1].X - (float)PointsImage[0].X);
+                        putFloat(RoiDecoder.HEIGHTD, (float)PointsImage[2].Y - (float)PointsImage[1].Y);
                         options |= RoiDecoder.SUB_PIXEL_RESOLUTION;
                         putShort(RoiDecoder.OPTIONS, options);
                     }
@@ -1296,10 +1299,10 @@ namespace BioCore
                 if (type == line) //(roi instanceof Line) 
                 {
                     //Line line = (Line)roi;
-                    putFloat(RoiDecoder.X1, (float)roi.PointsImage[0].X);
-                    putFloat(RoiDecoder.Y1, (float)roi.PointsImage[0].Y);
-                    putFloat(RoiDecoder.X2, (float)roi.PointsImage[1].X);
-                    putFloat(RoiDecoder.Y2, (float)roi.PointsImage[1].Y);
+                    putFloat(RoiDecoder.X1, (float)PointsImage[0].X);
+                    putFloat(RoiDecoder.Y1, (float)PointsImage[0].Y);
+                    putFloat(RoiDecoder.X2, (float)PointsImage[1].X);
+                    putFloat(RoiDecoder.Y2, (float)PointsImage[1].Y);
                     /*
                     if (roi instanceof Arrow) {
                         putShort(RoiDecoder.SUBTYPE, RoiDecoder.ARROW);
@@ -1490,9 +1493,9 @@ namespace BioCore
             void saveTextRoi(ROI roi)
             {
                 //Font font = roi.getCurrentFont();
-                string fontName = roi.font.FontFamily.Name.ToString();
-                int size = (int)roi.font.Size;
-                //int drawStringMode = 0; //roi.getDrawStringMode() ? 1024 : 0;
+                string fontName = roi.family.ToString();
+                int size = (int)roi.fontSize;
+                int drawStringMode = 0; //roi.getDrawStringMode() ? 1024 : 0;
                 int style = 0;//font.getStyle() + roi.getJustification() * 256 + drawStringMode;
                 string text = roi.roiName;
                 float angle = 0;
@@ -1556,7 +1559,7 @@ namespace BioCore
                 putInt(hdr2Offset + RoiDecoder.OVERLAY_LABEL_COLOR, 0);
                 //Font font = proto.getLabelFont();
                 //if (font != null)
-                putShort(hdr2Offset + RoiDecoder.OVERLAY_FONT_SIZE, (int)roi.font.Size);
+                putShort(hdr2Offset + RoiDecoder.OVERLAY_FONT_SIZE, (int)roi.fontSize);
                 if (roiNameSize > 0)
                     putName(roi, hdr2Offset);
                 double strokeWidth = roi.strokeWidth;

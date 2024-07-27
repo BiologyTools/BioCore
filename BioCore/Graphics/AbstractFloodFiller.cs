@@ -1,6 +1,9 @@
 using System.Diagnostics;
-
-namespace BioCore.Graphics
+using AForge;
+using Color = AForge.Color;
+using RectangleD = AForge.RectangleD;
+using Point = AForge.Point;
+namespace BioCore
 {
     /// <summary>
     /// The base class that the flood fill algorithms inherit from. Implements the
@@ -9,7 +12,7 @@ namespace BioCore.Graphics
     public abstract class AbstractFloodFiller
     {
 
-        protected BufferInfo bitmap;
+        protected Bitmap bitmap;
         protected ColorS tolerance = new ColorS(25, 25, 25);
         protected ColorS fillColor = ColorS.FromColor(Color.Black);
         protected bool fillDiagonally = false;
@@ -21,7 +24,7 @@ namespace BioCore.Graphics
         protected int bitmapStride = 0;
         protected int bitmapPixelFormatSize = 0;
         protected byte[] bitmapBits = null;
-        protected System.Drawing.Imaging.PixelFormat pixelFormat;
+        protected PixelFormat pixelFormat;
 
         //internal int timeBenchmark = 0;
         internal Stopwatch watch = new Stopwatch();
@@ -67,7 +70,7 @@ namespace BioCore.Graphics
             set { tolerance = value; }
         }
 
-        public BufferInfo Bitmap
+        public Bitmap Bitmap
         {
             get { return bitmap; }
             set
@@ -79,7 +82,7 @@ namespace BioCore.Graphics
         public abstract void FloodFill(Point pt);
         protected void PrepareForFloodFill(Point pt)
         {
-            startColor = bitmap.GetPixel(pt.X, pt.Y);
+            startColor = bitmap.GetPixel((int)pt.X, (int)pt.Y);
             byteFillColor = new ColorS(fillColor.B, fillColor.G, fillColor.R);
             bitmapStride = bitmap.Stride;
             bitmapPixelFormatSize = bitmap.PixelFormatSize;

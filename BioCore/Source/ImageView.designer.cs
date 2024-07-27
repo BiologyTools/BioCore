@@ -299,7 +299,6 @@ namespace BioCore
             hideOverviewToolStripMenuItem.Name = "hideOverviewToolStripMenuItem";
             hideOverviewToolStripMenuItem.Size = new Size(151, 22);
             hideOverviewToolStripMenuItem.Text = "Hide Overview";
-            hideOverviewToolStripMenuItem.Click += hideOverviewToolStripMenuItem_Click;
             // 
             // copyViewToClipboardToolStripMenuItem
             // 
