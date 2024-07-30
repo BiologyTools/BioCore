@@ -313,34 +313,42 @@ namespace BioCore
         /// </summary>
         private void InitPreview()
         {
-            if (SelectedImage.Resolutions.Count == 1)
+            if (!SelectedImage.isPyramidal)
                 return;
             overview = new Rectangle(0, 0, 120, 120);
-            Resolution res;
-            if (!MacroResolution.HasValue)
-                res = SelectedImage.Resolutions.Last();
-            else
-                res = SelectedImage.Resolutions[MacroResolution.Value];
-            int aspx = res.SizeX / 10;
-            int aspy = res.SizeY / 10;
-            overview = new Rectangle(0, 0, aspx, aspy);
-            Bitmap bm;
-            ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
-            byte[] bts;
-            Bitmap bf;
-            if (_openSlideBase != null)
+            if (MacroResolution.HasValue)
             {
-                bts = _openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(0, 0, res.SizeX, res.SizeY, SelectedImage.GetUnitPerPixel(SelectedImage.Resolutions.Count - 1)));
-                bf = new Bitmap((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                double aspx = (double)SelectedImage.Resolutions[MacroResolution.Value - 1].SizeX / (double)SelectedImage.Resolutions[MacroResolution.Value - 1].SizeY;
+                double aspy = (double)SelectedImage.Resolutions[MacroResolution.Value - 1].SizeY / (double)SelectedImage.Resolutions[MacroResolution.Value - 1].SizeX;
+                overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
+                Bitmap bm = BioImage.GetTile(SelectedImage, GetCoordinate(), MacroResolution.Value - 1, 0, 0, SelectedImage.Resolutions[MacroResolution.Value - 1].SizeX, SelectedImage.Resolutions[MacroResolution.Value - 1].SizeY);
+                ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
+                Bitmap bmp = re.Apply((Bitmap)bm.ImageRGB);
+                overviewBitmap = bmp;
             }
             else
             {
-                bts = _slideBase.GetSlice(new BioLib.SliceInfo(0, 0, res.SizeX, res.SizeY, SelectedImage.GetUnitPerPixel(SelectedImage.Resolutions.Count - 1), GetCoordinate())).Result;
-                bf = new Bitmap((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                Resolution res = SelectedImage.Resolutions.Last();
+                double aspx = (double)res.SizeX / (double)res.SizeY;
+                double aspy = (double)res.SizeY / (double)res.SizeX;
+                overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
+                Bitmap bm;
+                ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
+                byte[] bts;
+                Bitmap bf;
+                if (_openSlideBase != null)
+                {
+                    bts = _openSlideBase.GetSlice(new OpenSlideGTK.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level)));
+                    bf = new Bitmap((int)Math.Round(OpenSlideBase.destExtent.Width), (int)Math.Round(OpenSlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                }
+                else
+                {
+                    bts = _slideBase.GetSlice(new BioLib.SliceInfo(PyramidalOrigin.X, PyramidalOrigin.Y, SelectedImage.PyramidalSize.Width, SelectedImage.PyramidalSize.Height, SelectedImage.GetUnitPerPixel(Level), GetCoordinate())).Result;
+                    bf = new Bitmap((int)Math.Round(SlideBase.destExtent.Width), (int)Math.Round(SlideBase.destExtent.Height), PixelFormat.Format24bppRgb, bts, new ZCT(), "");
+                }
+                bm = re.Apply((Bitmap)bf.ImageRGB);
+                overviewBitmap = bm;
             }
-            bm = re.Apply((Bitmap)bf.ImageRGB);
-            overviewBitmap = bm;
-
             ShowOverview = true;
             Console.WriteLine("Preview Initialized.");
         }
@@ -1352,8 +1360,7 @@ namespace BioCore
                             dBitmaps[bi].Dispose();
                             dBitmaps[bi] = null;
                         }
-                    Bitmap bf = new Bitmap("", bitmap, new ZCT(), 0);
-                    dBitmaps.Add(DBitmap.FromImage(dx.RenderTarget2D, (bf)));
+                    dBitmaps.Add(DBitmap.FromImage(dx.RenderTarget2D, bitmap));
                 }
                 else
                     Bitmaps.Add(bitmap);

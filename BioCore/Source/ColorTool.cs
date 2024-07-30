@@ -12,21 +12,21 @@ namespace BioCore
 {
     public partial class ColorTool : Form
     {
-        private ColorS color = new ColorS(65535, 65535, 65535);
-        private int bitsPerPixel = 16;
+        private ColorS colors = new ColorS(65535, 65535, 65535);
+        private int bitsPerPx = 16;
         /* A property. */
         public ColorS Color
         {
             get
             {
-                return color;
+                return colors;
             }
             set
             {
-                color = value;
+                colors = value;
             }
         }
-
+/*
         /// It updates the GUI
         public void UpdateGUI()
         {
@@ -39,6 +39,7 @@ namespace BioCore
             if (bBar.Value != blueBox.Value)
                 blueBox.Value = bBar.Value;
         }
+        */
         /* A constructor. */
         public ColorTool()
         {

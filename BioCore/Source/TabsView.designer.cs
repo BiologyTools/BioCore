@@ -84,6 +84,8 @@ namespace BioCore
             exportROIsOfFolderOfImagesToolStripMenuItem = new ToolStripMenuItem();
             importImageJROIToolStripMenuItem = new ToolStripMenuItem();
             exportImageJROIToolStripMenuItem = new ToolStripMenuItem();
+            importQuPathROIToolStripMenuItem = new ToolStripMenuItem();
+            exportQuPathROIToolStripMenuItem = new ToolStripMenuItem();
             channelsToolToolStripMenuItem = new ToolStripMenuItem();
             autoThresholdToolStripMenuItem = new ToolStripMenuItem();
             channelsToolToolStripMenuItem1 = new ToolStripMenuItem();
@@ -113,10 +115,9 @@ namespace BioCore
             runToolStripMenuItem1 = new ToolStripMenuItem();
             openImageJDialog = new OpenFileDialog();
             saveImageJDialog = new SaveFileDialog();
-            importQuPathROIToolStripMenuItem = new ToolStripMenuItem();
-            exportQuPathROIToolStripMenuItem = new ToolStripMenuItem();
             saveQuPathDialog = new SaveFileDialog();
             openQuPathDialog = new OpenFileDialog();
+            extractRegionPyramidalToolStripMenuItem = new ToolStripMenuItem();
             panel.SuspendLayout();
             tabContextMenuStrip.SuspendLayout();
             menuStrip.SuspendLayout();
@@ -491,6 +492,20 @@ namespace BioCore
             exportImageJROIToolStripMenuItem.Text = "Export ImageJ ROI from Selected Image";
             exportImageJROIToolStripMenuItem.Click += exportImageJROIToolStripMenuItem_Click;
             // 
+            // importQuPathROIToolStripMenuItem
+            // 
+            importQuPathROIToolStripMenuItem.Name = "importQuPathROIToolStripMenuItem";
+            importQuPathROIToolStripMenuItem.Size = new Size(282, 22);
+            importQuPathROIToolStripMenuItem.Text = "Import QuPath ROI";
+            importQuPathROIToolStripMenuItem.Click += importQuPathROIToolStripMenuItem_Click;
+            // 
+            // exportQuPathROIToolStripMenuItem
+            // 
+            exportQuPathROIToolStripMenuItem.Name = "exportQuPathROIToolStripMenuItem";
+            exportQuPathROIToolStripMenuItem.Size = new Size(282, 22);
+            exportQuPathROIToolStripMenuItem.Text = "Export QuPath ROI";
+            exportQuPathROIToolStripMenuItem.Click += exportQuPathROIToolStripMenuItem_Click;
+            // 
             // channelsToolToolStripMenuItem
             // 
             channelsToolToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { autoThresholdToolStripMenuItem, channelsToolToolStripMenuItem1, switchRedBlueToolStripMenuItem });
@@ -521,7 +536,7 @@ namespace BioCore
             // 
             // stackToolsToolStripMenuItem
             // 
-            stackToolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { stackToolsToolStripMenuItem1, duplicateToolStripMenuItem, rotateToolStripMenuItem, autoFocusToolStripMenuItem });
+            stackToolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { stackToolsToolStripMenuItem1, duplicateToolStripMenuItem, rotateToolStripMenuItem, autoFocusToolStripMenuItem, extractRegionPyramidalToolStripMenuItem });
             stackToolsToolStripMenuItem.Name = "stackToolsToolStripMenuItem";
             stackToolsToolStripMenuItem.Size = new Size(52, 20);
             stackToolsToolStripMenuItem.Text = "Stacks";
@@ -529,21 +544,21 @@ namespace BioCore
             // stackToolsToolStripMenuItem1
             // 
             stackToolsToolStripMenuItem1.Name = "stackToolsToolStripMenuItem1";
-            stackToolsToolStripMenuItem1.Size = new Size(134, 22);
+            stackToolsToolStripMenuItem1.Size = new Size(206, 22);
             stackToolsToolStripMenuItem1.Text = "Stack Tool";
             stackToolsToolStripMenuItem1.Click += stackToolsToolStripMenuItem_Click;
             // 
             // duplicateToolStripMenuItem
             // 
             duplicateToolStripMenuItem.Name = "duplicateToolStripMenuItem";
-            duplicateToolStripMenuItem.Size = new Size(134, 22);
+            duplicateToolStripMenuItem.Size = new Size(206, 22);
             duplicateToolStripMenuItem.Text = "Duplicate";
             duplicateToolStripMenuItem.Click += duplicateToolStripMenuItem_Click;
             // 
             // rotateToolStripMenuItem
             // 
             rotateToolStripMenuItem.Name = "rotateToolStripMenuItem";
-            rotateToolStripMenuItem.Size = new Size(134, 22);
+            rotateToolStripMenuItem.Size = new Size(206, 22);
             rotateToolStripMenuItem.Text = "Rotate Flip";
             rotateToolStripMenuItem.DropDownOpening += rotateToolStripMenuItem_DropDownOpening;
             rotateToolStripMenuItem.DropDownItemClicked += rotateToolStripMenuItem_DropDownItemClicked;
@@ -551,7 +566,7 @@ namespace BioCore
             // autoFocusToolStripMenuItem
             // 
             autoFocusToolStripMenuItem.Name = "autoFocusToolStripMenuItem";
-            autoFocusToolStripMenuItem.Size = new Size(134, 22);
+            autoFocusToolStripMenuItem.Size = new Size(206, 22);
             autoFocusToolStripMenuItem.Text = "Auto Focus";
             autoFocusToolStripMenuItem.Click += autoFocusToolStripMenuItem_Click;
             // 
@@ -693,20 +708,6 @@ namespace BioCore
             saveImageJDialog.Filter = "ROI Files (*.roi)|*.roi|All files (*.*)|*.*";
             saveImageJDialog.Title = "Save ROIs to CSV";
             // 
-            // importQuPathROIToolStripMenuItem
-            // 
-            importQuPathROIToolStripMenuItem.Name = "importQuPathROIToolStripMenuItem";
-            importQuPathROIToolStripMenuItem.Size = new Size(282, 22);
-            importQuPathROIToolStripMenuItem.Text = "Import QuPath ROI";
-            importQuPathROIToolStripMenuItem.Click += importQuPathROIToolStripMenuItem_Click;
-            // 
-            // exportQuPathROIToolStripMenuItem
-            // 
-            exportQuPathROIToolStripMenuItem.Name = "exportQuPathROIToolStripMenuItem";
-            exportQuPathROIToolStripMenuItem.Size = new Size(282, 22);
-            exportQuPathROIToolStripMenuItem.Text = "Export QuPath ROI";
-            exportQuPathROIToolStripMenuItem.Click += exportQuPathROIToolStripMenuItem_Click;
-            // 
             // saveQuPathDialog
             // 
             saveQuPathDialog.DefaultExt = "roi";
@@ -719,6 +720,13 @@ namespace BioCore
             openQuPathDialog.Filter = "QuPath GeoJSON Files (*.geojson)|*.roi|All files (*.*)|*.*";
             openQuPathDialog.Multiselect = true;
             openQuPathDialog.Title = "Import ROI from CSV";
+            // 
+            // extractRegionPyramidalToolStripMenuItem
+            // 
+            extractRegionPyramidalToolStripMenuItem.Name = "extractRegionPyramidalToolStripMenuItem";
+            extractRegionPyramidalToolStripMenuItem.Size = new Size(206, 22);
+            extractRegionPyramidalToolStripMenuItem.Text = "Extract Region Pyramidal";
+            extractRegionPyramidalToolStripMenuItem.Click += extractRegionPyramidalToolStripMenuItem_Click;
             // 
             // TabsView
             // 
@@ -837,5 +845,6 @@ namespace BioCore
         private ToolStripMenuItem exportQuPathROIToolStripMenuItem;
         private SaveFileDialog saveQuPathDialog;
         private OpenFileDialog openQuPathDialog;
+        private ToolStripMenuItem extractRegionPyramidalToolStripMenuItem;
     }
 }

@@ -260,7 +260,7 @@ namespace BioCore
             int img = Images.images.Count;
             foreach (string item in openFilesDialog.FileNames)
             {
-                BioImage im = BioImage.OpenFile(item, 0, true,true);
+                BioImage im = BioImage.OpenFile(item, 0, true, true);
                 AddTab(im);
                 if (!App.recent.Contains(im.ID))
                     App.recent.Add(im.ID);
@@ -803,7 +803,7 @@ namespace BioCore
                 return;
             foreach (string sts in openFilesDialog.FileNames)
             {
-                BioImage im = BioImage.OpenOME(sts,true);
+                BioImage im = BioImage.OpenOME(sts, true);
                 if (im == null)
                     return;
                 AddTab(im);
@@ -972,7 +972,7 @@ namespace BioCore
                     return;
                 }
             }
-            
+
         }
 
         /// If the user selects a file, open it and add it to the viewer
@@ -989,7 +989,7 @@ namespace BioCore
             {
                 if (i == 0 && tabControl.TabPages.Count == 0)
                 {
-                    AddTab(BioImage.OpenOME(openFilesDialog.FileNames[0],false));
+                    AddTab(BioImage.OpenOME(openFilesDialog.FileNames[0], false));
                 }
                 else
                     App.viewer.AddImage(BioImage.OpenOME(openFilesDialog.FileNames[i], false));
@@ -1012,7 +1012,7 @@ namespace BioCore
                 int c = BioImage.GetSeriesCount(file);
                 for (int i = 0; i < c; i++)
                 {
-                    await BioImage.OpenAsync(file, true, true, true,c);
+                    await BioImage.OpenAsync(file, true, true, true, c);
                 }
             }
         }
@@ -1097,7 +1097,7 @@ namespace BioCore
             BioImage[] bms = null;
             foreach (string item in openFilesDialog.FileNames)
             {
-                bms = BioImage.OpenSeries(openFilesDialog.FileName,true);
+                bms = BioImage.OpenSeries(openFilesDialog.FileName, true);
                 for (int i = 0; i < bms.Length; i++)
                 {
                     if (i == 0)
@@ -1400,6 +1400,14 @@ namespace BioCore
             {
                 QuPath.Save(item, ImageView.SelectedImage);
             }
+        }
+
+        private void extractRegionPyramidalToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            BioImage b = ImageView.SelectedImage;
+            BioImage bm = b.GetRegion((int)b.PyramidalOrigin.X, (int)b.PyramidalOrigin.Y, b.PyramidalSize.Width, b.PyramidalSize.Height);
+            AddTab(bm);
+            Images.AddImage(bm, true);
         }
     }
 }

@@ -7,8 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using CSScripting;
 using AForge;
-using Color = AForge.Color;
-using RectangleD = AForge.RectangleD;
+using BioLib;
 namespace BioCore
 {
     public class ImageJ
@@ -99,7 +98,7 @@ namespace BioCore
         }
         public static List<Macro.Command> Macros = new List<Macro.Command>();
         public static List<Process> processes = new List<Process>();
-        public static string ImageJPath = Settings.GetSettings("ImageJPath");
+        public static string ImageJPath = Properties.Settings.Default.ImageJPath;
         private static Random rng = new Random();
         static bool init = false;
         public static bool Initialized { get { return init; } private set { } }
@@ -274,10 +273,7 @@ namespace BioCore
                 return true;
             }
             else
-            {
-                ImageJPath = Properties.Settings.Default.ImageJPath;
                 return true;
-            }
         }
 
         /* It reads a binary file and returns a ROI object */
@@ -726,14 +722,14 @@ namespace BioCore
                 if (strokeColor != 0)
                 {
                     byte[] bts = BitConverter.GetBytes(strokeColor);
-                    Color c = Color.FromArgb(bts[0], bts[1], bts[2], bts[3]);
+                    AForge.Color c = AForge.Color.FromArgb(bts[0], bts[1], bts[2], bts[3]);
                     roi.strokeColor = c;
                 }
                 int fillColor = getInt(FILL_COLOR);
                 if (fillColor != 0)
                 {
                     byte[] bts = BitConverter.GetBytes(strokeColor);
-                    Color c = Color.FromArgb(bts[0], bts[1], bts[2], bts[3]);
+                    AForge.Color c = AForge.Color.FromArgb(bts[0], bts[1], bts[2], bts[3]);
                     roi.fillColor = c;
                 }
             }
@@ -1411,10 +1407,10 @@ namespace BioCore
                 //BasicStroke stroke = roi.getStroke();
                 //if (stroke != null)
                 putShort(RoiDecoder.STROKE_WIDTH, (int)roi.strokeWidth);
-                Color strokeColor = roi.strokeColor;
+                AForge.Color strokeColor = roi.strokeColor;
                 int intColor = (strokeColor.R << 16) | (strokeColor.G << 8) | (strokeColor.B);
                 putInt(RoiDecoder.STROKE_COLOR, 0);
-                Color fillColor = roi.fillColor;
+                AForge.Color fillColor = roi.fillColor;
                 int intFillColor = (fillColor.R << 16) | (fillColor.G << 8) | (fillColor.B);
                 putInt(RoiDecoder.FILL_COLOR, 0);
             }
@@ -1553,7 +1549,7 @@ namespace BioCore
                 putInt(hdr2Offset + RoiDecoder.Z_POSITION, roi.coord.Z + 1);
                 putInt(hdr2Offset + RoiDecoder.T_POSITION, roi.coord.T + 1);
                 //Overlay proto = roi.getPrototypeOverlay();
-                Color overlayLabelColor = roi.strokeColor; //proto.getLabelColor();
+                AForge.Color overlayLabelColor = roi.strokeColor; //proto.getLabelColor();
                 int intColor = (overlayLabelColor.R << 16) | (overlayLabelColor.G << 8) | (overlayLabelColor.B);
                 //if (overlayLabelColor != null)
                 putInt(hdr2Offset + RoiDecoder.OVERLAY_LABEL_COLOR, 0);
