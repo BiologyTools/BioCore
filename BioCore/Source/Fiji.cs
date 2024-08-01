@@ -123,14 +123,10 @@ namespace BioCore
         private static Random rng = new Random();
         public static void RunImageJ(string file, string param)
         {
-            Console.WriteLine("RunImageJ(" + file + "," + param);
             ImagePlus ip = ImageJ.GetImagePlus(ImageView.SelectedImage);
-            Console.WriteLine("ImageJ.GetImagePlus(" + ImageView.SelectedImage.ToString() + ")");
             WindowManager.setTempCurrentImage(ip);
-            Console.WriteLine("WindowManager.setTempCurrentImage(" +ip.ToString() + ")");
             IJ.runMacroFile(file, param);
             ImageView.SelectedImage = ImageJ.GetBioImage(ip, ImageView.SelectedImage.Volume, ImageView.SelectedImage.PhysicalSizeX, ImageView.SelectedImage.PhysicalSizeY, ImageView.SelectedImage.PhysicalSizeZ);
-
         }
         /// It runs a macro in ImageJ
         /// 
@@ -223,6 +219,7 @@ namespace BioCore
                 IJ.runMacro(con, param);
                 ImageView.SelectedImage = ImageJ.GetBioImage(ip, ImageView.SelectedImage.Volume,ImageView.SelectedImage.PhysicalSizeX, ImageView.SelectedImage.PhysicalSizeY, ImageView.SelectedImage.PhysicalSizeZ);
             }
+            BioLib.Recorder.Record(BioLib.Recorder.GetCurrentMethodInfo(), false, con, param, headless);
         }
         /// It runs a macro on the current image, saves the result as a new image, and then opens the
         /// new image in a new tab
@@ -323,6 +320,7 @@ namespace BioCore
                     Console.WriteLine(e.Message.ToString());
                 }
             }
+            BioLib.Recorder.Record(BioLib.Recorder.GetCurrentMethodInfo(), false, con, index, headless, onTab, bioformats, resultInNewTab);
         }
         public static void RunOnImage(string s)
         {

@@ -24,12 +24,12 @@
             log = "";
         }
 
-/// It takes the text in the textbox, splits it into an array of strings, then creates a new array of
-/// strings that is one element shorter than the original array, and then copies the original array into
-/// the new array, and then sets the textbox's text to the new array
-/// 
-/// @param sender The object that raised the event.
-/// @param EventArgs The EventArgs class is the base class for classes containing event data.
+        /// It takes the text in the textbox, splits it into an array of strings, then creates a new array of
+        /// strings that is one element shorter than the original array, and then copies the original array into
+        /// the new array, and then sets the textbox's text to the new array
+        /// 
+        /// @param sender The object that raised the event.
+        /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void delLineBut_Click(object sender, EventArgs e)
         {
             string[] sts = textBox.Lines;
@@ -76,6 +76,10 @@
         /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         private void Recorder_Activated(object sender, EventArgs e)
         {
+            foreach (string s in BioLib.Recorder.Lines)
+            {
+                log += s + Environment.NewLine;
+            }
             textBox.Text = log;
         }
 
