@@ -90,7 +90,7 @@ namespace BioCore
                     try
                     {
                         rn.done = false;
-                        ImageJ.RunString(rn.scriptString, "", false);
+                        Fiji.RunString(rn.scriptString, "", false);
                         rn.done = true;
                     }
                     catch (Exception e)
@@ -543,7 +543,7 @@ namespace BioCore
         {
             if (scriptLabel.Text.EndsWith(".ijm"))
             {
-                ImageJ.RunString(textBox.Text, ImageView.SelectedImage.ID, headlessBox.Checked);
+                Fiji.RunString(textBox.Text, ImageView.SelectedImage.ID, headlessBox.Checked);
             }
             else
                 Run();

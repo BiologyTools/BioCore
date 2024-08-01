@@ -95,6 +95,7 @@ namespace BioCore
                 foreach (string s in cs)
                 {
                     string[] v = s.Split(',');
+                    if (!Commands.ContainsKey(v[0]))
                     Commands.Add(v[0], new Command(v[0], v[1], ""));
                 }
             }
@@ -334,13 +335,13 @@ namespace BioCore
         /// This function is used to initialize the path of the ImageJ.exe file
         /// 
         /// @param path The path to the ImageJ executable.
-        public static bool Initialize(bool imagej)
+        public static bool Initialize(bool imagej = false)
         {
+            Macro.Initialize();
             if (!imagej)
                 return false;
             if (!SetImageJPath())
                 return false;
-            Macro.Initialize();
             string[] ds = Directory.GetFiles(ImageJMacroPath);
             foreach (string s in ds)
             {

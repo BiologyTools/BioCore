@@ -116,6 +116,7 @@ namespace BioCore
             App.tabsView = this;
             Plugins.Initialize();
             filters = new Filter();
+            Fiji.Initialize(false);
             string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             foreach (char c in a)
             {

@@ -3559,6 +3559,8 @@ namespace BioCore
         /// @param EventArgs 
         private void pictureBox_SizeChanged(object sender, EventArgs e)
         {
+            if (SelectedImage == null)
+                return;
             if (ViewWidth < 2 || ViewHeight < 2) return;
             if (SelectedImage.isPyramidal)
             {
