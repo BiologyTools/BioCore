@@ -26,12 +26,12 @@ namespace BioCore
                 colors = value;
             }
         }
-/*
+
         /// It updates the GUI
         public void UpdateGUI()
         {
-            color = new ColorS((ushort)redBox.Value, (ushort)greenBox.Value, (ushort)blueBox.Value);
-            colorPanel.BackColor = System.Drawing.Color.FromArgb(color.R / ushort.MaxValue,color.G / ushort.MaxValue,color.B / ushort.MaxValue);
+            colors = new ColorS((ushort)redBox.Value, (ushort)greenBox.Value, (ushort)blueBox.Value);
+            colorPanel.BackColor = System.Drawing.Color.FromArgb(colors.R / ushort.MaxValue,colors.G / ushort.MaxValue,colors.B / ushort.MaxValue);
             if (rBar.Value != redBox.Value)
                 redBox.Value = rBar.Value;
             if (gBar.Value != greenBox.Value)
@@ -39,7 +39,7 @@ namespace BioCore
             if (bBar.Value != blueBox.Value)
                 blueBox.Value = bBar.Value;
         }
-        */
+        
         /* A constructor. */
         public ColorTool()
         {
@@ -50,8 +50,8 @@ namespace BioCore
         public ColorTool(ColorS col, int bitPerPixel)
         {
             InitializeComponent();
-            this.bitsPerPixel = bitPerPixel;
-            if(bitsPerPixel == 8)
+            this.bitsPerPx = bitPerPixel;
+            if(bitsPerPx == 8)
             {
                 rBar.Maximum = 255;
                 gBar.Maximum = 255;

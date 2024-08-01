@@ -175,6 +175,10 @@ namespace BioCore
                 else
                     return null;
             }
+            set
+            {
+                App.viewer.Images[selectedIndex] = value;
+            }
         }
         public static Bitmap SelectedBuffer
         {

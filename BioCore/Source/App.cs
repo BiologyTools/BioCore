@@ -49,7 +49,7 @@ namespace BioCore
         {
             BioImage.Initialize();
             Microscope.Initialize();
-            ImageJ.Initialize();
+            Fiji.Initialize(requireImageJ);
             tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
@@ -384,8 +384,8 @@ namespace BioCore
             }
             else if (ts.Text.EndsWith(".ijm"))
             {
-                string s =  File.ReadAllText(Path.GetDirectoryName(ImageJ.ImageJPath) + "/macros/" + ts.Text);
-                ImageJ.RunOnImage(s, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                string s =  File.ReadAllText(Path.GetDirectoryName(Fiji.ImageJPath) + "/macros/" + ts.Text);
+                Fiji.RunOnImage(s, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
             else
             {

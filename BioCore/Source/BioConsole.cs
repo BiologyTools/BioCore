@@ -43,7 +43,7 @@ namespace BioCore
         {
             if (ImageView.SelectedImage == null)
                 return;
-            ImageJ.RunOnImage(textBox.Text, headlessBox.Checked, tabRadioBut.Checked, biofBox.Checked, newTabBox.Checked);
+            Fiji.RunOnImage(textBox.Text, headlessBox.Checked, tabRadioBut.Checked, biofBox.Checked, newTabBox.Checked);
             consoleBox.Text += textBox.Text + Environment.NewLine;
             textBox.Text = "";
             string filename = "";
@@ -169,12 +169,12 @@ namespace BioCore
             preds.Clear();
             i = 0;
             ind = -1;
-            foreach (var cs in ImageJ.Macro.Commands)
+            foreach (var cs in Fiji.Macro.Commands)
             {
                 if (cs.Value.Name.StartsWith(pred))
                     preds.Add(cs.Value.Name);
             }
-            foreach (var cs in ImageJ.Macro.Functions)
+            foreach (var cs in Fiji.Macro.Functions)
             {
                 if (cs.Value[0].Name.StartsWith(pred))
                     preds.Add(cs.Value[0].Name);

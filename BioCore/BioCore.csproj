@@ -63,6 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BioLib" Version="2.5.0" />
     <PackageReference Include="FlaUI.Core" Version="4.0.0" />
     <PackageReference Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageReference Include="H.InputSimulator" Version="1.4.2" />
@@ -120,9 +121,6 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\BioLib\BioLib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="AForge.Bitmap">
