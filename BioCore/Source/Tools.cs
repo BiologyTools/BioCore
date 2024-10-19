@@ -675,6 +675,32 @@ namespace BioCore
                 pen.Dispose();
                 App.viewer.UpdateImage();
             }
+            if ((Tools.currentTool.type == Tools.Tool.Type.pan && buts == MouseButtons.Middle))
+            {
+                if (ImageView.SelectedImage.isPyramidal)
+                {
+                    if (App.viewer.OpenSlide)
+                    {
+                        if (App.viewer.MouseMoveInt.X != 0 || App.viewer.MouseMoveInt.Y != 0)
+                        {
+                            App.viewer.PyramidalOriginTransformed = new PointD(App.viewer.PyramidalOriginTransformed.X + (ImageView.mouseDown.X - e.X), App.viewer.PyramidalOriginTransformed.Y + (ImageView.mouseDown.Y - e.Y));
+                        }
+                    }
+                    else
+                    {
+                        if (App.viewer.MouseMoveInt.X != 0 || App.viewer.MouseMoveInt.Y != 0)
+                        {
+                            App.viewer.PyramidalOriginTransformed = new PointD(App.viewer.PyramidalOriginTransformed.X + (ImageView.mouseDown.X - e.X), App.viewer.PyramidalOriginTransformed.Y + (ImageView.mouseDown.Y - e.Y));
+                        }
+                    }
+                    App.viewer.UpdateImages();
+                }
+                else
+                {
+                    App.viewer.Origin = new PointD(App.viewer.Origin.X + (ImageView.mouseDown.X - e.X), App.viewer.Origin.Y + (ImageView.mouseDown.Y - e.Y));
+                }
+                UpdateView();
+            }
         }
 
         /// When the movePanel is clicked, the currentTool is set to the move tool, the movePanel's
