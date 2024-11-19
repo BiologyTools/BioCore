@@ -353,6 +353,7 @@ namespace BioCore
             if (!SelectedImage.isPyramidal)
                 return;
             overview = new Rectangle(0, 0, 120, 120);
+            ZCT co = GetCoordinate();
             if (SelectedImage.Resolutions.Count == 1)
             {
                 ShowOverview = false;
@@ -367,7 +368,7 @@ namespace BioCore
                 {
                     return;
                 }
-                Bitmap bm = BioImage.GetTile(SelectedImage, GetCoordinate(), MacroResolution.Value - 2, 0, 0, SelectedImage.Resolutions[MacroResolution.Value - 2].SizeX, SelectedImage.Resolutions[MacroResolution.Value - 2].SizeY);
+                Bitmap bm = BioImage.GetTile(SelectedImage,SelectedImage.GetFrameIndex(co.Z,co.C,co.T), MacroResolution.Value - 2, 0, 0, SelectedImage.Resolutions[MacroResolution.Value - 2].SizeX, SelectedImage.Resolutions[MacroResolution.Value - 2].SizeY);
                 ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
                 Bitmap bmp = re.Apply(bm);
                 overviewBitmap = bmp;
@@ -378,11 +379,12 @@ namespace BioCore
                 double aspx = (double)SelectedImage.Resolutions[lev].SizeX / (double)SelectedImage.Resolutions[lev].SizeY;
                 double aspy = (double)SelectedImage.Resolutions[lev].SizeY / (double)SelectedImage.Resolutions[lev].SizeX;
                 overview = new Rectangle(0, 0, (int)(aspx * 120), (int)(aspy * 120));
-                Bitmap bm = BioImage.GetTile(SelectedImage, GetCoordinate(), lev, 0, 0, SelectedImage.Resolutions[lev].SizeX, SelectedImage.Resolutions[lev].SizeY);
+                Bitmap bm = BioImage.GetTile(SelectedImage, SelectedImage.GetFrameIndex(co.Z, co.C, co.T), lev, 0, 0, SelectedImage.Resolutions[lev].SizeX, SelectedImage.Resolutions[lev].SizeY);
                 ResizeNearestNeighbor re = new ResizeNearestNeighbor(overview.Width, overview.Height);
                 Bitmap bmp = re.Apply(bm);
                 overviewBitmap = bmp;
             }
+            overviewBitmap.SwitchRedBlue();
             ShowOverview = true;
             Console.WriteLine("Preview Initialized.");
         }
@@ -714,8 +716,16 @@ namespace BioCore
             }
             set
             {
-                if (value > SelectedImage.GetUnitPerPixel(SelectedImage.Resolutions.Count - 1) && value > SelectedImage.GetUnitPerPixel(0))
-                    return;
+                if (MacroResolution.HasValue)
+                {
+                    if (value > SelectedImage.GetUnitPerPixel(MacroResolution.Value - 2) && value < SelectedImage.GetUnitPerPixel(0))
+                        return;
+                }
+                else
+                {
+                    if (value > SelectedImage.GetUnitPerPixel(SelectedImage.Resolutions.Count - 1) && value < SelectedImage.GetUnitPerPixel(0))
+                        return;
+                }
                 double dp = Resolution / value;
                 SelectedImage.PyramidalOrigin = new PointD((dp * PyramidalOrigin.X), (dp * PyramidalOrigin.Y));
                 SelectedImage.Resolution = value;
@@ -747,58 +757,6 @@ namespace BioCore
 
         }
         ///Setting the Level of the image. */
-        private int LevelFromResolution(double resolution)
-        {
-            int lev;
-            if (SelectedImage == null)
-                return 0;
-            if (SelectedImage.MacroResolution.HasValue)
-            {
-                if (resolution >= SelectedImage.MacroResolution.Value)
-                {
-                    int r = 0;
-                    for (int i = 0; i < SelectedImage.Resolutions.Count; i++)
-                    {
-                        if (i <= resolution - 1)
-                            r = i;
-                    }
-                    if (r - 1 <= SelectedImage.MacroResolution.Value)
-                        lev = SelectedImage.MacroResolution.Value - 1;
-                    else
-                        lev = r - 1;
-                }
-                else
-                    return (int)resolution;
-            }
-            else
-            {
-                int r = 0;
-                for (int i = 0; i < SelectedImage.Resolutions.Count; i++)
-                {
-                    if (i <= resolution - 1)
-                        r = i;
-                }
-                lev = r;
-            }
-            if (!OpenSlide)
-            {
-                return lev;
-            }
-            else
-            {
-                if (SelectedImage.MacroResolution.HasValue)
-                {
-                    if (lev >= SelectedImage.MacroResolution.Value - 1)
-                        return lev - 1;
-                    else
-                        return lev;
-                }
-                else
-                {
-                    return lev - 1;
-                }
-            }
-        }
         /// <summary>
         /// Current level when viewing whole-slide and pyramidal images.
         /// </summary>
@@ -806,7 +764,22 @@ namespace BioCore
         {
             get
             {
-                return LevelFromResolution(Resolution);
+                if (SelectedImage == null)
+                    return 0;
+                int l = SelectedImage.LevelFromResolution(Resolution);
+                if (l < 0)
+                    return 0;
+                if (MacroResolution.HasValue)
+                {
+                    if (l >= MacroResolution)
+                        return MacroResolution.Value - 1;
+                }
+                else
+                {
+                    if (l >= SelectedImage.Resolutions.Count)
+                        return SelectedImage.Resolutions.Count - 1;
+                }
+                return l;
             }
         }
         /// <summary>
@@ -953,6 +926,7 @@ namespace BioCore
             if (SelectedImage == null)
                 return;
             zBar.Maximum = SelectedImage.SizeZ - 1;
+            if (SelectedImage.Buffers[0]!=null)
             if (SelectedImage.Buffers[0].RGBChannelsCount == 3)
                 cBar.Maximum = 0;
             else
@@ -995,10 +969,6 @@ namespace BioCore
             UpdateRGBChannels();
             init = true;
         }
-        /// This function is called from the Unity Editor when the user changes the size of the select
-        /// box
-        /// 
-        /// @param size The size of the box that will be drawn around the ROI.
         public void UpdateSelectBoxSize(float size)
         {
             ROI.selectBoxSize = size;
@@ -1054,8 +1024,9 @@ namespace BioCore
                 }
                 else
                 {
-                    statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", " +
-                        SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
+                    statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", ";
+                    if (SelectedImage.Buffers[0]!=null)
+                        statusLabel.Text += SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
                 }
             }
         }
@@ -1106,6 +1077,8 @@ namespace BioCore
                     RectangleF rge = new RectangleF((float)((-Origin.X) - (w / 2)), (float)((-Origin.Y) - (h / 2)), (float)(Math.Abs(w)), (float)(Math.Abs(h)));
                     RectangleF rec = new RectangleF((float)Images[x].Volume.Location.X, (float)Images[x].Volume.Location.Y, (float)Images[x].Volume.Width, (float)Images[x].Volume.Height);
                     //if (rge.IntersectsWith(rec))
+                    if (dBitmaps.Count != Images.Count)
+                        UpdateImages(true);
                     dx.RenderTarget2D.DrawBitmap(dBitmaps[x], ToRawRectF(r.X, r.Y, r.Width, r.Height), 1.0f, SharpDX.Direct2D1.BitmapInterpolationMode.Linear);
                     if (x == selectedIndex)
                         dx.RenderTarget2D.DrawRectangle(ToRawRectF(r.X, r.Y, r.Width, r.Height), blue);
@@ -1360,8 +1333,10 @@ namespace BioCore
             foreach (BioImage b in Images)
             {
                 b.PyramidalOrigin = PyramidalOrigin;
+
                 if (updatePyramidal)
                     await b.UpdateBuffersPyramidal();
+                updatePyr = false;
                 ZCT coords = new ZCT(zBar.Value, cBar.Value, tBar.Value);
                 Bitmap bitmap = null;
 
@@ -1376,7 +1351,7 @@ namespace BioCore
                 }
                 else if (Mode == ViewMode.Raw)
                 {
-                    bitmap = (Bitmap)b.Buffers[index].ImageRGB;
+                    bitmap = (Bitmap)b.Buffers[index].GetImageRGB();
                 }
                 else
                 {
@@ -2301,84 +2276,87 @@ namespace BioCore
         /// <param name="g"></param>
         public void DrawView(System.Drawing.Graphics g)
         {
-            if (HardwareAcceleration)
+            
+            try
             {
-                RenderFrame();
-                return;
-            }
-            drawing = true;
-            if (updatePyr)
-            {
-                UpdateImages(true);
-                updatePyr = false;
-            }
-            g.TranslateTransform(ViewWidth / 2, ViewHeight / 2);
-            if (Scale.Width == 0 || float.IsInfinity(Scale.Width))
-                Scale = new SizeF(1, 1);
-            g.ScaleTransform(Scale.Width, Scale.Height);
-            if (Bitmaps.Count == 0)
-                return;
-            System.Drawing.RectangleF[] rf = new System.Drawing.RectangleF[1];
-            System.Drawing.Pen blue = new System.Drawing.Pen(Brushes.Blue, 1 / Scale.Width);
-            int i = 0;
-            foreach (BioImage im in Images)
-            {
-                if (!IsLayerEnabled(im.PhysicalSizeX) && !im.isPyramidal)
-                    continue;
-                RectangleF r = ToScreenRectF(im.Volume.Location.X, im.Volume.Location.Y, im.Volume.Width, im.Volume.Height);
-                double w = ToViewW(ViewWidth);
-                double h = ToViewH(ViewHeight);
-                RectangleF rg = new RectangleF((float)((-Origin.X) - (w / 2)), (float)((-Origin.Y) - (h / 2)), (float)(w), (float)(h));
-                RectangleF rec = new RectangleF((float)im.Volume.Location.X, (float)im.Volume.Location.Y, (float)im.Volume.Width, (float)im.Volume.Height);
-                if (SelectedImage.isPyramidal)
+                if (HardwareAcceleration)
                 {
-                    var tr = g.Transform;
+                    RenderFrame();
+                    return;
+                }
+                drawing = true;
+                g.TranslateTransform(ViewWidth / 2, ViewHeight / 2);
+                if (Scale.Width == 0 || float.IsInfinity(Scale.Width))
+                    Scale = new SizeF(1, 1);
+                g.ScaleTransform(Scale.Width, Scale.Height);
+                if (Bitmaps.Count == 0)
+                    return;
+                System.Drawing.RectangleF[] rf = new System.Drawing.RectangleF[1];
+                System.Drawing.Pen blue = new System.Drawing.Pen(Brushes.Blue, 1 / Scale.Width);
+                int i = 0;
+                foreach (BioImage im in Images)
+                {
+                    if (!IsLayerEnabled(im.PhysicalSizeX) && !im.isPyramidal)
+                        continue;
+                    RectangleF r = ToScreenRectF(im.Volume.Location.X, im.Volume.Location.Y, im.Volume.Width, im.Volume.Height);
+                    double w = ToViewW(ViewWidth);
+                    double h = ToViewH(ViewHeight);
+                    RectangleF rg = new RectangleF((float)((-Origin.X) - (w / 2)), (float)((-Origin.Y) - (h / 2)), (float)(w), (float)(h));
+                    RectangleF rec = new RectangleF((float)im.Volume.Location.X, (float)im.Volume.Location.Y, (float)im.Volume.Width, (float)im.Volume.Height);
+                    if (SelectedImage.isPyramidal)
+                    {
+                        var tr = g.Transform;
+                        g.ResetTransform();
+                        g.DrawImage(ToSysBitmap(Bitmaps[i]), 0, 0);
+                        g.Transform = tr;
+                    }
+                    else
+                    if (rg.IntersectsWith(rec))
+                    {
+                        g.DrawImage(ToSysBitmap(Bitmaps[i]), 0, 0, r.Width, r.Height);
+                    }
+                    if (i == SelectedIndex && !SelectedImage.isPyramidal)
+                    {
+                        rf[0] = new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
+                        g.DrawRectangles(blue, rf);
+                    }
+                    i++;
+                }
+                if (ShowOverview)
+                {
                     g.ResetTransform();
-                    g.DrawImage(ToSysBitmap(Bitmaps[i]), 0, 0);
-                    g.Transform = tr;
+                    g.DrawImage(ToSysBitmap(overviewBitmap), new System.Drawing.Point(0, 0));
+                    g.DrawRectangle(Pens.Gray, overview.X, overview.Y, overview.Width, overview.Height);
+                    if (!openSlide)
+                    {
+                        double dsx = _slideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
+                        Resolution rs = SelectedImage.Resolutions[Level];
+                        double dx = ((double)PyramidalOrigin.X / (rs.SizeX * dsx)) * overview.Width;
+                        double dy = ((double)PyramidalOrigin.Y / (rs.SizeY * dsx)) * overview.Height;
+                        double dw = ((double)ViewWidth / (rs.SizeX)) * overview.Width * dsx;
+                        double dh = ((double)ViewHeight / (rs.SizeY)) * overview.Height * dsx;
+                        g.DrawRectangle(Pens.Red, (int)dx, (int)dy, (int)dw, (int)dh);
+                    }
+                    else
+                    {
+                        double dsx = _openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
+                        var rs = _openSlideBase.Schema.Resolutions.Last();
+                        Resolution rss = SelectedImage.Resolutions[Level];
+                        double dx = ((double)PyramidalOrigin.X / (rss.SizeX * dsx)) * overview.Width;
+                        double dy = ((double)PyramidalOrigin.Y / (rss.SizeY * dsx)) * overview.Height;
+                        double dw = ((double)ViewWidth / (rss.SizeX * dsx)) * overview.Width;
+                        double dh = ((double)ViewHeight / (rss.SizeY * dsx)) * overview.Height;
+                        g.DrawRectangle(Pens.Red, (int)dx, (int)dy, (int)dw, (int)dh);
+                    }
                 }
-                else
-                if (rg.IntersectsWith(rec))
-                {
-                    g.DrawImage(ToSysBitmap(Bitmaps[i]), r.X, r.Y, r.Width, r.Height);
-                }
-                if (i == SelectedIndex && !SelectedImage.isPyramidal)
-                {
-                    rf[0] = new System.Drawing.RectangleF(r.X, r.Y, r.Width, r.Height);
-                    g.DrawRectangles(blue, rf);
-                }
-                i++;
+                blue.Dispose();
+                update = false;
+                drawing = false;
             }
-            if (ShowOverview)
+            catch (Exception e)
             {
-                g.ResetTransform();
-                g.DrawImage(ToSysBitmap(overviewBitmap), new System.Drawing.Point(0, 0));
-                g.DrawRectangle(Pens.Gray, overview.X, overview.Y, overview.Width, overview.Height);
-                if (!openSlide)
-                {
-                    double dsx = _slideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
-                    Resolution rs = SelectedImage.Resolutions[Level];
-                    double dx = ((double)PyramidalOrigin.X / (rs.SizeX * dsx)) * overview.Width;
-                    double dy = ((double)PyramidalOrigin.Y / (rs.SizeY * dsx)) * overview.Height;
-                    double dw = ((double)ViewWidth / (rs.SizeX)) * overview.Width * dsx;
-                    double dh = ((double)ViewHeight / (rs.SizeY)) * overview.Height * dsx;
-                    g.DrawRectangle(Pens.Red, (int)dx, (int)dy, (int)dw, (int)dh);
-                }
-                else
-                {
-                    double dsx = _openSlideBase.Schema.Resolutions[Level].UnitsPerPixel / Resolution;
-                    var rs = _openSlideBase.Schema.Resolutions.Last();
-                    Resolution rss = SelectedImage.Resolutions[Level];
-                    double dx = ((double)PyramidalOrigin.X / (rss.SizeX * dsx)) * overview.Width;
-                    double dy = ((double)PyramidalOrigin.Y / (rss.SizeY * dsx)) * overview.Height;
-                    double dw = ((double)ViewWidth / (rss.SizeX * dsx)) * overview.Width;
-                    double dh = ((double)ViewHeight / (rss.SizeY * dsx)) * overview.Height;
-                    g.DrawRectangle(Pens.Red, (int)dx, (int)dy, (int)dw, (int)dh);
-                }
+                Console.WriteLine(e.Message);
             }
-            blue.Dispose();
-            update = false;
-            drawing = false;
         }
         private double scaleorig = 0;
         /// It draws the view.
@@ -2400,7 +2378,7 @@ namespace BioCore
         }
         private System.Drawing.Bitmap ToSysBitmap(Bitmap bm)
         {
-            return new System.Drawing.Bitmap(bm.Width, bm.Height, bm.Width * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, bm.RGBData);
+            return new System.Drawing.Bitmap(bm.Width, bm.Height, bm.Width * 4, System.Drawing.Imaging.PixelFormat.Format32bppArgb, bm.GetRGBData());
         }
         Point mouseD = new Point(0, 0);
         PointD prevMove = new PointD();

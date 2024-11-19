@@ -247,6 +247,11 @@ namespace BioCore
             rawToolStripMenuItem.Text = "Raw";
             rawToolStripMenuItem.Click += rawToolStripMenuItem_Click;
             // 
+            // moveStageToImageToolStripMenuItem
+            // 
+            moveStageToImageToolStripMenuItem.Name = "moveStageToImageToolStripMenuItem";
+            moveStageToImageToolStripMenuItem.Size = new Size(199, 22);
+            // 
             // goToToolStripMenuItem
             // 
             goToToolStripMenuItem.Name = "goToToolStripMenuItem";
@@ -262,6 +267,11 @@ namespace BioCore
             goToImageToolStripMenuItem.DropDownOpening += goToImageToolStripMenuItem_DropDownOpening;
             goToImageToolStripMenuItem.DropDownItemClicked += goToImageToolStripMenuItem_DropDownItemClicked;
             goToImageToolStripMenuItem.Click += goToImageToolStripMenuItem_Click;
+            // 
+            // goToStageToolStripMenuItem
+            // 
+            goToStageToolStripMenuItem.Name = "goToStageToolStripMenuItem";
+            goToStageToolStripMenuItem.Size = new Size(199, 22);
             // 
             // controlsToolStripMenuItem
             // 
@@ -729,7 +739,7 @@ namespace BioCore
             dxPanel.Location = new Point(0, 29);
             dxPanel.Margin = new Padding(4, 3, 4, 3);
             dxPanel.Name = "dxPanel";
-            dxPanel.Size = new Size(499, 310);
+            dxPanel.Size = new Size(481, 290);
             dxPanel.TabIndex = 25;
             dxPanel.SizeChanged += dxPanel_SizeChanged;
             dxPanel.Paint += pictureBox_Paint;

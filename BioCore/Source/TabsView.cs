@@ -1405,10 +1405,9 @@ namespace BioCore
 
         private void extractRegionPyramidalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            BioImage b = ImageView.SelectedImage;
-            BioImage bm = b.GetRegion((int)b.PyramidalOrigin.X, (int)b.PyramidalOrigin.Y, b.PyramidalSize.Width, b.PyramidalSize.Height);
-            AddTab(bm);
-            Images.AddImage(bm, true);
+            BioImage bm = SelectedImage.Copy(true);
+            bm.ID = Images.GetImageName(bm.ID);
+            Images.AddImage(bm);
         }
     }
 }

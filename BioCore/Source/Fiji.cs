@@ -283,7 +283,7 @@ namespace BioCore
                     bm.ID = Path.GetFileName(file).Replace("-temp", "");
                     bm.Filename = bm.ID;
                     bm.file = file;
-                    Images.AddImage(bm, true);
+                    Images.AddImage(bm);
                 }
                 else
                 {

@@ -86,7 +86,7 @@ namespace BioCore
         {
             var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
             var size = new Size2(image.Width, image.Height);
-            return new BitmapX(renderTarget, size, new DataPointer(image.RGBData, image.Width * 4 * image.Height), image.Width * 4, bitmapProperties);
+            return new BitmapX(renderTarget, size, new DataPointer(image.GetRGBData(), image.Width * 4 * image.Height), image.Width * 4, bitmapProperties);
         }
         public void Initialize(Configuration configuration, RenderTarget renderTarget2, AForge.Bitmap bf)
         {
