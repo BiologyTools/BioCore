@@ -548,12 +548,6 @@ namespace BioCore
             if (App.viewer == null)
                 return;
             Scripting.UpdateState(Scripting.State.GetMove(e, buts));
-            if (Tools.currentTool.type == Tools.Tool.Type.pan && buts == MouseButtons.Left || buts == MouseButtons.Middle)
-            {
-                PointD pf = new PointD(e.X - ImageView.mouseDown.X, e.Y - ImageView.mouseDown.Y);
-                App.viewer.Origin = new PointD(App.viewer.Origin.X + pf.X, App.viewer.Origin.Y + pf.Y);
-                UpdateView();
-            }
             if (ImageView.SelectedImage == null)
                 return;
             PointD p;
@@ -676,15 +670,15 @@ namespace BioCore
                 pen.Dispose();
                 App.viewer.UpdateImage();
             }
-            if ((Tools.currentTool.type == Tools.Tool.Type.pan && buts == MouseButtons.Middle))
+            if ((Tools.currentTool.type == Tools.Tool.Type.pan && (buts == MouseButtons.Middle || buts == MouseButtons.Left)))
             {
                 if (ImageView.SelectedImage.isPyramidal)
                 {
-                    if (App.viewer.MouseMoveInt.X != 0 || App.viewer.MouseMoveInt.Y != 0)
+                    if (ImageView.mouseDown.X - e.X != 0 || ImageView.mouseDown.Y - e.Y != 0)
                     {
                         App.viewer.PyramidalOriginTransformed = new PointD(App.viewer.PyramidalOriginTransformed.X + (ImageView.mouseDown.X - e.X), App.viewer.PyramidalOriginTransformed.Y + (ImageView.mouseDown.Y - e.Y));
+                        App.viewer.UpdateImages(true);
                     }
-                    App.viewer.UpdateImages(true);
                 }
                 else
                 {

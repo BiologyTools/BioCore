@@ -1,5 +1,6 @@
 ﻿using AForge;
 using BioCore;
+using org.w3c.dom.css;
 using System.Diagnostics;
 namespace BioCore
 {
@@ -8,6 +9,7 @@ namespace BioCore
         public static bool init = false;
         public Filter filters = null;
         public static System.Drawing.Graphics graphics = null;
+        public List<ImageView> viewers = new List<ImageView>();
         public ImageView Viewer
         {
             get
@@ -157,12 +159,39 @@ namespace BioCore
             else
                 Scripting.RunByName(m.Text);
         }
-
+        public ImageView GetViewer(int i)
+        {
+            return viewers[i];
+        }
+        public ImageView? GetViewer(string name)
+        {
+            for (int v = 0; v < viewers.Count; v++)
+            {
+                for (int i = 0; i < viewers.Count; i++)
+                {
+                    if (viewers[v].Images[i].Filename == name)
+                        return viewers[v];
+                }
+            }
+            return null;
+        }
+        public int GetViewerCount()
+        {
+            return viewers.Count;
+        }
+        public void RemoveViewer(ImageView v)
+        {
+            viewers.Remove(v);
+        }
+        public void AddViewer(ImageView v)
+        {
+            viewers.Add(v);
+        }
         private void MenuItem_Click(object? sender, EventArgs e)
         {
             if (ImageView.SelectedImage == null) return;
             ToolStripMenuItem m = (ToolStripMenuItem)sender;
-            Fiji.RunOnImage("run(\"" + m.Text + "\");",0, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+            Fiji.RunOnImage("run(\"" + m.Text + "\");", 0, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             ToolStripMenuItem mi = new ToolStripMenuItem(m.Text);
             mi.Click += MenuItem_Click;
             bool con = false;
@@ -1399,7 +1428,7 @@ namespace BioCore
                 return;
             foreach (string item in saveQuPathDialog.FileNames)
             {
-                QuPath.Save(item, ImageView.SelectedImage);
+                QuPath.SaveROI(item, ImageView.SelectedImage);
             }
         }
 
@@ -1408,6 +1437,32 @@ namespace BioCore
             BioImage bm = SelectedImage.Copy(true);
             bm.ID = Images.GetImageName(bm.ID);
             Images.AddImage(bm);
+        }
+
+        private void openQuPathProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (openQuPathProjDialog.ShowDialog() != DialogResult.OK)
+                return;
+            QuPath.Project pr = QuPath.OpenProject(openQuPathProjDialog.FileName);
+            foreach (QuPath.Image p in pr.Images)
+            {
+                App.tabsView.AddTab(BioImage.OpenFile(p.ImageName));
+            }
+        }
+
+        private void saveQuPathProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (saveQuPathProjDialog.ShowDialog() != DialogResult.OK)
+                return;
+            List<BioImage> bms = new List<BioImage>();
+            foreach (var v in viewers)
+            {
+                foreach (var item in v.Images)
+                {
+                    bms.Add(item);
+                }
+            }
+            QuPath.Project.SaveProject(saveQuPathProjDialog.FileName, new List<BioImage[]> {bms.ToArray()});
         }
     }
 }

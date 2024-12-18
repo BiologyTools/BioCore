@@ -49,6 +49,7 @@ namespace BioCore
             openToolStripMenuItem = new ToolStripMenuItem();
             openRecentToolStripMenuItem = new ToolStripMenuItem();
             openOMEToolStripMenuItem = new ToolStripMenuItem();
+            openQuPathProjectToolStripMenuItem = new ToolStripMenuItem();
             openOMESeriesToolStripMenuItem = new ToolStripMenuItem();
             openSeriesToolStripMenuItem = new ToolStripMenuItem();
             sepToolStripMenuItem1 = new ToolStripSeparator();
@@ -56,11 +57,13 @@ namespace BioCore
             addImagesOMEToolStripMenuItem = new ToolStripMenuItem();
             sepToolStripMenuItem2 = new ToolStripSeparator();
             saveToolStripMenuItem = new ToolStripMenuItem();
+            saveNumPyToolStripMenuItem = new ToolStripMenuItem();
             saveOMEToolStripMenuItem = new ToolStripMenuItem();
             saveTabToolStripMenuItem = new ToolStripMenuItem();
             saveTabTiffToolStripMenuItem = new ToolStripMenuItem();
             saveSeriesToolStripMenuItem = new ToolStripMenuItem();
             savePyramidalToolStripMenuItem = new ToolStripMenuItem();
+            saveQuPathProjectToolStripMenuItem = new ToolStripMenuItem();
             sepToolStripMenuItem3 = new ToolStripSeparator();
             imagesToStackToolStripMenuItem = new ToolStripMenuItem();
             newTabViewToolStripMenuItem = new ToolStripMenuItem();
@@ -95,6 +98,7 @@ namespace BioCore
             duplicateToolStripMenuItem = new ToolStripMenuItem();
             rotateToolStripMenuItem = new ToolStripMenuItem();
             autoFocusToolStripMenuItem = new ToolStripMenuItem();
+            extractRegionPyramidalToolStripMenuItem = new ToolStripMenuItem();
             menuStrip = new MenuStrip();
             formatToolStripMenuItem = new ToolStripMenuItem();
             bit8ToolStripMenuItem = new ToolStripMenuItem();
@@ -117,7 +121,8 @@ namespace BioCore
             saveImageJDialog = new SaveFileDialog();
             saveQuPathDialog = new SaveFileDialog();
             openQuPathDialog = new OpenFileDialog();
-            extractRegionPyramidalToolStripMenuItem = new ToolStripMenuItem();
+            openQuPathProjDialog = new OpenFileDialog();
+            saveQuPathProjDialog = new SaveFileDialog();
             panel.SuspendLayout();
             tabContextMenuStrip.SuspendLayout();
             menuStrip.SuspendLayout();
@@ -220,7 +225,7 @@ namespace BioCore
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openToolStripMenuItem, openRecentToolStripMenuItem, openOMEToolStripMenuItem, openOMESeriesToolStripMenuItem, openSeriesToolStripMenuItem, sepToolStripMenuItem1, addImagesToTabToolStripMenuItem, addImagesOMEToolStripMenuItem, sepToolStripMenuItem2, saveToolStripMenuItem, saveOMEToolStripMenuItem, saveTabToolStripMenuItem, saveTabTiffToolStripMenuItem, saveSeriesToolStripMenuItem, savePyramidalToolStripMenuItem, sepToolStripMenuItem3, imagesToStackToolStripMenuItem, newTabViewToolStripMenuItem, nodeViewToolStripMenuItem, clearRecentToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { openToolStripMenuItem, openRecentToolStripMenuItem, openOMEToolStripMenuItem, openQuPathProjectToolStripMenuItem, openOMESeriesToolStripMenuItem, openSeriesToolStripMenuItem, sepToolStripMenuItem1, addImagesToTabToolStripMenuItem, addImagesOMEToolStripMenuItem, sepToolStripMenuItem2, saveToolStripMenuItem, saveNumPyToolStripMenuItem, saveOMEToolStripMenuItem, saveTabToolStripMenuItem, saveTabTiffToolStripMenuItem, saveSeriesToolStripMenuItem, savePyramidalToolStripMenuItem, saveQuPathProjectToolStripMenuItem, sepToolStripMenuItem3, imagesToStackToolStripMenuItem, newTabViewToolStripMenuItem, nodeViewToolStripMenuItem, clearRecentToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -245,6 +250,13 @@ namespace BioCore
             openOMEToolStripMenuItem.Size = new Size(202, 22);
             openOMEToolStripMenuItem.Text = "Open OME Images";
             openOMEToolStripMenuItem.Click += openOMEToolStripMenuItem_Click_1;
+            // 
+            // openQuPathProjectToolStripMenuItem
+            // 
+            openQuPathProjectToolStripMenuItem.Name = "openQuPathProjectToolStripMenuItem";
+            openQuPathProjectToolStripMenuItem.Size = new Size(202, 22);
+            openQuPathProjectToolStripMenuItem.Text = "Open QuPath Project";
+            openQuPathProjectToolStripMenuItem.Click += openQuPathProjectToolStripMenuItem_Click;
             // 
             // openOMESeriesToolStripMenuItem
             // 
@@ -291,6 +303,12 @@ namespace BioCore
             saveToolStripMenuItem.Text = "Save Selected Tiff";
             saveToolStripMenuItem.Click += saveToolStripMenuItem_Click;
             // 
+            // saveNumPyToolStripMenuItem
+            // 
+            saveNumPyToolStripMenuItem.Name = "saveNumPyToolStripMenuItem";
+            saveNumPyToolStripMenuItem.Size = new Size(202, 22);
+            saveNumPyToolStripMenuItem.Text = "Save NumPy";
+            // 
             // saveOMEToolStripMenuItem
             // 
             saveOMEToolStripMenuItem.Name = "saveOMEToolStripMenuItem";
@@ -325,6 +343,13 @@ namespace BioCore
             savePyramidalToolStripMenuItem.Size = new Size(202, 22);
             savePyramidalToolStripMenuItem.Text = "Save Pyramidal";
             savePyramidalToolStripMenuItem.Click += savePyramidalToolStripMenuItem_Click;
+            // 
+            // saveQuPathProjectToolStripMenuItem
+            // 
+            saveQuPathProjectToolStripMenuItem.Name = "saveQuPathProjectToolStripMenuItem";
+            saveQuPathProjectToolStripMenuItem.Size = new Size(202, 22);
+            saveQuPathProjectToolStripMenuItem.Text = "Save QuPath Project";
+            saveQuPathProjectToolStripMenuItem.Click += saveQuPathProjectToolStripMenuItem_Click;
             // 
             // sepToolStripMenuItem3
             // 
@@ -570,6 +595,13 @@ namespace BioCore
             autoFocusToolStripMenuItem.Text = "Auto Focus";
             autoFocusToolStripMenuItem.Click += autoFocusToolStripMenuItem_Click;
             // 
+            // extractRegionPyramidalToolStripMenuItem
+            // 
+            extractRegionPyramidalToolStripMenuItem.Name = "extractRegionPyramidalToolStripMenuItem";
+            extractRegionPyramidalToolStripMenuItem.Size = new Size(206, 22);
+            extractRegionPyramidalToolStripMenuItem.Text = "Extract Region Pyramidal";
+            extractRegionPyramidalToolStripMenuItem.Click += extractRegionPyramidalToolStripMenuItem_Click;
+            // 
             // menuStrip
             // 
             menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, sizeModeToolStripMenuItem, toolboxToolStripMenuItem, rOIToolStripMenuItem, channelsToolToolStripMenuItem, stackToolsToolStripMenuItem, formatToolStripMenuItem, filtersToolStripMenuItem, scriptToolStripMenuItem, aboutToolStripMenuItem, recentToolStripMenuItem, commandToolStripMenuItem, runToolStripMenuItem1 });
@@ -721,12 +753,18 @@ namespace BioCore
             openQuPathDialog.Multiselect = true;
             openQuPathDialog.Title = "Import ROI from CSV";
             // 
-            // extractRegionPyramidalToolStripMenuItem
+            // openQuPathProjDialog
             // 
-            extractRegionPyramidalToolStripMenuItem.Name = "extractRegionPyramidalToolStripMenuItem";
-            extractRegionPyramidalToolStripMenuItem.Size = new Size(206, 22);
-            extractRegionPyramidalToolStripMenuItem.Text = "Extract Region Pyramidal";
-            extractRegionPyramidalToolStripMenuItem.Click += extractRegionPyramidalToolStripMenuItem_Click;
+            openQuPathProjDialog.DefaultExt = "roi";
+            openQuPathProjDialog.Filter = "QuPath Project Files (*.qpproj)|*.qpproj|All files (*.*)|*.*";
+            openQuPathProjDialog.Multiselect = true;
+            openQuPathProjDialog.Title = "Open QuPath Project.";
+            // 
+            // saveQuPathProjDialog
+            // 
+            saveQuPathProjDialog.DefaultExt = "roi";
+            saveQuPathProjDialog.Filter = "QuPath Project Files (*.qpproj)|*.qpproj|All files (*.*)|*.*";
+            saveQuPathProjDialog.Title = "QuPath Project Save";
             // 
             // TabsView
             // 
@@ -846,5 +884,10 @@ namespace BioCore
         private SaveFileDialog saveQuPathDialog;
         private OpenFileDialog openQuPathDialog;
         private ToolStripMenuItem extractRegionPyramidalToolStripMenuItem;
+        private ToolStripMenuItem saveNumPyToolStripMenuItem;
+        private ToolStripMenuItem saveQuPathProjectToolStripMenuItem;
+        private ToolStripMenuItem openQuPathProjectToolStripMenuItem;
+        private OpenFileDialog openQuPathProjDialog;
+        private SaveFileDialog saveQuPathProjDialog;
     }
 }
