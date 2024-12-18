@@ -389,6 +389,11 @@ namespace BioCore
             Console.WriteLine("Preview Initialized.");
         }
 
+        public void SetTitle(string s)
+        {
+            this.Name = s;
+        }
+
         public bool ShowOverview { get; set; }
         ///Declaring a variable called showControls and setting it to true. */
         private bool showControls = true;

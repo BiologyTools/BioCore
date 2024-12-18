@@ -1,5 +1,6 @@
 ﻿using AForge;
 using BioCore;
+using javax.swing.text;
 using org.w3c.dom.css;
 using System.Diagnostics;
 namespace BioCore
@@ -109,8 +110,57 @@ namespace BioCore
             tabControl.TabPages.Add(t);
             tabControl.Dock = DockStyle.Fill;
             tabControl.SelectedIndex = tabControl.TabCount - 1;
+            viewers.Add(v);
             ResizeView();
         }
+
+        /// This function removes a tab from the tab control
+        /// 
+        /// @param tabName The name of the tab to remove.
+        public void RemoveTab(string tabName)
+        {
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
+            {
+                var item = tabControl.TabPages[i];
+                string name = System.IO.Path.GetFileName(item.Name);
+                if (name == tabName)
+                {
+                    ImageView iv = viewers[i];
+                    for (int v = 0; v < iv.Images.Count; v++)
+                    {
+                        Images.RemoveImage(iv.Images[v]);
+                    }
+                    tabControl.TabPages.Remove(item);
+                    viewers.RemoveAt(i);
+                    App.nodeView.UpdateNodes();
+                    return;
+                }
+                i++;
+            }
+        }
+
+        public void SetTab(string tabName)
+        {
+            tabControl.SelectTab(tabName);
+        }
+        public void SetTab(int i)
+        {
+            tabControl.SelectedIndex = i;
+        }
+
+        public void RenameTab(string tabName, string text)
+        {
+            for (int i = 0; i < tabControl.TabPages.Count; i++)
+            {
+                TabPage t = tabControl.TabPages[i];
+                if (t.Name == tabName)
+                {
+                    t.Text = text;
+                    return;
+                }
+            }
+        }
+
         /// The function is called Init(). It initializes the filters variable to a new instance of the
         /// Filter class. It also sets the init variable to true
         private void Init()
@@ -1446,13 +1496,14 @@ namespace BioCore
             QuPath.Project pr = QuPath.OpenProject(openQuPathProjDialog.FileName);
             foreach (QuPath.Image p in pr.Images)
             {
-                App.tabsView.AddTab(BioImage.OpenFile(p.ImageName));
+                string s = p.ServerBuilder.Uri.Replace("file:/", "");
+                App.tabsView.AddTab(BioImage.OpenFile(s));
             }
         }
 
         private void saveQuPathProjectToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (saveQuPathProjDialog.ShowDialog() != DialogResult.OK)
+            if (saveNumPyDialog.ShowDialog() != DialogResult.OK)
                 return;
             List<BioImage> bms = new List<BioImage>();
             foreach (var v in viewers)
@@ -1462,7 +1513,22 @@ namespace BioCore
                     bms.Add(item);
                 }
             }
-            QuPath.Project.SaveProject(saveQuPathProjDialog.FileName, new List<BioImage[]> {bms.ToArray()});
+            QuPath.Project.SaveProject(saveNumPyDialog.FileName, new List<BioImage[]> { bms.ToArray() });
+        }
+
+        private void renameToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TextInput ti = new TextInput("Rename Image");
+            if (ti.ShowDialog() != DialogResult.OK)
+                return;
+            RenameTab(ImageView.SelectedImage.Filename, ti.TextValue);
+        }
+
+        private void saveNumPyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (saveNumPyDialog.ShowDialog() != DialogResult.OK)
+                return;
+            NumPy.SaveNumPy(ImageView.SelectedImage, saveNumPyDialog.FileName);
         }
     }
 }

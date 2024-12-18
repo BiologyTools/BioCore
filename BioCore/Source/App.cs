@@ -198,7 +198,81 @@ namespace BioCore
             GetContextMenuItemFromPath(menu);
         }
 
+        public static void SelectWindow(string name)
+        {
+            TabsView tbs = App.tabsView;
 
+            int c = tbs.GetViewerCount();
+            for (int v = 0; v < c; v++)
+            {
+                int cc = tbs.GetViewer(v).Images.Count;
+                for (int im = 0; im < cc; im++)
+                {
+                    if (tbs.GetViewer(v).Images[im].Filename == Path.GetFileName(name))
+                    {
+                        tbs.SetTab(v);
+                        BioLib.Recorder.Record("App.SelectWindow(\"" + name + "\")");
+                        ImageView.SelectedImage = tbs.GetViewer(v).Images[im];
+                        viewer = tbs.GetViewer(v);
+                        viewer.BringToFront();
+                        viewer.Focus();
+                        return;
+                    }
+                }
+            }
+        }
+
+        public static void CloseWindow(string name)
+        {
+            BioLib.Recorder.Record("App.CloseWindow(\"" + name + "\")");
+            TabsView tbs = App.tabsView;
+            int c = tbs.GetViewerCount();
+            if (name == "ROI Manager")
+                App.manager.Close();
+            else
+            if (name == "Stack Tool")
+                App.stackTools.Close();
+            else
+            if (name == "Channels Tool")
+                App.channelsTool.Close();
+            else
+            if (name == "Recorder")
+                App.recorder.Close();
+            else
+            if (name == "Tools")
+                App.tools.Close();
+            else
+                for (int v = 0; v < c; v++)
+                {
+                    int cc = tbs.GetViewer(v).Images.Count;
+                    for (int im = 0; im < cc; im++)
+                    {
+                        ImageView vi = tbs.GetViewer(v);
+                        if (vi.Images[im].Filename == Path.GetFileName(name))
+                        {
+                            tbs.RemoveTab(name);
+                            vi.Dispose();
+                            return;
+                        }
+                        else if (vi.Name == name)
+                        {
+                            tbs.RemoveTab(name);
+                            vi.Dispose();
+                            return;
+                        }
+                    }
+                }
+
+        }
+
+        public static void Rename(string text)
+        {
+            App.tabsView.RenameTab(ImageView.SelectedImage.Filename, text);
+            ImageView.SelectedImage.Rename(text);
+            ImageView v = App.tabsView.GetViewer(ImageView.SelectedImage.Filename);
+            v.SetTitle(ImageView.SelectedImage.Filename);
+            BioLib.Recorder.AddLine("App.Rename(\"" + text + "\");", false);
+        }
         /// It returns a list of all the items in a menu, including submenus
         /// 
         /// @param ToolStripMenuItem The menu item you want to get the sub items from.
