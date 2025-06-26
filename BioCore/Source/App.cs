@@ -49,8 +49,26 @@ namespace BioCore
         {
             BioImage.Initialize();
             Microscope.Initialize();
-            Fiji.Initialize(requireImageJ);
-            tabsView = new TabsView();
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            string imj = BioLib.Settings.GetSettings("ImageJPath");
+            if (imj!="")
+            {
+                if(openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    if(openFileDialog.FileName.Contains("Fiji"))
+                        Fiji.Initialize(openFileDialog.FileName);
+                    else
+                        ImageJ.Initialize(openFileDialog.FileName);
+                }
+            }
+            else
+            {
+                if (openFileDialog.FileName.Contains("Fiji"))
+                    Fiji.Initialize(imj);
+                else
+                    ImageJ.Initialize(imj);
+            }
+                tabsView = new TabsView();
             viewer = new ImageView();
             stackTools = new StackTools();
             tools = new Tools();
@@ -264,7 +282,16 @@ namespace BioCore
                 }
 
         }
-
+        public static bool UseFiji
+        {
+            get
+            {
+                if (Fiji.ImageJPath.Contains("Fiji"))
+                    return true;
+                else
+                    return false;
+            }
+        }
         public static void Rename(string text)
         {
             App.tabsView.RenameTab(ImageView.SelectedImage.Filename, text);
@@ -459,7 +486,7 @@ namespace BioCore
             else if (ts.Text.EndsWith(".ijm"))
             {
                 string s =  File.ReadAllText(Path.GetDirectoryName(Fiji.ImageJPath) + "/macros/" + ts.Text);
-                Fiji.RunOnImage(s, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                Fiji.RunOnImage(ImageView.SelectedImage,s, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
             else
             {

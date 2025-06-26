@@ -508,7 +508,7 @@ namespace BioCore
             }
             if (FuncType == Function.FunctionType.ImageJ)
             {
-                Fiji.RunOnImage(script, false, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                Fiji.RunOnImage(ImageView.SelectedImage,script, false, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
 
             if (FuncType == Function.FunctionType.Key)

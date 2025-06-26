@@ -1,7 +1,6 @@
 ﻿using AForge;
 using BioCore;
-using javax.swing.text;
-using org.w3c.dom.css;
+using BioLib;
 using System.Diagnostics;
 namespace BioCore
 {
@@ -76,7 +75,7 @@ namespace BioCore
                     }
                     if (arg[i].EndsWith(".ijm"))
                     {
-                        Fiji.RunMacro(arg[i], "");
+                        Fiji.RunMacroFiji(ImageView.SelectedImage, arg[i], "");
                         return;
                     }
                     else
@@ -153,7 +152,7 @@ namespace BioCore
             for (int i = 0; i < tabControl.TabPages.Count; i++)
             {
                 TabPage t = tabControl.TabPages[i];
-                if (t.Name == tabName)
+                if (t.Text == tabName)
                 {
                     t.Text = text;
                     return;
@@ -168,7 +167,6 @@ namespace BioCore
             App.tabsView = this;
             Plugins.Initialize();
             filters = new Filter();
-            Fiji.Initialize(false);
             string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             foreach (char c in a)
             {
@@ -204,7 +202,7 @@ namespace BioCore
             if (m.Text.EndsWith(".ijm") || m.Text.EndsWith(".txt") && !m.Text.EndsWith(".cs"))
             {
                 string ma = File.ReadAllText(m.Text);
-                Fiji.RunOnImage(ma, 0, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                Fiji.RunOnImage(ImageView.SelectedImage,ma, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
             else
                 Scripting.RunByName(m.Text);
@@ -241,7 +239,7 @@ namespace BioCore
         {
             if (ImageView.SelectedImage == null) return;
             ToolStripMenuItem m = (ToolStripMenuItem)sender;
-            Fiji.RunOnImage("run(\"" + m.Text + "\");", 0, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+            Fiji.RunOnImage(ImageView.SelectedImage,"run(\"" + m.Text + "\");", BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             ToolStripMenuItem mi = new ToolStripMenuItem(m.Text);
             mi.Click += MenuItem_Click;
             bool con = false;
@@ -1402,7 +1400,7 @@ namespace BioCore
                 return;
             foreach (string item in openImageJDialog.FileNames)
             {
-                ImageView.SelectedImage.Annotations.Add(Fiji.RoiDecoder.open(item));
+                ImageView.SelectedImage.Annotations.Add(Fiji.RoiDecoder.open(item, ImageView.SelectedImage.PhysicalSizeX, ImageView.SelectedImage.PhysicalSizeY,ImageView.SelectedImage.StageSizeX,ImageView.SelectedImage.StageSizeY));
             }
             App.viewer.UpdateView();
         }
@@ -1423,7 +1421,7 @@ namespace BioCore
             foreach (ROI roi in ImageView.SelectedImage.Annotations)
             {
                 string s = Path.GetDirectoryName(saveImageJDialog.FileName) + "//" + Path.GetFileNameWithoutExtension(saveImageJDialog.FileName) + "-" + i + ".roi";
-                Fiji.RoiEncoder.save(roi, s);
+                Fiji.RoiEncoder.save(ImageView.SelectedImage,roi, s);
                 i++;
             }
             App.viewer.UpdateView();

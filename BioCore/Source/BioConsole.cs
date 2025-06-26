@@ -43,7 +43,7 @@ namespace BioCore
         {
             if (ImageView.SelectedImage == null)
                 return;
-            Fiji.RunOnImage(textBox.Text, headlessBox.Checked, tabRadioBut.Checked, biofBox.Checked, newTabBox.Checked);
+            Fiji.RunOnImage(ImageView.SelectedImage, textBox.Text, headlessBox.Checked, tabRadioBut.Checked, biofBox.Checked, newTabBox.Checked);
             consoleBox.Text += textBox.Text + Environment.NewLine;
             textBox.Text = "";
             string filename = "";

@@ -90,7 +90,10 @@ namespace BioCore
                     try
                     {
                         rn.done = false;
-                        Fiji.RunString(rn.scriptString, "", false);
+                        if (App.UseFiji)
+                            Fiji.RunStringFiji(ImageView.SelectedImage, rn.scriptString, "", false);
+                        else
+                            ImageJ.RunString(rn.scriptString, "", false);
                         rn.done = true;
                     }
                     catch (Exception e)
@@ -543,7 +546,10 @@ namespace BioCore
         {
             if (scriptLabel.Text.EndsWith(".ijm"))
             {
-                Fiji.RunString(textBox.Text, ImageView.SelectedImage.ID, headlessBox.Checked);
+                if (App.UseFiji)
+                    Fiji.RunStringFiji(ImageView.SelectedImage, textBox.Text, ImageView.SelectedImage.ID, headlessBox.Checked);
+                else
+                    ImageJ.RunOnImage(ImageView.SelectedImage, textBox.Text, headlessBox.Checked, BioConsole.onTab, BioConsole.useBioformats, true);
             }
             else
                 Run();
