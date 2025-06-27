@@ -13,6 +13,7 @@ using BioLib;
 using Gdk;
 using Graphics = System.Drawing.Graphics;
 using OMERO = BioLib.OMERO;
+using System.Runtime.InteropServices;
 namespace BioCore
 {
     public partial class OMERO : Form
@@ -58,36 +59,44 @@ namespace BioCore
                 }
             }
         }
-        public static Icon BytesToIcon(byte[] pngBytes)
+        public static Icon BytesToIcon(System.Drawing.Bitmap bmp)
         {
-            using (MemoryStream ms = new MemoryStream())
+            IntPtr hIcon = bmp.GetHicon();
+            return Icon.FromHandle(hIcon);
+        }
+        public static System.Drawing.Bitmap RawBytesToBitmap(byte[] rawData, int width, int height, System.Drawing.Imaging.PixelFormat pixelFormat)
+        {
+            int bytesPerPixel = Image.GetPixelFormatSize(pixelFormat) / 8;
+            int stride = width * bytesPerPixel;
+
+            System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(width, height, pixelFormat);
+
+            // Lock bitmap and write raw data
+            System.Drawing.Imaging.BitmapData bmpData = bmp.LockBits(
+                new System.Drawing.Rectangle(0, 0, width, height),
+                (ImageLockMode)ImageLockMode.WriteOnly,
+                pixelFormat);
+
+            IntPtr ptr = bmpData.Scan0;
+
+            // Handle stride mismatch if necessary
+            if (bmpData.Stride == stride)
             {
-                // Build .ico header manually
-                using (MemoryStream icoStream = new MemoryStream())
-                using (BinaryWriter bw = new BinaryWriter(icoStream))
+                Marshal.Copy(rawData, 0, ptr, rawData.Length);
+            }
+            else
+            {
+                // Row-by-row copy for non-matching stride
+                for (int y = 0; y < height; y++)
                 {
-                    // ICONDIR structure
-                    bw.Write((short)0);   // Reserved
-                    bw.Write((short)1);   // Type: 1 = ICON
-                    bw.Write((short)1);   // Count: number of images
-
-                    // ICONDIRENTRY structure
-                    bw.Write((byte)32);   // Width
-                    bw.Write((byte)32);   // Height
-                    bw.Write((byte)0);    // Color count
-                    bw.Write((byte)0);    // Reserved
-                    bw.Write((short)0);   // Color planes
-                    bw.Write((short)32);  // Bits per pixel
-                    bw.Write(pngBytes.Length); // Image size
-                    bw.Write(22);         // Offset to image data
-
-                    // Write PNG image data
-                    bw.Write(pngBytes);
-                    bw.Flush();
-                    icoStream.Position = 0;
-                    return new Icon(icoStream);
+                    int srcOffset = y * stride;
+                    int destOffset = y * bmpData.Stride;
+                    Marshal.Copy(rawData, srcOffset, ptr + destOffset, stride);
                 }
             }
+
+            bmp.UnlockBits(bmpData);
+            return bmp;
         }
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -124,8 +133,8 @@ namespace BioCore
                             {
                                 if(item == itm.Key)
                                 {
-                                    Bitmap bm = PixbufToBitmap(itm.Value);
-                                    ims.Images.Add(BytesToIcon(bm.Bytes));
+                                    System.Drawing.Bitmap bm = PixbufToBitmap(itm.Value);
+                                    ims.Images.Add(BytesToIcon(bm));
                                     ListViewItem li = new ListViewItem();
                                     li.Text = fs[i];
                                     li.ImageIndex = i;
@@ -164,7 +173,7 @@ namespace BioCore
                 }
             }
         }
-        public static AForge.Bitmap PixbufToBitmap(Pixbuf pixbuf)
+        public static System.Drawing.Bitmap PixbufToBitmap(Pixbuf pixbuf)
         {
             if (pixbuf == null)
                 throw new ArgumentNullException(nameof(pixbuf), "Pixbuf cannot be null.");
@@ -177,14 +186,14 @@ namespace BioCore
             byte[] pixelData = pixbuf.PixelBytes.Data;
 
             // Create a Bitmap
-            AForge.PixelFormat pixelFormat = hasAlpha ? AForge.PixelFormat.Format32bppArgb : AForge.PixelFormat.Format24bppRgb;
-            AForge.Bitmap bitmap = new Bitmap(width, height, pixelFormat);
+            System.Drawing.Imaging.PixelFormat pixelFormat = hasAlpha ? System.Drawing.Imaging.PixelFormat.Format32bppArgb : System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+            System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(width, height, pixelFormat);
 
             // Lock the Bitmap's data
-            AForge.BitmapData bmpData = bitmap.LockBits(
-                new AForge.Rectangle(0, 0, width, height),
-                (AForge.ImageLockMode)ImageLockMode.WriteOnly,
-                (AForge.PixelFormat)pixelFormat);
+            System.Drawing.Imaging.BitmapData bmpData = bitmap.LockBits(
+                new System.Drawing.Rectangle(0, 0, width, height),
+                (System.Drawing.Imaging.ImageLockMode)ImageLockMode.WriteOnly,
+                (System.Drawing.Imaging.PixelFormat)pixelFormat);
 
             // Copy pixel data
             IntPtr bmpPtr = bmpData.Scan0;

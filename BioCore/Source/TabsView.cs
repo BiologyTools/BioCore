@@ -202,7 +202,7 @@ namespace BioCore
             if (m.Text.EndsWith(".ijm") || m.Text.EndsWith(".txt") && !m.Text.EndsWith(".cs"))
             {
                 string ma = File.ReadAllText(m.Text);
-                Fiji.RunOnImage(ImageView.SelectedImage,ma, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                Fiji.RunOnImage(ImageView.SelectedImage, ma, BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             }
             else
                 Scripting.RunByName(m.Text);
@@ -239,7 +239,7 @@ namespace BioCore
         {
             if (ImageView.SelectedImage == null) return;
             ToolStripMenuItem m = (ToolStripMenuItem)sender;
-            Fiji.RunOnImage(ImageView.SelectedImage,"run(\"" + m.Text + "\");", BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+            Fiji.RunOnImage(ImageView.SelectedImage, "run(\"" + m.Text + "\");", BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
             ToolStripMenuItem mi = new ToolStripMenuItem(m.Text);
             mi.Click += MenuItem_Click;
             bool con = false;
@@ -1400,7 +1400,7 @@ namespace BioCore
                 return;
             foreach (string item in openImageJDialog.FileNames)
             {
-                ImageView.SelectedImage.Annotations.Add(Fiji.RoiDecoder.open(item, ImageView.SelectedImage.PhysicalSizeX, ImageView.SelectedImage.PhysicalSizeY,ImageView.SelectedImage.StageSizeX,ImageView.SelectedImage.StageSizeY));
+                ImageView.SelectedImage.Annotations.Add(Fiji.RoiDecoder.open(item, ImageView.SelectedImage.PhysicalSizeX, ImageView.SelectedImage.PhysicalSizeY, ImageView.SelectedImage.StageSizeX, ImageView.SelectedImage.StageSizeY));
             }
             App.viewer.UpdateView();
         }
@@ -1421,7 +1421,7 @@ namespace BioCore
             foreach (ROI roi in ImageView.SelectedImage.Annotations)
             {
                 string s = Path.GetDirectoryName(saveImageJDialog.FileName) + "//" + Path.GetFileNameWithoutExtension(saveImageJDialog.FileName) + "-" + i + ".roi";
-                Fiji.RoiEncoder.save(ImageView.SelectedImage,roi, s);
+                Fiji.RoiEncoder.save(ImageView.SelectedImage, roi, s);
                 i++;
             }
             App.viewer.UpdateView();
@@ -1527,6 +1527,12 @@ namespace BioCore
             if (saveNumPyDialog.ShowDialog() != DialogResult.OK)
                 return;
             NumPy.SaveNumPy(ImageView.SelectedImage, saveNumPyDialog.FileName);
+        }
+
+        private void oMEROToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OMERO om = new OMERO();
+            om.Show();
         }
     }
 }
