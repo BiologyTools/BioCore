@@ -25,7 +25,7 @@
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
     <AssemblyVersion>4.3.0</AssemblyVersion>
     <FileVersion>4.3.0</FileVersion>
-    <PackageReleaseNotes>BioLib update adding QuPath project support, as well as OMERO support.</PackageReleaseNotes>
+    <PackageReleaseNotes>Dependency BioLib update adding support for OMERO.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
