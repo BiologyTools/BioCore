@@ -136,8 +136,10 @@
             // passBox
             // 
             passBox.BackColor = Color.FromArgb(49, 91, 138);
+            passBox.ForeColor = Color.White;
             passBox.Location = new Point(72, 99);
             passBox.Name = "passBox";
+            passBox.PasswordChar = '*';
             passBox.Size = new Size(199, 23);
             passBox.TabIndex = 10;
             // 
