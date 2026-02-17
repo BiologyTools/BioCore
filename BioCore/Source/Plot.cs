@@ -18,11 +18,13 @@ namespace BioCore
         string name;
         System.Drawing.Bitmap bitmap;
         List<double[]> data = new List<double[]>();
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public List<double[]> Data
         {
             get { return data; }
             set { data = value; UpdateImage(); }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public System.Drawing.Bitmap Image
         {
             get { return bitmap; }

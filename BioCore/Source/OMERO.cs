@@ -21,6 +21,7 @@ namespace BioCore
         public List<omero.gateway.model.DatasetData> datas = new List<omero.gateway.model.DatasetData>();
         private List<ListViewItem> items = new List<ListViewItem>();
         public int selectedIndex = 0;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int Progress
         {
             get { return progressBar.Value; }
@@ -31,6 +32,7 @@ namespace BioCore
 
             }
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Status
         {
             get { return statusLabel.Text; }

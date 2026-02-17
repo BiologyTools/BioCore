@@ -1,9 +1,11 @@
 ﻿using AForge;
+using System.ComponentModel;
 namespace BioCore
 {
     public partial class PenTool : Form
     {
         private Pen pen = new Pen(new ColorS(ushort.MaxValue, ushort.MaxValue, ushort.MaxValue), 1, 16);
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Pen Pen
         {
             get

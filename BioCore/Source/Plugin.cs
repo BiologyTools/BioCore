@@ -1,4 +1,7 @@
 ﻿using AForge;
+using BioCore;
+using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,13 +27,13 @@ namespace BioCore
             void KeyPressEvent(object o, KeyPressEventArgs e);
             void ScrollEvent(object o, MouseEventArgs args);
             void Paint(object o, PaintEventArgs e);
-            void Render(object o, Direct2D dx);
+            void Render(object o, PaintEventArgs e);
             void MouseMove(object o, PointD e, MouseEventArgs buts);
             void MouseUp(object o, PointD e, MouseEventArgs buts);
             void MouseDown(object o, PointD e, MouseEventArgs buts);
         }
     }
-    
+
     public static class Plugins
     {
         public static void Initialize()
@@ -52,7 +55,7 @@ namespace BioCore
                     if (pluginInstance.ContextMenu)
                         App.AddContextMenu(pluginInstance.MenuPath);
                     else
-                        App.AddMenu(pluginInstance.MenuPath);                   
+                        App.AddMenu(pluginInstance.MenuPath);
                 }
                 else
                 {
@@ -95,11 +98,11 @@ namespace BioCore
                 p.Paint(o, e);
             }
         }
-        public static void Render(object o, Direct2D dx)
+        public static void Render(object o, PaintEventArgs e)
         {
             foreach (IPlugin p in Plugin.Plugins.Values)
             {
-                p.Render(o, dx);
+                p.Render(o, e);
             }
         }
         public static void MouseMove(object o, PointD e, MouseEventArgs buts)

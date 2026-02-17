@@ -58,7 +58,8 @@
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            anno.X = (double)xBox.Value;
+            if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
+                anno = ROI.CreateRectangle(new AForge.ZCT((int)zBox.Value, (int)cBox.Value, (int)tBox.Value), (double)xBox.Value, (double)yBox.Value, (double)wBox.Value, (double)hBox.Value);
             UpdateOverlay();
         }
         /// When the user changes the value of the Y coordinate, the Y coordinate of the annotation is
@@ -72,7 +73,8 @@
         {
             if (roiView.SelectedItems.Count == 0)
                 return;
-            anno.Y = (double)yBox.Value;
+            if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
+                anno = ROI.CreateRectangle(new AForge.ZCT((int)zBox.Value, (int)cBox.Value, (int)tBox.Value),(double)xBox.Value, (double)yBox.Value, (double)wBox.Value, (double)hBox.Value);
             UpdateOverlay();
         }
         /// When the value of the width box changes, the width of the selected ROI is changed to the
@@ -87,7 +89,7 @@
             if (roiView.SelectedItems.Count == 0)
                 return;
             if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
-                anno.W = (double)wBox.Value;
+                anno = ROI.CreateRectangle(new AForge.ZCT((int)zBox.Value, (int)cBox.Value, (int)tBox.Value), (double)xBox.Value, (double)yBox.Value, (double)wBox.Value, (double)hBox.Value);
             UpdateOverlay();
         }
         /// This function is called when the value of the height box is changed
@@ -101,7 +103,8 @@
             if (roiView.SelectedItems.Count == 0)
                 return;
             if (anno.type == ROI.Type.Rectangle || anno.type == ROI.Type.Ellipse)
-                anno.H = (double)hBox.Value;
+                anno = ROI.CreateRectangle(new AForge.ZCT((int)zBox.Value, (int)cBox.Value, (int)tBox.Value), (double)xBox.Value, (double)yBox.Value, (double)wBox.Value, (double)hBox.Value);
+
             UpdateAnnotationList();
             UpdateOverlay();
         }

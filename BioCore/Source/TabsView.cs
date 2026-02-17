@@ -2,6 +2,7 @@
 using BioCore;
 using BioLib;
 using System.Diagnostics;
+using System.ComponentModel;
 namespace BioCore
 {
     public partial class TabsView : Form
@@ -277,6 +278,7 @@ namespace BioCore
         }
 
         /* Setting the image property of the viewer. */
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public BioImage Image
         {
             get
@@ -1340,20 +1342,7 @@ namespace BioCore
             XMLView v = new XMLView(BioImage.OpenXML(ImageView.SelectedImage.file));
             v.Show();
         }
-        /// If the user clicks on the "Hardware Acceleration" menu item, then the viewer will use
-        /// hardware acceleration if the menu item is checked, and the viewer will not use hardware
-        /// acceleration if the menu item is not checked
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
-        private void dToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Viewer.HardwareAcceleration = dToolStripMenuItem.Checked;
-            Properties.Settings.Default.HardwareAcceleration = dToolStripMenuItem.Checked;
-            Properties.Settings.Default.Save();
-            Viewer.UpdateView();
-        }
-
+       
         /// It opens a file dialog, and if the user selects a bunch of images, it creates a new BioImage
         /// object that is a stack of the images, and adds a new tab to the main form with the new
         /// BioImage object
@@ -1371,21 +1360,6 @@ namespace BioCore
                 return;
             BioImage b = BioImage.ImagesToStack(fd.FileNames, true);
             AddTab(b);
-        }
-
-        /// It creates a new instance of the View3D class, passing in the selected image from the
-        /// ImageView class, and then shows the View3D form
-        /// 
-        /// @param sender The object that raised the event.
-        /// @param EventArgs The event arguments.
-        /// 
-        /// @return The selected image.
-        private void _3dToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (SelectedImage == null)
-                return;
-            View3D d = new View3D(ImageView.SelectedImage);
-            d.Show();
         }
 
         /// This function opens a dialog box to select a file, then adds the ROI to the image

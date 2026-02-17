@@ -1,4 +1,5 @@
 ﻿using AForge;
+using System.ComponentModel;
 namespace BioCore
 {
     public partial class ChannelsTool : Form
@@ -24,6 +25,7 @@ namespace BioCore
             }
         }
         /* A property that is used to get and set the value of the sampleBox.Value. */
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public int SelectedSample
         {
             get

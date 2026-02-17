@@ -244,10 +244,7 @@ namespace BioCore
                 return;
             Scripting.UpdateState(Scripting.State.GetDown(e, buts));
             PointD p;
-            if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
-            else
-                p = ImageView.SelectedImage.ToImageSpace(e);
+            p = ImageView.SelectedImage.ToImageSpace(e);
             if (currentTool.type == Tool.Type.line && buts == MouseButtons.Left)
             {
                 if (anno.GetPointCount() == 0)
@@ -306,17 +303,13 @@ namespace BioCore
             else
             if (currentTool.type == Tool.Type.rect && buts == MouseButtons.Left)
             {
-                anno.type = ROI.Type.Rectangle;
-                anno.Rect = new RectangleD(e.X, e.Y, 1, 1);
-                anno.coord = App.viewer.GetCoordinate();
+                anno = ROI.CreateRectangle(App.viewer.GetCoordinate(),e.X,e.Y,1,1);
                 ImageView.SelectedImage.Annotations.Add(anno);
             }
             else
             if (currentTool.type == Tool.Type.ellipse && buts == MouseButtons.Left)
             {
-                anno.type = ROI.Type.Ellipse;
-                anno.Rect = new RectangleD(e.X, e.Y, 1, 1);
-                anno.coord = App.viewer.GetCoordinate();
+                anno = ROI.CreateRectangle(App.viewer.GetCoordinate(), e.X, e.Y, 1, 1);
                 ImageView.SelectedImage.Annotations.Add(anno);
             }
             else
@@ -389,10 +382,7 @@ namespace BioCore
         public void ToolUp(PointD e, MouseButtons buts)
         {
             PointD p;
-            if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
-            else
-                p = ImageView.SelectedImage.ToImageSpace(e);
+            p = ImageView.SelectedImage.ToImageSpace(e);
             if (App.viewer == null || currentTool == null || ImageView.SelectedImage == null || anno == null)
                 return;
             Scripting.UpdateState(Scripting.State.GetUp(e, buts));
@@ -542,7 +532,6 @@ namespace BioCore
             }
             UpdateOverlay();
         }
-
         public void ToolMove(PointD e, MouseButtons buts)
         {
             if (App.viewer == null)
@@ -551,10 +540,7 @@ namespace BioCore
             if (ImageView.SelectedImage == null)
                 return;
             PointD p;
-            if (App.viewer.HardwareAcceleration)
-                p = ImageView.SelectedImage.ToImageSpace(new PointD(ImageView.SelectedImage.Volume.Width - e.X, ImageView.SelectedImage.Volume.Height - e.Y));
-            else
-                p = ImageView.SelectedImage.ToImageSpace(e);
+            p = ImageView.SelectedImage.ToImageSpace(e);
             if (currentTool.type == Tool.Type.line && ImageView.down)
             {
                 anno.UpdatePoint(new PointD(e.X, e.Y), 1);
@@ -582,7 +568,7 @@ namespace BioCore
             {
                 if (anno.GetPointCount() == 4)
                 {
-                    anno.Rect = new RectangleD(anno.X, anno.Y, e.X - anno.X, e.Y - anno.Y);
+                    anno = ROI.CreateRectangle(App.viewer.GetCoordinate(),anno.X, anno.Y, e.X - anno.X, e.Y - anno.Y);
                     UpdateOverlay();
                 }
             }
@@ -591,7 +577,7 @@ namespace BioCore
             {
                 if (anno.GetPointCount() == 4)
                 {
-                    anno.Rect = new RectangleD(anno.X, anno.Y, e.X - anno.X, e.Y - anno.Y);
+                    anno = ROI.CreateEllipse(App.viewer.GetCoordinate(), anno.X, anno.Y, e.X - anno.X, e.Y - anno.Y);
                     UpdateOverlay();
                 }
             }

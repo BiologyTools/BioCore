@@ -95,12 +95,10 @@ namespace BioCore
             showControlsToolStripMenuItem = new ToolStripMenuItem();
             statusMenuStrip = new ContextMenuStrip(components);
             HideStatusMenuItem = new ToolStripMenuItem();
-            pictureBox = new PictureBox();
-            overlayPictureBox = new PictureBox();
             hScrollBar = new HScrollBar();
             vScrollBar = new VScrollBar();
             saveCSVFileDialog = new SaveFileDialog();
-            dxPanel = new Panel();
+            viewpanel = new Panel();
             timePlayMenuStrip.SuspendLayout();
             contextMenuStrip.SuspendLayout();
             zPlayMenuStrip.SuspendLayout();
@@ -113,12 +111,11 @@ namespace BioCore
             trackBarPanel.SuspendLayout();
             statusPanel.SuspendLayout();
             statusMenuStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)pictureBox).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)overlayPictureBox).BeginInit();
             SuspendLayout();
             // 
             // timePlayMenuStrip
             // 
+            timePlayMenuStrip.ImageScalingSize = new Size(32, 32);
             timePlayMenuStrip.Items.AddRange(new ToolStripItem[] { playTimeToolStripMenu, stopTimeToolStripMenu, playSpeedToolStripMenuItem1, setValueRangeToolStripMenuItem1, loopTimeToolStripMenuItem });
             timePlayMenuStrip.Name = "zPlayMenuStrip";
             timePlayMenuStrip.Size = new Size(158, 114);
@@ -166,6 +163,7 @@ namespace BioCore
             // 
             // contextMenuStrip
             // 
+            contextMenuStrip.ImageScalingSize = new Size(32, 32);
             contextMenuStrip.Items.AddRange(new ToolStripItem[] { rOIToolStripMenuItem, viewToolStripMenuItem, moveStageToImageToolStripMenuItem, goToToolStripMenuItem, goToImageToolStripMenuItem, goToStageToolStripMenuItem, controlsToolStripMenuItem, copyViewToClipboardToolStripMenuItem, layersToolStripMenuItem, removeImageToolStripMenuItem, removeImagesToolStripMenuItem });
             contextMenuStrip.Name = "contextMenuStrip1";
             contextMenuStrip.Size = new Size(200, 246);
@@ -247,11 +245,6 @@ namespace BioCore
             rawToolStripMenuItem.Text = "Raw";
             rawToolStripMenuItem.Click += rawToolStripMenuItem_Click;
             // 
-            // moveStageToImageToolStripMenuItem
-            // 
-            moveStageToImageToolStripMenuItem.Name = "moveStageToImageToolStripMenuItem";
-            moveStageToImageToolStripMenuItem.Size = new Size(199, 22);
-            // 
             // goToToolStripMenuItem
             // 
             goToToolStripMenuItem.Name = "goToToolStripMenuItem";
@@ -267,11 +260,6 @@ namespace BioCore
             goToImageToolStripMenuItem.DropDownOpening += goToImageToolStripMenuItem_DropDownOpening;
             goToImageToolStripMenuItem.DropDownItemClicked += goToImageToolStripMenuItem_DropDownItemClicked;
             goToImageToolStripMenuItem.Click += goToImageToolStripMenuItem_Click;
-            // 
-            // goToStageToolStripMenuItem
-            // 
-            goToStageToolStripMenuItem.Name = "goToStageToolStripMenuItem";
-            goToStageToolStripMenuItem.Size = new Size(199, 22);
             // 
             // controlsToolStripMenuItem
             // 
@@ -331,6 +319,7 @@ namespace BioCore
             // 
             // zPlayMenuStrip
             // 
+            zPlayMenuStrip.ImageScalingSize = new Size(32, 32);
             zPlayMenuStrip.Items.AddRange(new ToolStripItem[] { playZToolStripMenuItem, stopZToolStripMenuItem, playSpeedToolStripMenuItem, setValueRangeToolStripMenuItem, loopZToolStripMenuItem });
             zPlayMenuStrip.Name = "zPlayMenuStrip";
             zPlayMenuStrip.Size = new Size(158, 114);
@@ -407,7 +396,7 @@ namespace BioCore
             labelRGB.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             labelRGB.AutoSize = true;
             labelRGB.ForeColor = Color.White;
-            labelRGB.Location = new Point(5, 7);
+            labelRGB.Location = new Point(5, -64);
             labelRGB.Margin = new Padding(4, 0, 4, 0);
             labelRGB.Name = "labelRGB";
             labelRGB.Size = new Size(29, 15);
@@ -461,7 +450,7 @@ namespace BioCore
             tLabel.Location = new Point(5, 36);
             tLabel.Margin = new Padding(4, 0, 4, 0);
             tLabel.Name = "tLabel";
-            tLabel.Size = new Size(13, 15);
+            tLabel.Size = new Size(14, 15);
             tLabel.TabIndex = 13;
             tLabel.Text = "T";
             // 
@@ -481,6 +470,7 @@ namespace BioCore
             // 
             // controlsMenuStrip
             // 
+            controlsMenuStrip.ImageScalingSize = new Size(32, 32);
             controlsMenuStrip.Items.AddRange(new ToolStripItem[] { hideControlsToolStripMenuItem });
             controlsMenuStrip.Name = "controlsMenuStrip";
             controlsMenuStrip.Size = new Size(148, 26);
@@ -494,6 +484,7 @@ namespace BioCore
             // 
             // cPlayMenuStrip
             // 
+            cPlayMenuStrip.ImageScalingSize = new Size(32, 32);
             cPlayMenuStrip.Items.AddRange(new ToolStripItem[] { playCToolStripMenuItem, stopCToolStripMenuItem, CPlaySpeedToolStripMenuItem, setCValueRangeToolStripMenuItem, loopCToolStripMenuItem });
             cPlayMenuStrip.Name = "zPlayMenuStrip";
             cPlayMenuStrip.Size = new Size(158, 114);
@@ -659,6 +650,7 @@ namespace BioCore
             // 
             // statusMenuStrip
             // 
+            statusMenuStrip.ImageScalingSize = new Size(32, 32);
             statusMenuStrip.Items.AddRange(new ToolStripItem[] { HideStatusMenuItem });
             statusMenuStrip.Name = "controlsMenuStrip";
             statusMenuStrip.Size = new Size(135, 26);
@@ -670,45 +662,12 @@ namespace BioCore
             HideStatusMenuItem.Text = "Hide Status";
             HideStatusMenuItem.Click += HideStatusMenuItem_Click;
             // 
-            // pictureBox
-            // 
-            pictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox.BackColor = Color.Transparent;
-            pictureBox.ContextMenuStrip = contextMenuStrip;
-            pictureBox.Location = new Point(0, 29);
-            pictureBox.Margin = new Padding(0);
-            pictureBox.Name = "pictureBox";
-            pictureBox.Size = new Size(481, 290);
-            pictureBox.TabIndex = 20;
-            pictureBox.TabStop = false;
-            pictureBox.Paint += pictureBox_Paint;
-            pictureBox.MouseDown += pictureBox_MouseDown;
-            pictureBox.MouseMove += rgbPictureBox_MouseMove;
-            pictureBox.MouseUp += pictureBox_MouseUp;
-            // 
-            // overlayPictureBox
-            // 
-            overlayPictureBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            overlayPictureBox.BackColor = Color.Transparent;
-            overlayPictureBox.ContextMenuStrip = contextMenuStrip;
-            overlayPictureBox.Location = new Point(0, 29);
-            overlayPictureBox.Margin = new Padding(0);
-            overlayPictureBox.Name = "overlayPictureBox";
-            overlayPictureBox.Size = new Size(481, 290);
-            overlayPictureBox.TabIndex = 19;
-            overlayPictureBox.TabStop = false;
-            overlayPictureBox.Paint += overlayPictureBox_Paint;
-            overlayPictureBox.MouseDoubleClick += pictureBox_MouseDoubleClick;
-            overlayPictureBox.MouseDown += pictureBox_MouseDown;
-            overlayPictureBox.MouseMove += rgbPictureBox_MouseMove;
-            overlayPictureBox.MouseUp += pictureBox_MouseUp;
-            // 
             // hScrollBar
             // 
             hScrollBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            hScrollBar.Location = new Point(0, 318);
+            hScrollBar.Location = new Point(0, 319);
             hScrollBar.Name = "hScrollBar";
-            hScrollBar.Size = new Size(500, 18);
+            hScrollBar.Size = new Size(500, 20);
             hScrollBar.SmallChange = 10;
             hScrollBar.TabIndex = 24;
             hScrollBar.Visible = false;
@@ -717,9 +676,9 @@ namespace BioCore
             // vScrollBar
             // 
             vScrollBar.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            vScrollBar.Location = new Point(481, 29);
+            vScrollBar.Location = new Point(478, 29);
             vScrollBar.Name = "vScrollBar";
-            vScrollBar.Size = new Size(17, 290);
+            vScrollBar.Size = new Size(21, 290);
             vScrollBar.SmallChange = 10;
             vScrollBar.TabIndex = 23;
             vScrollBar.Visible = false;
@@ -731,35 +690,24 @@ namespace BioCore
             saveCSVFileDialog.Filter = "CSV Files (*.csv)|*.csv|All files (*.*)|*.*";
             saveCSVFileDialog.Title = "Save ROIs to CSV";
             // 
-            // dxPanel
+            // viewpanel
             // 
-            dxPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dxPanel.BackColor = SystemColors.Control;
-            dxPanel.ContextMenuStrip = contextMenuStrip;
-            dxPanel.Location = new Point(0, 29);
-            dxPanel.Margin = new Padding(4, 3, 4, 3);
-            dxPanel.Name = "dxPanel";
-            dxPanel.Size = new Size(481, 290);
-            dxPanel.TabIndex = 25;
-            dxPanel.SizeChanged += dxPanel_SizeChanged;
-            dxPanel.Paint += pictureBox_Paint;
-            dxPanel.MouseDoubleClick += pictureBox_MouseDoubleClick;
-            dxPanel.MouseDown += pictureBox_MouseDown;
-            dxPanel.MouseMove += rgbPictureBox_MouseMove;
-            dxPanel.MouseUp += pictureBox_MouseUp;
+            viewpanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            viewpanel.Location = new Point(3, 29);
+            viewpanel.Name = "viewpanel";
+            viewpanel.Size = new Size(477, 290);
+            viewpanel.TabIndex = 25;
             // 
             // ImageView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(95, 122, 156);
+            Controls.Add(viewpanel);
             Controls.Add(vScrollBar);
             Controls.Add(hScrollBar);
             Controls.Add(trackBarPanel);
             Controls.Add(statusPanel);
-            Controls.Add(dxPanel);
-            Controls.Add(overlayPictureBox);
-            Controls.Add(pictureBox);
             Margin = new Padding(0);
             MinimumSize = new Size(117, 115);
             Name = "ImageView";
@@ -782,8 +730,6 @@ namespace BioCore
             statusPanel.ResumeLayout(false);
             statusPanel.PerformLayout();
             statusMenuStrip.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)pictureBox).EndInit();
-            ((System.ComponentModel.ISupportInitialize)overlayPictureBox).EndInit();
             ResumeLayout(false);
         }
 
@@ -831,8 +777,6 @@ namespace BioCore
         private System.Windows.Forms.ToolStripMenuItem hideControlsToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip statusMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem HideStatusMenuItem;
-        private System.Windows.Forms.PictureBox pictureBox;
-        private System.Windows.Forms.PictureBox overlayPictureBox;
         private System.Windows.Forms.SaveFileDialog saveCSVFileDialog;
         private System.Windows.Forms.ToolStripMenuItem rOIToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem setROITextToolStripMenuItem;
@@ -854,10 +798,10 @@ namespace BioCore
         private System.Windows.Forms.VScrollBar vScrollBar;
         private System.Windows.Forms.ToolStripMenuItem drawToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fillToolStripMenuItem;
-        private System.Windows.Forms.Panel dxPanel;
         private ToolStripMenuItem layersToolStripMenuItem;
         private ToolStripMenuItem hideOverViewToolStripMenuItem;
         private ToolStripMenuItem removeImageToolStripMenuItem;
         private ToolStripMenuItem removeImagesToolStripMenuItem;
+        private Panel viewpanel;
     }
 }

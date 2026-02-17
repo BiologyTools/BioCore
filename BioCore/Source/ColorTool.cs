@@ -15,6 +15,7 @@ namespace BioCore
         private ColorS colors = new ColorS(65535, 65535, 65535);
         private int bitsPerPx = 16;
         /* A property. */
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ColorS Color
         {
             get

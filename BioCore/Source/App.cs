@@ -47,7 +47,7 @@ namespace BioCore
         /// Initialize() is a function that initializes the BioImage Suite Web viewer
         public static void Initialize(bool requireImageJ = false)
         {
-            BioImage.Initialize();
+            
             Microscope.Initialize();
             OpenFileDialog openFileDialog = new OpenFileDialog();
             string imj = BioLib.Settings.GetSettings("ImageJPath");
@@ -68,7 +68,8 @@ namespace BioCore
                 else
                     ImageJ.Initialize(imj);
             }
-                tabsView = new TabsView();
+            tabsView = new TabsView();
+            BioImage.Initialize(imj);
             viewer = new ImageView();
             stackTools = new StackTools();
             tools = new Tools();
@@ -297,9 +298,10 @@ namespace BioCore
             App.tabsView.RenameTab(ImageView.SelectedImage.Filename, text);
             ImageView.SelectedImage.Rename(text);
             ImageView v = App.tabsView.GetViewer(ImageView.SelectedImage.Filename);
-            v.SetTitle(ImageView.SelectedImage.Filename);
+            //TODO v.SetTitle(ImageView.SelectedImage.Filename);
             BioLib.Recorder.AddLine("App.Rename(\"" + text + "\");", false);
         }
+
         /// It returns a list of all the items in a menu, including submenus
         /// 
         /// @param ToolStripMenuItem The menu item you want to get the sub items from.
