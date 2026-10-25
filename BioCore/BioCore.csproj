@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-	  <Version>4.3.0</Version>
+	  <Version>5.0.0</Version>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -25,7 +25,11 @@
     <Description>A .NET library &amp; program for annotating, &amp; editing various microscopy imaging formats using Bioformats supported images. including whole slide, pyramidal &amp; series.</Description>
     <AssemblyVersion>5.0.0</AssemblyVersion>
     <FileVersion>5.0.0</FileVersion>
-    <PackageReleaseNotes>Dependency BioLib update adding support for OMERO.</PackageReleaseNotes>
+    <PackageReleaseNotes>BioCore 5.0.0 improves whole-slide and pyramidal image viewing:
+- Opens pyramid resolution levels together in a single slide view.
+- Adds middle-button panning and cursor-centered mouse-wheel zoom.
+- Adds a clickable overview with a viewport indicator.
+- Synchronizes slide scrollbars with panning, zooming, and window resizing.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
