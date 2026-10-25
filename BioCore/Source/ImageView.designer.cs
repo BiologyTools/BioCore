@@ -51,11 +51,12 @@ namespace BioCore
             moveStageToImageToolStripMenuItem = new ToolStripMenuItem();
             goToToolStripMenuItem = new ToolStripMenuItem();
             goToImageToolStripMenuItem = new ToolStripMenuItem();
-            goToStageToolStripMenuItem = new ToolStripMenuItem();
             controlsToolStripMenuItem = new ToolStripMenuItem();
             hideControlsToolStripMenuItem1 = new ToolStripMenuItem();
             hideStatusToolStripMenuItem = new ToolStripMenuItem();
             hideOverViewToolStripMenuItem = new ToolStripMenuItem();
+            hideAllToolStripMenuItem = new ToolStripMenuItem();
+            showAllToolStripMenuItem = new ToolStripMenuItem();
             copyViewToClipboardToolStripMenuItem = new ToolStripMenuItem();
             layersToolStripMenuItem = new ToolStripMenuItem();
             removeImageToolStripMenuItem = new ToolStripMenuItem();
@@ -72,8 +73,6 @@ namespace BioCore
             channelBoxR = new ComboBox();
             rgbBoxsPanel = new Panel();
             statusLabel = new Label();
-            tLabel = new Label();
-            tBar = new TrackBar();
             controlsMenuStrip = new ContextMenuStrip(components);
             hideControlsToolStripMenuItem = new ToolStripMenuItem();
             cPlayMenuStrip = new ContextMenuStrip(components);
@@ -82,34 +81,39 @@ namespace BioCore
             CPlaySpeedToolStripMenuItem = new ToolStripMenuItem();
             setCValueRangeToolStripMenuItem = new ToolStripMenuItem();
             loopCToolStripMenuItem = new ToolStripMenuItem();
-            zBar = new TrackBar();
-            zLabel = new Label();
-            cBar = new TrackBar();
-            cLabel = new Label();
             timelineTimer = new System.Windows.Forms.Timer(components);
             zTimer = new System.Windows.Forms.Timer(components);
             cTimer = new System.Windows.Forms.Timer(components);
             trackBarPanel = new Panel();
+            cBar = new TrackBar();
+            zBar = new TrackBar();
+            tBar = new TrackBar();
+            tLabel = new Label();
+            zLabel = new Label();
+            cLabel = new Label();
             statusPanel = new Panel();
             ticksLabel = new Label();
+            viewpanel = new PictureBox();
             showControlsToolStripMenuItem = new ToolStripMenuItem();
             statusMenuStrip = new ContextMenuStrip(components);
             HideStatusMenuItem = new ToolStripMenuItem();
             hScrollBar = new HScrollBar();
             vScrollBar = new VScrollBar();
             saveCSVFileDialog = new SaveFileDialog();
-            viewpanel = new Panel();
+            viewport = new Panel();
             timePlayMenuStrip.SuspendLayout();
             contextMenuStrip.SuspendLayout();
             zPlayMenuStrip.SuspendLayout();
             rgbBoxsPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)tBar).BeginInit();
             controlsMenuStrip.SuspendLayout();
             cPlayMenuStrip.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)zBar).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)cBar).BeginInit();
             trackBarPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)cBar).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)zBar).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tBar).BeginInit();
             statusPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)viewpanel).BeginInit();
+            viewport.SuspendLayout();
             statusMenuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -164,9 +168,9 @@ namespace BioCore
             // contextMenuStrip
             // 
             contextMenuStrip.ImageScalingSize = new Size(32, 32);
-            contextMenuStrip.Items.AddRange(new ToolStripItem[] { rOIToolStripMenuItem, viewToolStripMenuItem, moveStageToImageToolStripMenuItem, goToToolStripMenuItem, goToImageToolStripMenuItem, goToStageToolStripMenuItem, controlsToolStripMenuItem, copyViewToClipboardToolStripMenuItem, layersToolStripMenuItem, removeImageToolStripMenuItem, removeImagesToolStripMenuItem });
+            contextMenuStrip.Items.AddRange(new ToolStripItem[] { rOIToolStripMenuItem, viewToolStripMenuItem, moveStageToImageToolStripMenuItem, goToToolStripMenuItem, goToImageToolStripMenuItem, controlsToolStripMenuItem, copyViewToClipboardToolStripMenuItem, layersToolStripMenuItem, removeImageToolStripMenuItem, removeImagesToolStripMenuItem });
             contextMenuStrip.Name = "contextMenuStrip1";
-            contextMenuStrip.Size = new Size(200, 246);
+            contextMenuStrip.Size = new Size(200, 224);
             // 
             // rOIToolStripMenuItem
             // 
@@ -245,6 +249,15 @@ namespace BioCore
             rawToolStripMenuItem.Text = "Raw";
             rawToolStripMenuItem.Click += rawToolStripMenuItem_Click;
             // 
+            // moveStageToImageToolStripMenuItem
+            // 
+            moveStageToImageToolStripMenuItem.Name = "moveStageToImageToolStripMenuItem";
+            moveStageToImageToolStripMenuItem.Size = new Size(199, 22);
+            moveStageToImageToolStripMenuItem.Text = "Move Stage To Image";
+            moveStageToImageToolStripMenuItem.DropDownOpening += goToImageToolStripMenuItem_DropDownOpening;
+            moveStageToImageToolStripMenuItem.DropDownItemClicked += moveStageToImageToolStripMenuItem_DropDownItemClicked;
+            moveStageToImageToolStripMenuItem.Click += moveStageToImageToolStripMenuItem_Click;
+            // 
             // goToToolStripMenuItem
             // 
             goToToolStripMenuItem.Name = "goToToolStripMenuItem";
@@ -263,7 +276,7 @@ namespace BioCore
             // 
             // controlsToolStripMenuItem
             // 
-            controlsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { hideControlsToolStripMenuItem1, hideStatusToolStripMenuItem, hideOverViewToolStripMenuItem });
+            controlsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { hideControlsToolStripMenuItem1, hideStatusToolStripMenuItem, hideOverViewToolStripMenuItem, hideAllToolStripMenuItem, showAllToolStripMenuItem });
             controlsToolStripMenuItem.Name = "controlsToolStripMenuItem";
             controlsToolStripMenuItem.Size = new Size(199, 22);
             controlsToolStripMenuItem.Text = "Controls";
@@ -288,6 +301,20 @@ namespace BioCore
             hideOverViewToolStripMenuItem.Size = new Size(152, 22);
             hideOverViewToolStripMenuItem.Text = "Hide OverView";
             hideOverViewToolStripMenuItem.Click += hideOverviewToolStripMenuItem_Click;
+            // 
+            // hideAllToolStripMenuItem
+            // 
+            hideAllToolStripMenuItem.Name = "hideAllToolStripMenuItem";
+            hideAllToolStripMenuItem.Size = new Size(152, 22);
+            hideAllToolStripMenuItem.Text = "Hide All";
+            hideAllToolStripMenuItem.Click += hideAllToolStripMenuItem_Click;
+            // 
+            // showAllToolStripMenuItem
+            // 
+            showAllToolStripMenuItem.Name = "showAllToolStripMenuItem";
+            showAllToolStripMenuItem.Size = new Size(152, 22);
+            showAllToolStripMenuItem.Text = "Show All";
+            showAllToolStripMenuItem.Click += showAllToolStripMenuItem_Click;
             // 
             // copyViewToClipboardToolStripMenuItem
             // 
@@ -428,7 +455,7 @@ namespace BioCore
             rgbBoxsPanel.Location = new Point(0, 58);
             rgbBoxsPanel.Margin = new Padding(4, 3, 4, 3);
             rgbBoxsPanel.Name = "rgbBoxsPanel";
-            rgbBoxsPanel.Size = new Size(499, 29);
+            rgbBoxsPanel.Size = new Size(600, 29);
             rgbBoxsPanel.TabIndex = 13;
             // 
             // statusLabel
@@ -440,33 +467,6 @@ namespace BioCore
             statusLabel.Name = "statusLabel";
             statusLabel.Size = new Size(0, 15);
             statusLabel.TabIndex = 3;
-            // 
-            // tLabel
-            // 
-            tLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            tLabel.AutoSize = true;
-            tLabel.BackColor = Color.FromArgb(49, 91, 138);
-            tLabel.ForeColor = Color.White;
-            tLabel.Location = new Point(5, 36);
-            tLabel.Margin = new Padding(4, 0, 4, 0);
-            tLabel.Name = "tLabel";
-            tLabel.Size = new Size(14, 15);
-            tLabel.TabIndex = 13;
-            tLabel.Text = "T";
-            // 
-            // tBar
-            // 
-            tBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            tBar.AutoSize = false;
-            tBar.BackColor = Color.FromArgb(49, 91, 138);
-            tBar.ContextMenuStrip = timePlayMenuStrip;
-            tBar.LargeChange = 1;
-            tBar.Location = new Point(18, 29);
-            tBar.Margin = new Padding(0);
-            tBar.Name = "tBar";
-            tBar.Size = new Size(482, 29);
-            tBar.TabIndex = 16;
-            tBar.ValueChanged += timeBar_ValueChanged;
             // 
             // controlsMenuStrip
             // 
@@ -530,60 +530,6 @@ namespace BioCore
             loopCToolStripMenuItem.Text = "Loop";
             loopCToolStripMenuItem.Click += loopCToolStripMenuItem_Click;
             // 
-            // zBar
-            // 
-            zBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            zBar.AutoSize = false;
-            zBar.BackColor = Color.FromArgb(49, 91, 138);
-            zBar.ContextMenuStrip = zPlayMenuStrip;
-            zBar.LargeChange = 1;
-            zBar.Location = new Point(18, 1);
-            zBar.Margin = new Padding(0);
-            zBar.Name = "zBar";
-            zBar.Size = new Size(482, 29);
-            zBar.TabIndex = 12;
-            zBar.ValueChanged += zBar_ValueChanged;
-            // 
-            // zLabel
-            // 
-            zLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            zLabel.AutoSize = true;
-            zLabel.BackColor = Color.FromArgb(49, 91, 138);
-            zLabel.ForeColor = Color.White;
-            zLabel.Location = new Point(5, 5);
-            zLabel.Margin = new Padding(4, 0, 4, 0);
-            zLabel.Name = "zLabel";
-            zLabel.Size = new Size(14, 15);
-            zLabel.TabIndex = 9;
-            zLabel.Text = "Z";
-            // 
-            // cBar
-            // 
-            cBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            cBar.AutoSize = false;
-            cBar.BackColor = Color.FromArgb(49, 91, 138);
-            cBar.ContextMenuStrip = cPlayMenuStrip;
-            cBar.LargeChange = 1;
-            cBar.Location = new Point(18, 58);
-            cBar.Margin = new Padding(0);
-            cBar.Name = "cBar";
-            cBar.Size = new Size(482, 29);
-            cBar.TabIndex = 15;
-            cBar.ValueChanged += cBar_ValueChanged;
-            // 
-            // cLabel
-            // 
-            cLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            cLabel.AutoSize = true;
-            cLabel.BackColor = Color.FromArgb(49, 91, 138);
-            cLabel.ForeColor = Color.White;
-            cLabel.Location = new Point(5, 63);
-            cLabel.Margin = new Padding(4, 0, 4, 0);
-            cLabel.Name = "cLabel";
-            cLabel.Size = new Size(15, 15);
-            cLabel.TabIndex = 15;
-            cLabel.Text = "C";
-            // 
             // timelineTimer
             // 
             timelineTimer.Interval = 32;
@@ -614,8 +560,89 @@ namespace BioCore
             trackBarPanel.Location = new Point(0, 338);
             trackBarPanel.Margin = new Padding(4, 3, 4, 3);
             trackBarPanel.Name = "trackBarPanel";
-            trackBarPanel.Size = new Size(499, 87);
+            trackBarPanel.Size = new Size(600, 87);
             trackBarPanel.TabIndex = 17;
+            // 
+            // cBar
+            // 
+            cBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cBar.AutoSize = false;
+            cBar.BackColor = Color.FromArgb(49, 91, 138);
+            cBar.ContextMenuStrip = cPlayMenuStrip;
+            cBar.LargeChange = 1;
+            cBar.Location = new Point(18, 58);
+            cBar.Margin = new Padding(0);
+            cBar.Name = "cBar";
+            cBar.Size = new Size(583, 29);
+            cBar.TabIndex = 15;
+            cBar.ValueChanged += cBar_ValueChanged;
+            // 
+            // zBar
+            // 
+            zBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            zBar.AutoSize = false;
+            zBar.BackColor = Color.FromArgb(49, 91, 138);
+            zBar.ContextMenuStrip = zPlayMenuStrip;
+            zBar.LargeChange = 1;
+            zBar.Location = new Point(18, 1);
+            zBar.Margin = new Padding(0);
+            zBar.Name = "zBar";
+            zBar.Size = new Size(583, 29);
+            zBar.TabIndex = 12;
+            zBar.ValueChanged += zBar_ValueChanged;
+            // 
+            // tBar
+            // 
+            tBar.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            tBar.AutoSize = false;
+            tBar.BackColor = Color.FromArgb(49, 91, 138);
+            tBar.ContextMenuStrip = timePlayMenuStrip;
+            tBar.LargeChange = 1;
+            tBar.Location = new Point(18, 29);
+            tBar.Margin = new Padding(0);
+            tBar.Name = "tBar";
+            tBar.Size = new Size(583, 29);
+            tBar.TabIndex = 16;
+            tBar.ValueChanged += timeBar_ValueChanged;
+            // 
+            // tLabel
+            // 
+            tLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            tLabel.AutoSize = true;
+            tLabel.BackColor = Color.FromArgb(49, 91, 138);
+            tLabel.ForeColor = Color.White;
+            tLabel.Location = new Point(5, 36);
+            tLabel.Margin = new Padding(4, 0, 4, 0);
+            tLabel.Name = "tLabel";
+            tLabel.Size = new Size(14, 15);
+            tLabel.TabIndex = 13;
+            tLabel.Text = "T";
+            // 
+            // zLabel
+            // 
+            zLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            zLabel.AutoSize = true;
+            zLabel.BackColor = Color.FromArgb(49, 91, 138);
+            zLabel.ForeColor = Color.White;
+            zLabel.Location = new Point(5, 5);
+            zLabel.Margin = new Padding(4, 0, 4, 0);
+            zLabel.Name = "zLabel";
+            zLabel.Size = new Size(14, 15);
+            zLabel.TabIndex = 9;
+            zLabel.Text = "Z";
+            // 
+            // cLabel
+            // 
+            cLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cLabel.AutoSize = true;
+            cLabel.BackColor = Color.FromArgb(49, 91, 138);
+            cLabel.ForeColor = Color.White;
+            cLabel.Location = new Point(5, 63);
+            cLabel.Margin = new Padding(4, 0, 4, 0);
+            cLabel.Name = "cLabel";
+            cLabel.Size = new Size(15, 15);
+            cLabel.TabIndex = 15;
+            cLabel.Text = "C";
             // 
             // statusPanel
             // 
@@ -627,7 +654,7 @@ namespace BioCore
             statusPanel.Location = new Point(0, 0);
             statusPanel.Margin = new Padding(4, 3, 4, 3);
             statusPanel.Name = "statusPanel";
-            statusPanel.Size = new Size(499, 29);
+            statusPanel.Size = new Size(600, 29);
             statusPanel.TabIndex = 18;
             // 
             // ticksLabel
@@ -635,11 +662,22 @@ namespace BioCore
             ticksLabel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             ticksLabel.AutoSize = true;
             ticksLabel.ForeColor = Color.White;
-            ticksLabel.Location = new Point(391, 7);
+            ticksLabel.Location = new Point(492, 7);
             ticksLabel.Margin = new Padding(4, 0, 4, 0);
             ticksLabel.Name = "ticksLabel";
             ticksLabel.Size = new Size(0, 15);
             ticksLabel.TabIndex = 4;
+            // 
+            // viewpanel
+            // 
+            viewpanel.BackColor = Color.Black;
+            viewpanel.ContextMenuStrip = contextMenuStrip;
+            viewpanel.Dock = DockStyle.Fill;
+            viewpanel.Location = new Point(0, 0);
+            viewpanel.Name = "viewpanel";
+            viewpanel.Size = new Size(578, 290);
+            viewpanel.TabIndex = 25;
+            viewpanel.Paint += viewpanel_Paint;
             // 
             // showControlsToolStripMenuItem
             // 
@@ -667,7 +705,7 @@ namespace BioCore
             hScrollBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             hScrollBar.Location = new Point(0, 319);
             hScrollBar.Name = "hScrollBar";
-            hScrollBar.Size = new Size(500, 20);
+            hScrollBar.Size = new Size(601, 20);
             hScrollBar.SmallChange = 10;
             hScrollBar.TabIndex = 24;
             hScrollBar.Visible = false;
@@ -676,7 +714,7 @@ namespace BioCore
             // vScrollBar
             // 
             vScrollBar.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
-            vScrollBar.Location = new Point(478, 29);
+            vScrollBar.Location = new Point(579, 29);
             vScrollBar.Name = "vScrollBar";
             vScrollBar.Size = new Size(21, 290);
             vScrollBar.SmallChange = 10;
@@ -690,28 +728,30 @@ namespace BioCore
             saveCSVFileDialog.Filter = "CSV Files (*.csv)|*.csv|All files (*.*)|*.*";
             saveCSVFileDialog.Title = "Save ROIs to CSV";
             // 
-            // viewpanel
+            // viewport
             // 
-            viewpanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            viewpanel.Location = new Point(3, 29);
-            viewpanel.Name = "viewpanel";
-            viewpanel.Size = new Size(477, 290);
-            viewpanel.TabIndex = 25;
+            viewport.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            viewport.BackColor = Color.Black;
+            viewport.Controls.Add(viewpanel);
+            viewport.Location = new Point(0, 29);
+            viewport.Name = "viewport";
+            viewport.Size = new Size(578, 290);
+            viewport.TabIndex = 25;
             // 
             // ImageView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(95, 122, 156);
-            Controls.Add(viewpanel);
+            Controls.Add(viewport);
             Controls.Add(vScrollBar);
             Controls.Add(hScrollBar);
             Controls.Add(trackBarPanel);
             Controls.Add(statusPanel);
             Margin = new Padding(0);
-            MinimumSize = new Size(117, 115);
+            MinimumSize = new Size(600, 400);
             Name = "ImageView";
-            Size = new Size(499, 425);
+            Size = new Size(600, 425);
             KeyDown += ImageView_KeyDown;
             KeyPress += ImageView_KeyPress;
             KeyUp += ImageView_KeyUp;
@@ -720,15 +760,17 @@ namespace BioCore
             zPlayMenuStrip.ResumeLayout(false);
             rgbBoxsPanel.ResumeLayout(false);
             rgbBoxsPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)tBar).EndInit();
             controlsMenuStrip.ResumeLayout(false);
             cPlayMenuStrip.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)zBar).EndInit();
-            ((System.ComponentModel.ISupportInitialize)cBar).EndInit();
             trackBarPanel.ResumeLayout(false);
             trackBarPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)cBar).EndInit();
+            ((System.ComponentModel.ISupportInitialize)zBar).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tBar).EndInit();
             statusPanel.ResumeLayout(false);
             statusPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)viewpanel).EndInit();
+            viewport.ResumeLayout(false);
             statusMenuStrip.ResumeLayout(false);
             ResumeLayout(false);
         }
@@ -762,12 +804,6 @@ namespace BioCore
         private System.Windows.Forms.ToolStripMenuItem loopZToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loopTimeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loopCToolStripMenuItem;
-        private System.Windows.Forms.TrackBar cBar;
-        private System.Windows.Forms.TrackBar zBar;
-        private System.Windows.Forms.Label cLabel;
-        private System.Windows.Forms.Label zLabel;
-        private System.Windows.Forms.Label tLabel;
-        private System.Windows.Forms.TrackBar tBar;
         private System.Windows.Forms.Panel trackBarPanel;
         private System.Windows.Forms.Panel statusPanel;
         private System.Windows.Forms.Label ticksLabel;
@@ -791,7 +827,6 @@ namespace BioCore
         private System.Windows.Forms.ToolStripMenuItem hideControlsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem hideStatusToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem goToImageToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem goToStageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem moveStageToImageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem goToToolStripMenuItem;
         private System.Windows.Forms.HScrollBar hScrollBar;
@@ -802,6 +837,15 @@ namespace BioCore
         private ToolStripMenuItem hideOverViewToolStripMenuItem;
         private ToolStripMenuItem removeImageToolStripMenuItem;
         private ToolStripMenuItem removeImagesToolStripMenuItem;
-        private Panel viewpanel;
+        private PictureBox viewpanel;
+        private Panel viewport;
+        private TrackBar cBar;
+        private TrackBar zBar;
+        private TrackBar tBar;
+        private Label tLabel;
+        private Label zLabel;
+        private Label cLabel;
+        private ToolStripMenuItem hideAllToolStripMenuItem;
+        private ToolStripMenuItem showAllToolStripMenuItem;
     }
 }

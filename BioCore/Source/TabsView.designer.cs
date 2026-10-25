@@ -118,6 +118,7 @@ namespace BioCore
             recentToolStripMenuItem = new ToolStripMenuItem();
             commandToolStripMenuItem = new ToolStripMenuItem();
             runToolStripMenuItem1 = new ToolStripMenuItem();
+            oMEROToolStripMenuItem = new ToolStripMenuItem();
             openImageJDialog = new OpenFileDialog();
             saveImageJDialog = new SaveFileDialog();
             saveQuPathDialog = new SaveFileDialog();
@@ -125,7 +126,6 @@ namespace BioCore
             openQuPathProjDialog = new OpenFileDialog();
             saveNumPyDialog = new SaveFileDialog();
             saveFileDialog1 = new SaveFileDialog();
-            oMEROToolStripMenuItem = new ToolStripMenuItem();
             panel.SuspendLayout();
             tabContextMenuStrip.SuspendLayout();
             menuStrip.SuspendLayout();
@@ -406,7 +406,7 @@ namespace BioCore
             // 
             rGBToolStripMenuItem.CheckOnClick = true;
             rGBToolStripMenuItem.Name = "rGBToolStripMenuItem";
-            rGBToolStripMenuItem.Size = new Size(194, 22);
+            rGBToolStripMenuItem.Size = new Size(121, 22);
             rGBToolStripMenuItem.Text = "RGB";
             rGBToolStripMenuItem.Click += rGBToolStripMenuItem_Click;
             // 
@@ -416,7 +416,7 @@ namespace BioCore
             filteredToolStripMenuItem.CheckOnClick = true;
             filteredToolStripMenuItem.CheckState = CheckState.Checked;
             filteredToolStripMenuItem.Name = "filteredToolStripMenuItem";
-            filteredToolStripMenuItem.Size = new Size(194, 22);
+            filteredToolStripMenuItem.Size = new Size(121, 22);
             filteredToolStripMenuItem.Text = "Filtered";
             filteredToolStripMenuItem.Click += filteredToolStripMenuItem_Click;
             // 
@@ -424,26 +424,36 @@ namespace BioCore
             // 
             rawToolStripMenuItem.CheckOnClick = true;
             rawToolStripMenuItem.Name = "rawToolStripMenuItem";
-            rawToolStripMenuItem.Size = new Size(194, 22);
+            rawToolStripMenuItem.Size = new Size(121, 22);
             rawToolStripMenuItem.Text = "Raw";
             rawToolStripMenuItem.Click += rawToolStripMenuItem_Click;
             // 
             // emissionToolStripMenuItem
             // 
             emissionToolStripMenuItem.Name = "emissionToolStripMenuItem";
-            emissionToolStripMenuItem.Size = new Size(194, 22);
+            emissionToolStripMenuItem.Size = new Size(121, 22);
             emissionToolStripMenuItem.Text = "Emission";
             emissionToolStripMenuItem.Click += emissionToolStripMenuItem_Click;
+            // 
+            // _3dToolStripMenuItem
+            // 
+            _3dToolStripMenuItem.Name = "_3dToolStripMenuItem";
+            _3dToolStripMenuItem.Size = new Size(121, 22);
             // 
             // sepToolStripMenuItem
             // 
             sepToolStripMenuItem.Name = "sepToolStripMenuItem";
-            sepToolStripMenuItem.Size = new Size(191, 6);
+            sepToolStripMenuItem.Size = new Size(118, 6);
+            // 
+            // dToolStripMenuItem
+            // 
+            dToolStripMenuItem.Name = "dToolStripMenuItem";
+            dToolStripMenuItem.Size = new Size(121, 22);
             // 
             // xMLToolStripMenuItem
             // 
             xMLToolStripMenuItem.Name = "xMLToolStripMenuItem";
-            xMLToolStripMenuItem.Size = new Size(194, 22);
+            xMLToolStripMenuItem.Size = new Size(121, 22);
             xMLToolStripMenuItem.Text = "XML";
             xMLToolStripMenuItem.Click += xMLToolStripMenuItem_Click;
             // 
@@ -721,6 +731,13 @@ namespace BioCore
             runToolStripMenuItem1.Size = new Size(40, 20);
             runToolStripMenuItem1.Text = "Run";
             // 
+            // oMEROToolStripMenuItem
+            // 
+            oMEROToolStripMenuItem.Name = "oMEROToolStripMenuItem";
+            oMEROToolStripMenuItem.Size = new Size(61, 20);
+            oMEROToolStripMenuItem.Text = "OMERO";
+            oMEROToolStripMenuItem.Click += oMEROToolStripMenuItem_Click;
+            // 
             // openImageJDialog
             // 
             openImageJDialog.DefaultExt = "roi";
@@ -765,13 +782,6 @@ namespace BioCore
             saveFileDialog1.DefaultExt = "roi";
             saveFileDialog1.Filter = "QuPath Project Files (*.qpproj)|*.qpproj|All files (*.*)|*.*";
             saveFileDialog1.Title = "QuPath Project Save";
-            // 
-            // oMEROToolStripMenuItem
-            // 
-            oMEROToolStripMenuItem.Name = "oMEROToolStripMenuItem";
-            oMEROToolStripMenuItem.Size = new Size(61, 20);
-            oMEROToolStripMenuItem.Text = "OMERO";
-            oMEROToolStripMenuItem.Click += oMEROToolStripMenuItem_Click;
             // 
             // TabsView
             // 

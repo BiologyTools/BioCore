@@ -294,7 +294,7 @@ void main()
             // Handle High-DPI: viewport is in physical pixels, uniforms in logical pixels
             double scale = DeviceDpi / 96.0;
             GL.Viewport(0, 0, (int)(width * scale), (int)(height * scale));
-            GL.ClearColor(0.2f, 0.2f, 0.2f, 1f);
+            GL.ClearColor(0f, 0f, 0f, 1f);
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             if (TilesToRender.Count == 0)

@@ -93,7 +93,7 @@ namespace BioCore
                         if (App.UseFiji)
                             Fiji.RunStringFiji(ImageView.SelectedImage, rn.scriptString, "", false);
                         else
-                            ImageJ.RunString(rn.scriptString, "", false);
+                            ImageJ.RunString(ImageView.SelectedImage, rn.scriptString, "", false);
                         rn.done = true;
                     }
                     catch (Exception e)

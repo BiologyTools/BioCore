@@ -47,6 +47,7 @@ namespace BioCore
             LoadProperties();
             ResizeView();
             Init();
+            AddTab(arg);
         }
         /* Initializing the component and loading the properties. */
         public TabsView()
@@ -81,7 +82,7 @@ namespace BioCore
                     }
                     else
                     {
-                        AddTab(BioImage.OpenFile(arg[i]));
+                        AddTab(BioImage.OpenFile(arg[i]).Result);
                     }
                 }
             }
@@ -95,7 +96,7 @@ namespace BioCore
         public void AddTab(BioImage b)
         {
             if (b == null)
-                return;
+                throw new ArgumentNullException(nameof(b), "The image loader returned no image to display.");
             if (b.filename.Contains('/') || b.filename.Contains('\\'))
                 b.filename = Path.GetFileName(b.filename);
             TabPage t = new TabPage(b.filename);
@@ -112,6 +113,11 @@ namespace BioCore
             tabControl.SelectedIndex = tabControl.TabCount - 1;
             viewers.Add(v);
             ResizeView();
+            if (!Visible)
+                Show();
+            if (WindowState == FormWindowState.Minimized)
+                WindowState = FormWindowState.Normal;
+            Activate();
         }
 
         /// This function removes a tab from the tab control
@@ -333,18 +339,28 @@ namespace BioCore
         /// 
         /// @return The return value is the result of the ShowDialog method of the openFilesDialog
         /// object.
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openFilesDialog.ShowDialog() != DialogResult.OK)
                 return;
-            int img = Images.images.Count;
             foreach (string item in openFilesDialog.FileNames)
             {
-                BioImage im = BioImage.OpenFile(item, 0, true, true);
-                AddTab(im);
-                if (!App.recent.Contains(im.ID))
-                    App.recent.Add(im.ID);
+                try
+                {
+                    BioImage im = await BioImage.OpenFile(item);
+                    if (im == null)
+                        throw new InvalidOperationException("The image loader returned no image.");
+                    AddTab(im);
+                    if (!App.recent.Contains(im.ID))
+                        App.recent.Add(im.ID);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, $"Could not open '{item}'.\n{ex.Message}",
+                        "Open Image", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
+            openRecentToolStripMenuItem.DropDownItems.Clear();
             foreach (string item in App.recent)
             {
                 openRecentToolStripMenuItem.DropDownItems.Add(item, null, ItemClicked);
@@ -948,7 +964,7 @@ namespace BioCore
         /// 
         /// @param sender The object that raised the event.
         /// @param EventArgs 
-        private void ItemClicked(object sender, EventArgs e)
+        private async void ItemClicked(object sender, EventArgs e)
         {
             ToolStripMenuItem ts = (ToolStripMenuItem)sender;
             if (!BioImage.isOME(ts.Text))
@@ -965,10 +981,16 @@ namespace BioCore
             else
             {
                 OpenInTab tb = new OpenInTab();
-                if (tb.ShowDialog() == DialogResult.Yes)
-                    BioImage.OpenOMESeries(ts.Text, true, true);
-                else
-                    BioImage.OpenOMESeries(ts.Text, false, true);
+                bool separateTabs = tb.ShowDialog() == DialogResult.Yes;
+                bool firstImage = true;
+                await foreach (BioImage image in ImageSeriesLoader.OpenAsync(ts.Text))
+                {
+                    if (separateTabs || firstImage)
+                        AddTab(image);
+                    else
+                        Viewer.AddImage(image);
+                    firstImage = false;
+                }
             }
             App.viewer.GoToImage();
             SaveProperties();
@@ -1089,10 +1111,9 @@ namespace BioCore
                 return;
             foreach (var file in openFilesDialog.FileNames)
             {
-                int c = BioImage.GetSeriesCount(file);
-                for (int i = 0; i < c; i++)
+                await foreach (BioImage image in ImageSeriesLoader.OpenAsync(file))
                 {
-                    await BioImage.OpenAsync(file, true, true, true, c);
+                    AddTab(image);
                 }
             }
         }
@@ -1177,7 +1198,7 @@ namespace BioCore
             BioImage[] bms = null;
             foreach (string item in openFilesDialog.FileNames)
             {
-                bms = BioImage.OpenSeries(openFilesDialog.FileName, true);
+                bms = BioImage.OpenSeries(item, false);
                 for (int i = 0; i < bms.Length; i++)
                 {
                     if (i == 0)
@@ -1469,7 +1490,7 @@ namespace BioCore
             foreach (QuPath.Image p in pr.Images)
             {
                 string s = p.ServerBuilder.Uri.Replace("file:/", "");
-                App.tabsView.AddTab(BioImage.OpenFile(s));
+                App.tabsView.AddTab(BioImage.OpenFile(s).Result);
             }
         }
 

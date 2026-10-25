@@ -668,7 +668,9 @@ namespace BioCore
                 }
                 else
                 {
-                    App.viewer.Origin = new PointD(App.viewer.Origin.X + (ImageView.mouseDown.X - e.X), App.viewer.Origin.Y + (ImageView.mouseDown.Y - e.Y));
+                    // Screen-to-world conversion subtracts Origin. Moving the image
+                    // toward the current pointer keeps the grabbed world point fixed.
+                    App.viewer.Origin = new PointD(App.viewer.Origin.X + (e.X - ImageView.mouseDown.X), App.viewer.Origin.Y + (e.Y - ImageView.mouseDown.Y));
                 }
                 UpdateView();
             }

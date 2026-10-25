@@ -54,10 +54,11 @@
             Init();
             InitNodes();
             App.nodeView = this;
-            foreach (string s in args)
+            Shown += async (sender, e) =>
             {
-                BioImage.OpenAsync(s,true,true,true,0).Wait();
-            }
+                foreach (string file in args)
+                    await OpenImageAsync(file);
+            };
             Show();
         }
 
@@ -178,13 +179,30 @@
         /// @param EventArgs The EventArgs class is the base class for classes containing event data.
         /// 
         /// @return The file name of the image that was opened.
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openFilesDialog.ShowDialog() != DialogResult.OK)
                 return;
             foreach (string file in openFilesDialog.FileNames)
+                await OpenImageAsync(file);
+        }
+
+        private async Task OpenImageAsync(string file)
+        {
+            try
             {
-                BioImage.Open(file);
+                BioImage image = await BioImage.OpenFile(file);
+                if (image == null)
+                    throw new InvalidOperationException("The image loader returned no image.");
+                if (App.tabsView == null || App.tabsView.IsDisposed)
+                    App.tabsView = new TabsView();
+                App.tabsView.AddTab(image);
+                UpdateNodes();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Could not open '{file}'.\n{ex.Message}",
+                    "Open Image", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         /// It's a function that refreshes the treeview
@@ -331,27 +349,58 @@
         /// @param EventArgs 
         private void treeView_DoubleClick(object sender, EventArgs e)
         {
-            Node node = (Node)treeView.SelectedNode.Tag;
-            if (node != null)
-                if (node.Type == Node.DataType.buf)
+            if (treeView.SelectedNode?.Tag is not Node node)
+                return;
+
+            // Planes and ROIs belong to an image ancestor, not necessarily the active tab.
+            TreeNode imageNode = treeView.SelectedNode;
+            while (imageNode != null &&
+                (imageNode.Tag is not Node owner || owner.Type != Node.DataType.image))
+                imageNode = imageNode.Parent;
+            if (imageNode?.Tag is not Node imageEntry || imageEntry.Object is not BioImage image)
+                return;
+
+            try
+            {
+                if (App.tabsView == null || App.tabsView.IsDisposed)
+                    App.tabsView = new TabsView();
+                TabsView tabs = App.tabsView;
+                ImageView viewer = null;
+                for (int i = 0; i < tabs.GetViewerCount(); i++)
                 {
-                    setIDToolStripMenuItem.Visible = false;
-                    setTextToolStripMenuItem.Visible = false;
-                    Bitmap buf = (Bitmap)node.Object;
-                    App.viewer.SetCoordinate(buf.Coordinate.Z, buf.Coordinate.C, buf.Coordinate.T);
-                    App.viewer.GoToImage();
+                    ImageView candidate = tabs.GetViewer(i);
+                    int index = candidate.Images.IndexOf(image);
+                    if (index < 0)
+                        continue;
+                    tabs.SetTab(i);
+                    App.viewer = candidate;
+                    candidate.SelectedIndex = index;
+                    viewer = candidate;
+                    break;
                 }
-                else
-                if (node.Type == Node.DataType.roi)
+                if (viewer == null)
                 {
-                    setIDToolStripMenuItem.Visible = true;
-                    setTextToolStripMenuItem.Visible = true;
-                    ROI an = (ROI)node.Object;
-                    string name = node.node.Parent.Parent.Text;
-                    ImageView v = TabsView.SelectedViewer;
-                    if (v != null)
-                        v.SetCoordinate(an.coord.Z, an.coord.C, an.coord.T);
+                    tabs.AddTab(image);
+                    viewer = tabs.Viewer;
                 }
+                tabs.Show();
+                if (tabs.WindowState == FormWindowState.Minimized)
+                    tabs.WindowState = FormWindowState.Normal;
+                tabs.Activate();
+
+                setIDToolStripMenuItem.Visible = node.Type == Node.DataType.roi;
+                setTextToolStripMenuItem.Visible = node.Type == Node.DataType.roi;
+                if (node.Object is Bitmap buf)
+                    viewer.SetCoordinate(buf.Coordinate.Z, buf.Coordinate.C, buf.Coordinate.T);
+                else if (node.Object is ROI roi)
+                    viewer.SetCoordinate(roi.coord.Z, roi.coord.C, roi.coord.T);
+                viewer.GoToImage();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Could not display '{image.Filename}'.\n{ex.Message}",
+                    "Open Image", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
