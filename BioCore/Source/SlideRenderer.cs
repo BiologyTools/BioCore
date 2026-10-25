@@ -20,6 +20,7 @@ namespace BioCore
         private OpenSlideGTK.TileCache _openTileCache;
         private HashSet<TileIndex> _uploadedTiles = new();
         private int _currentLevel = -1;
+        private int _renderVersion;
 
         public SlideRenderer(SlideGLArea glArea)
         {
@@ -46,6 +47,7 @@ namespace BioCore
 
         public void ClearCache()
         {
+            _renderVersion++;
             _glArea.ClearTextureCache();
             _uploadedTiles.Clear();
             _currentLevel = -1;
@@ -56,8 +58,10 @@ namespace BioCore
             int viewportWidth,
             int viewportHeight,
             double resolution,
-            ZCT coordinate)
+            ZCT coordinate,
+            BioImage rgbZarr = null)
         {
+            int renderVersion = _renderVersion;
             if (_openSlideBase == null && _slideBase == null)
                 return;
             if (viewportWidth <= 1 && viewportHeight <= 1)
@@ -90,10 +94,16 @@ namespace BioCore
                 tileInfos = schema.GetTileInfos(pixelExtent, level).ToList();
             }
 
-            if (_openSlideBase != null)
-                await _openSlideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate);
-            else
-                await _slideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate, pyramidalOrigin, new AForge.Size(viewportWidth, viewportHeight));
+            int[] rgbChannels = rgbZarr?.rgbChannels.ToArray();
+            if (rgbZarr == null)
+            {
+                if (_openSlideBase != null)
+                    await _openSlideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate);
+                else
+                    await _slideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate, pyramidalOrigin, new AForge.Size(viewportWidth, viewportHeight));
+            }
+            if (renderVersion != _renderVersion)
+                return;
 
             var renderInfos = new List<TileRenderInfo>();
             foreach (var tileInfo in tileInfos)
@@ -101,10 +111,22 @@ namespace BioCore
                 if (!_glArea.HasTileTexture(tileInfo.Index))
                 {
                     byte[] tileData;
-                    if (_useOpenSlide)
+                    if (rgbZarr != null)
+                    {
+                        int tileWidth = schema.GetTileWidth(level);
+                        int tileHeight = schema.GetTileHeight(level);
+                        int tilePixelWidth = (int)Math.Round(tileInfo.Extent.Width / levelUnitsPerPixel);
+                        int tilePixelHeight = (int)Math.Round(tileInfo.Extent.Height / levelUnitsPerPixel);
+                        tileData = await ZarrChannelView.ReadRgbTileAsync(rgbZarr, level,
+                            tileInfo.Index.Col * tileWidth, tileInfo.Index.Row * tileHeight,
+                            tilePixelWidth, tilePixelHeight, coordinate, rgbChannels);
+                    }
+                    else if (_useOpenSlide)
                         tileData = await _openSlideBase.GetTileAsync(tileInfo);
                     else
                         tileData = await _slideBase.GetTileAsync(tileInfo, coordinate);
+                    if (renderVersion != _renderVersion)
+                        return;
                     if (tileData != null)
                     {
                         // Fix: Calculate actual tile dimensions from extent, do not hardcode 256.

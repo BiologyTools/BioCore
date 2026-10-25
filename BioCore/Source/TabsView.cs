@@ -172,6 +172,7 @@ namespace BioCore
         private void Init()
         {
             App.tabsView = this;
+            InitializeZarrMenu();
             Plugins.Initialize();
             filters = new Filter();
             string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -967,6 +968,11 @@ namespace BioCore
         private async void ItemClicked(object sender, EventArgs e)
         {
             ToolStripMenuItem ts = (ToolStripMenuItem)sender;
+            if (IsZarrSource(ts.Text))
+            {
+                await OpenZarrSourceAsync(ts.Text);
+                return;
+            }
             if (!BioImage.isOME(ts.Text))
             {
                 BioImage[] bs = BioImage.OpenSeries(ts.Text, false);

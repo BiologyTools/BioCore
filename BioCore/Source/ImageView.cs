@@ -477,6 +477,7 @@ namespace BioCore
         /// about the image.
         public void AddImage(BioImage im)
         {
+            ZarrChannelView.InitializeChannels(im);
             if (Images.Contains(im))
                 return;
             else
@@ -831,7 +832,7 @@ namespace BioCore
             if (channelBoxR.SelectedIndex == -1)
                 SelectedImage.rgbChannels[0] = 0;
             else
-                SelectedImage.rgbChannels[1] = channelBoxR.SelectedIndex;
+                SelectedImage.rgbChannels[0] = channelBoxR.SelectedIndex;
             if (channelBoxG.SelectedIndex == -1)
                 SelectedImage.rgbChannels[1] = 0;
             else
@@ -899,7 +900,7 @@ namespace BioCore
             if (SelectedImage == null)
                 return;
             zBar.Maximum = SelectedImage.SizeZ - 1;
-            if (SelectedImage.Buffers[0].RGBChannelsCount == 3)
+            if (!SelectedImage.IsZarrSource && SelectedImage.Buffers[0].RGBChannelsCount == 3)
                 cBar.Maximum = 0;
             else
                 cBar.Maximum = SelectedImage.SizeC - 1;
@@ -937,7 +938,10 @@ namespace BioCore
             {
                 channelBoxR.SelectedIndex = 0;
                 channelBoxG.SelectedIndex = 1;
+                channelBoxB.SelectedIndex = 0;
             }
+            else if (SelectedImage.Channels.Count == 1)
+                channelBoxR.SelectedIndex = channelBoxG.SelectedIndex = channelBoxB.SelectedIndex = 0;
             UpdateRGBChannels();
 
             init = true;
@@ -1289,6 +1293,7 @@ namespace BioCore
         /// coordinates, and then converts it to a bitmap
         /// 
         /// @return A Bitmap
+        private int zarrRgbRequest;
         public async void UpdateImages(bool updatePyramidal = true)
         {
             if (SelectedImage == null)
@@ -1313,9 +1318,45 @@ namespace BioCore
                     gl.Width,
                     gl.Height,
                     Resolution,
-                    GetCoordinate()
+                    GetCoordinate(),
+                    Mode == ViewMode.RGBImage && SelectedImage.IsZarrSource ? SelectedImage : null
                 );
                 // Pyramidal images are drawn from tiles, not the full-plane buffers below.
+                return;
+            }
+
+            if (SelectedImage.IsZarrSource && Mode == ViewMode.RGBImage && Images.Count == 1 && SelectedImage.levels?.Count > 0)
+            {
+                var image = SelectedImage;
+                int request = ++zarrRgbRequest;
+                int width = image.Buffers[0].SizeX, height = image.Buffers[0].SizeY;
+                try
+                {
+                    byte[] rgba = await ZarrChannelView.ReadRgbTileAsync(image, 0, 0, 0, width, height,
+                        GetCoordinate(), image.rgbChannels.ToArray());
+                    if (request != zarrRgbRequest || SelectedImage != image || Mode != ViewMode.RGBImage)
+                        return;
+                    var frame = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    var data = frame.LockBits(new System.Drawing.Rectangle(0, 0, width, height),
+                        System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                    try
+                    {
+                        for (int i = 0; i < rgba.Length; i += 4)
+                            (rgba[i], rgba[i + 2]) = (rgba[i + 2], rgba[i]);
+                        for (int row = 0; row < height; row++)
+                            Marshal.Copy(rgba, row * width * 4, IntPtr.Add(data.Scan0, row * data.Stride), width * 4);
+                    }
+                    finally { frame.UnlockBits(data); }
+                    foreach (var old in Bitmaps) old?.Dispose();
+                    Bitmaps.Clear();
+                    Bitmaps.Add(frame);
+                    update = true;
+                    InvalidateView();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Could not render Zarr RGB channels: {ex.Message}");
+                }
                 return;
             }
 
