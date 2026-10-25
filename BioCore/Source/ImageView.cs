@@ -140,6 +140,9 @@ namespace BioCore
         {
             gl.Dock = DockStyle.Fill;
             gl.Visible = false;
+            gl.ContextMenuStrip = contextMenuStrip;
+            viewport.ContextMenuStrip = contextMenuStrip;
+            contextMenuStrip.Opening += contextMenuStrip_Opening;
             viewport.Controls.Add(gl);
             viewpanel.BringToFront();
             InitializeOverview();
@@ -826,22 +829,22 @@ namespace BioCore
         /// set it to 0."
         /// 
         /// The above function is called when the user changes the channel selection
+        private readonly bool[] rgbEnabled = { true, true, true };
+        private bool initializingRgbSelectors;
+        private BioImage rgbSelectorImage;
+
+        private int[] SelectedRgbChannels(BioImage image) => Enumerable.Range(0, 3)
+            .Select(i => rgbEnabled[i] ? image.rgbChannels[i] : -1).ToArray();
+
         public void UpdateRGBChannels()
         {
-            //Buf = image.GetBufByCoord(GetCoordinate());
-            if (channelBoxR.SelectedIndex == -1)
-                SelectedImage.rgbChannels[0] = 0;
-            else
-                SelectedImage.rgbChannels[0] = channelBoxR.SelectedIndex;
-            if (channelBoxG.SelectedIndex == -1)
-                SelectedImage.rgbChannels[1] = 0;
-            else
-                SelectedImage.rgbChannels[1] = channelBoxG.SelectedIndex;
-            if (channelBoxB.SelectedIndex == -1)
-                SelectedImage.rgbChannels[2] = 0;
-            else
-                SelectedImage.rgbChannels[2] = channelBoxB.SelectedIndex;
-
+            if (SelectedImage == null) return;
+            System.Windows.Forms.ComboBox[] boxes = { channelBoxR, channelBoxG, channelBoxB };
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                rgbEnabled[i] = boxes[i].SelectedIndex > 0;
+                if (rgbEnabled[i]) SelectedImage.rgbChannels[i] = boxes[i].SelectedIndex - 1;
+            }
         }
         private bool timeEnabled = false;
         private int zfps;
@@ -917,31 +920,30 @@ namespace BioCore
             }
             //rgbPictureBox.Image = image.plane.GetBitmap();
             //we clear the channel comboboxes incase we have channels from previous loaded image.
+            bool sameImage = ReferenceEquals(rgbSelectorImage, SelectedImage);
+            rgbSelectorImage = SelectedImage;
+            bool[] previousEnabled = (bool[])rgbEnabled.Clone();
+            int[] previousChannels = (int[])SelectedImage.rgbChannels.Clone();
+            initializingRgbSelectors = true;
             channelBoxR.Items.Clear();
             channelBoxG.Items.Clear();
             channelBoxB.Items.Clear();
 
+            channelBoxR.Items.Add("");
+            channelBoxG.Items.Add("");
+            channelBoxB.Items.Add("");
             foreach (Channel ch in SelectedImage.Channels)
             {
                 channelBoxR.Items.Add(ch);
                 channelBoxG.Items.Add(ch);
                 channelBoxB.Items.Add(ch);
             }
-            if (SelectedImage.Channels.Count > 2)
-            {
-                channelBoxR.SelectedIndex = 0;
-                channelBoxG.SelectedIndex = 1;
-                channelBoxB.SelectedIndex = 2;
-            }
-            else
-            if (SelectedImage.Channels.Count == 2)
-            {
-                channelBoxR.SelectedIndex = 0;
-                channelBoxG.SelectedIndex = 1;
-                channelBoxB.SelectedIndex = 0;
-            }
-            else if (SelectedImage.Channels.Count == 1)
-                channelBoxR.SelectedIndex = channelBoxG.SelectedIndex = channelBoxB.SelectedIndex = 0;
+            System.Windows.Forms.ComboBox[] rgbBoxes = { channelBoxR, channelBoxG, channelBoxB };
+            int count = SelectedImage.Channels.Count;
+            for (int i = 0; i < rgbBoxes.Length; i++)
+                rgbBoxes[i].SelectedIndex = count == 0 || (sameImage && !previousEnabled[i]) ? 0 :
+                    (sameImage ? Math.Clamp(previousChannels[i], 0, count - 1) : (i < count ? i : 0)) + 1;
+            initializingRgbSelectors = false;
             UpdateRGBChannels();
 
             init = true;
@@ -1319,7 +1321,8 @@ namespace BioCore
                     gl.Height,
                     Resolution,
                     GetCoordinate(),
-                    Mode == ViewMode.RGBImage && SelectedImage.IsZarrSource ? SelectedImage : null
+                    Mode == ViewMode.RGBImage && SelectedImage.IsZarrSource ? SelectedImage : null,
+                    Mode == ViewMode.RGBImage ? SelectedRgbChannels(SelectedImage) : null
                 );
                 // Pyramidal images are drawn from tiles, not the full-plane buffers below.
                 return;
@@ -1333,7 +1336,7 @@ namespace BioCore
                 try
                 {
                     byte[] rgba = await ZarrChannelView.ReadRgbTileAsync(image, 0, 0, 0, width, height,
-                        GetCoordinate(), image.rgbChannels.ToArray());
+                        GetCoordinate(), SelectedRgbChannels(image));
                     if (request != zarrRgbRequest || SelectedImage != image || Mode != ViewMode.RGBImage)
                         return;
                     var frame = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -1408,7 +1411,18 @@ namespace BioCore
                 }
                 else if (Mode == ViewMode.RGBImage)
                 {
-                    bitmap = b.GetRGBBitmap(coords, b.RChannel.RangeR, b.GChannel.RangeG, b.BChannel.RangeB);
+                    if (b.Buffers[0].RGBChannelsCount == 1)
+                    {
+                        var planes = new Bitmap[3];
+                        for (int color = 0; color < 3; color++)
+                        {
+                            int channel = Math.Clamp(b.rgbChannels[color], 0, b.SizeC - 1);
+                            planes[2 - color] = b.Buffers[b.GetFrameIndex(coords.Z, channel, coords.T)];
+                        }
+                        bitmap = Bitmap.GetRGBBitmap(planes, b.RChannel.RangeR, b.GChannel.RangeG, b.BChannel.RangeB);
+                    }
+                    else
+                        bitmap = b.GetRGBBitmap(coords, b.RChannel.RangeR, b.GChannel.RangeG, b.BChannel.RangeB);
                 }
                 else if (Mode == ViewMode.Raw)
                 {
@@ -1418,7 +1432,10 @@ namespace BioCore
                 {
                     bitmap = b.GetEmission(coords, b.RChannel.RangeR, b.GChannel.RangeG, b.BChannel.RangeB);
                 }
-                Bitmaps.Add(ToSysBitmap(bitmap));
+                var display = ToSysBitmap(bitmap);
+                if (Mode == ViewMode.RGBImage)
+                    MaskRgbComponents(display, rgbEnabled);
+                Bitmaps.Add(display);
                 bi++;
             }
             UpdateRegularOverview();
@@ -1468,9 +1485,10 @@ namespace BioCore
         /// @return The index of the selected item in the ComboBox.
         private void channelBoxR_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (channelBoxR.SelectedIndex == -1)
+            if (initializingRgbSelectors || SelectedImage == null || channelBoxR.SelectedIndex == -1)
                 return;
-            SelectedImage.rgbChannels[0] = channelBoxR.SelectedIndex;
+            rgbEnabled[0] = channelBoxR.SelectedIndex > 0;
+            if (rgbEnabled[0]) SelectedImage.rgbChannels[0] = channelBoxR.SelectedIndex - 1;
             update = true;
             UpdateView();
         }
@@ -1483,9 +1501,10 @@ namespace BioCore
         /// @return The index of the selected item in the ComboBox.
         private void channelBoxG_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (channelBoxG.SelectedIndex == -1)
+            if (initializingRgbSelectors || SelectedImage == null || channelBoxG.SelectedIndex == -1)
                 return;
-            SelectedImage.rgbChannels[1] = channelBoxG.SelectedIndex;
+            rgbEnabled[1] = channelBoxG.SelectedIndex > 0;
+            if (rgbEnabled[1]) SelectedImage.rgbChannels[1] = channelBoxG.SelectedIndex - 1;
             update = true;
             UpdateView();
         }
@@ -1498,9 +1517,10 @@ namespace BioCore
         /// @return The selected index of the channelBoxB ComboBox.
         private void channelBoxB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (channelBoxB.SelectedIndex == -1)
+            if (initializingRgbSelectors || SelectedImage == null || channelBoxB.SelectedIndex == -1)
                 return;
-            SelectedImage.rgbChannels[2] = channelBoxB.SelectedIndex;
+            rgbEnabled[2] = channelBoxB.SelectedIndex > 0;
+            if (rgbEnabled[2]) SelectedImage.rgbChannels[2] = channelBoxB.SelectedIndex - 1;
             update = true;
             UpdateView();
         }
@@ -2013,11 +2033,11 @@ namespace BioCore
                 List<ROI> ans = new List<ROI>();
                 if (Mode == ViewMode.RGBImage)
                 {
-                    if (showRROIs)
+                    if (showRROIs && rgbEnabled[0])
                         ans.AddRange(AnnotationsR);
-                    if (showGROIs)
+                    if (showGROIs && rgbEnabled[1])
                         ans.AddRange(AnnotationsG);
-                    if (showBROIs)
+                    if (showBROIs && rgbEnabled[2])
                         ans.AddRange(AnnotationsB);
                 }
                 else
@@ -3269,7 +3289,7 @@ namespace BioCore
         /// @return The method is returning the value of the variable "Scale"
         public void GoToImage()
         {
-            GoToImage(0);
+            GoToImage(SelectedIndex);
         }
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public PointD PyramidalOriginTransformed
@@ -3311,46 +3331,39 @@ namespace BioCore
         /// @return The method is returning the value of the variable "i"
         public void GoToImage(int i)
         {
-            if (Images.Count <= i)
+            if (i < 0 || Images.Count <= i || ViewWidth <= 0 || ViewHeight <= 0)
                 return;
-            if (SelectedImage == null && Images.Count > 0)
-                SelectedImage = Images[i];
-            if (SelectedImage.isPyramidal)
+            App.viewer = this;
+            if (SelectedIndex != i)
+                SelectedIndex = i;
+            else
+                selectedIndex = i;
+            BioImage image = Images[i];
+            if (image.isPyramidal)
             {
-                if (SelectedImage.OpenSlideBase != null)
-                {
-                    if (MacroResolution.HasValue)
-                    {
-                        int lev = MacroResolution.Value - 2;
-                        Resolution = _openSlideBase.Schema.Resolutions[lev].UnitsPerPixel * 0.98;
-                    }
-                    else
-                    {
-                        int lev = 0;
-                        Resolution = _openSlideBase.Schema.Resolutions[lev].UnitsPerPixel * 0.98;
-                    }
-                }
-                else
-                {
-                    if (MacroResolution.HasValue)
-                    {
-                        int lev = MacroResolution.Value - 1;
-                        Resolution = SelectedImage.SlideBase.Schema.Resolutions[lev].UnitsPerPixel * 0.98;
-                        PyramidalOrigin = new PointD(0, 0);
-                    }
-                    else
-                    {
-                        Resolution = SelectedImage.GetUnitPerPixel(SelectedImage.Resolutions.Count - 1) * 0.98;
-                    }
-                }
+                // The schema extent uses the same world coordinates as the slide
+                // renderer. BioImage.Volume may only describe its initial Zarr tile.
+                RectangleD bounds = OverviewWorldBounds(image);
+                if (bounds.W <= 0 || bounds.H <= 0 || !double.IsFinite(bounds.W) || !double.IsFinite(bounds.H))
+                    return;
+                double fit = Math.Max(bounds.W / ViewWidth, bounds.H / ViewHeight);
+                if (!double.IsFinite(fit) || fit <= 0)
+                    return;
+                Resolution = fit;
+                PyramidalOrigin = new PointD((bounds.X + bounds.W / 2) / fit - ViewWidth / 2.0,
+                    (bounds.Y + bounds.H / 2) / fit - ViewHeight / 2.0);
+                UpdateView();
+                return;
             }
-            double dx = Images[i].Volume.Width / 2;
-            double dy = Images[i].Volume.Height / 2;
-            Origin = new PointD(-(Images[i].Volume.Location.X + dx), -(Images[i].Volume.Location.Y + dy));
+            double dx = image.Volume.Width / 2;
+            double dy = image.Volume.Height / 2;
+            Origin = new PointD(-(image.Volume.Location.X + dx), -(image.Volume.Location.Y + dy));
             double wx, wy;
-            wx = ViewWidth / ToScreenScaleW(SelectedImage.Volume.Width);
-            wy = ViewHeight / ToScreenScaleH(SelectedImage.Volume.Height);
-            Scale = new SizeF((float)wy, (float)wy);
+            wx = ViewWidth / ToScreenScaleW(image.Volume.Width);
+            wy = ViewHeight / ToScreenScaleH(image.Volume.Height);
+            double fitScale = Math.Min(wx, wy);
+            if (double.IsFinite(fitScale) && fitScale > 0)
+                Scale = new SizeF((float)fitScale, (float)fitScale);
             UpdateView();
         }
 
@@ -3591,7 +3604,9 @@ namespace BioCore
         }
         private void contextMenuStrip_Opening(object sender, CancelEventArgs e)
         {
-            Function.Initialize();
+            App.viewer = this;
+            if (App.tabsView != null)
+                Function.Initialize();
         }
         private void hideOverviewToolStripMenuItem_Click(object sender, EventArgs e)
         {

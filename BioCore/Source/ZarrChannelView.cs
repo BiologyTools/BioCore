@@ -39,6 +39,8 @@ namespace BioCore
                 throw new NotSupportedException($"Zarr RGB display does not support {level.DataType}.");
             for (int color = 0; color < 3; color++)
             {
+                if (channels[color] < 0)
+                    continue;
                 var plane = await level.ReadTileAsync(x, y, readWidth, readHeight,
                     z: coordinate.Z, c: channels[color], t: coordinate.T).ConfigureAwait(false);
                 int bytesPerSample = sixteenBit ? 2 : 1;

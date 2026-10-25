@@ -59,7 +59,8 @@ namespace BioCore
             int viewportHeight,
             double resolution,
             ZCT coordinate,
-            BioImage rgbZarr = null)
+            BioImage rgbZarr = null,
+            int[] rgbSelection = null)
         {
             int renderVersion = _renderVersion;
             if (_openSlideBase == null && _slideBase == null)
@@ -94,7 +95,7 @@ namespace BioCore
                 tileInfos = schema.GetTileInfos(pixelExtent, level).ToList();
             }
 
-            int[] rgbChannels = rgbZarr?.rgbChannels.ToArray();
+            int[] rgbChannels = rgbSelection?.ToArray();
             if (rgbZarr == null)
             {
                 if (_openSlideBase != null)
@@ -127,6 +128,13 @@ namespace BioCore
                         tileData = await _slideBase.GetTileAsync(tileInfo, coordinate);
                     if (renderVersion != _renderVersion)
                         return;
+                    if (tileData != null && rgbZarr == null && rgbChannels != null)
+                    {
+                        tileData = (byte[])tileData.Clone();
+                        for (int i = 0; i + 3 < tileData.Length; i += 4)
+                            for (int color = 0; color < 3; color++)
+                                if (rgbChannels[color] < 0) tileData[i + color] = 0;
+                    }
                     if (tileData != null)
                     {
                         // Fix: Calculate actual tile dimensions from extent, do not hardcode 256.
