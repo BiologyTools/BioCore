@@ -9,7 +9,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp;
-using SkiaSharp.Views.Gtk;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Application = System.Windows.Forms.Application;
@@ -66,8 +65,13 @@ namespace BioCore
             App.viewer = this;
             if (file == "" || file == null)
                 return;
-            SetCoordinate(0, 0, 0);
             InitGUI();
+            // Preserve a loader-selected initial plane (for example the middle
+            // slice of an NGFF scene). SetCoordinate is asynchronous and raced
+            // construction here, so initialise the controls synchronously.
+            zBar.Value = Math.Clamp(im.Coordinate.Z, zBar.Minimum, zBar.Maximum);
+            cBar.Value = Math.Clamp(im.Coordinate.C, cBar.Minimum, cBar.Maximum);
+            tBar.Value = Math.Clamp(im.Coordinate.T, tBar.Minimum, tBar.Maximum);
             gl.Paint += Gl_Paint;
             MouseWheel += new System.Windows.Forms.MouseEventHandler(ImageView_MouseWheel);
             zBar.MouseWheel += new System.Windows.Forms.MouseEventHandler(ZTrackBar_MouseWheel);
@@ -977,19 +981,21 @@ namespace BioCore
                 res = "Well:" + SelectedImage.Level;
             else if (SelectedImage.Type == BioImage.ImageType.pyramidal)
             {
-                res = "Res.:" + Resolution + " Level:" + Level;
+                res = $"Res.:{Resolution:G4} Level:{Level}";
             }
+            string origin = $"({-Origin.X:0.##}, {-Origin.Y:0.##})";
+            string location = $"({SelectedImage.Volume.Location.X:0.##}, {SelectedImage.Volume.Location.Y:0.##})";
             if (Mode == ViewMode.RGBImage)
             {
                 if (timeEnabled)
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (tBar.Value + 1) + "/" + (tBar.Maximum + 1) + ", " +
-                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
+                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", " + origin + ", " + location + " " + res;
                 }
                 else
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString()
-                        + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
+                        + ", " + origin + ", " + location + " " + res;
                 }
 
             }
@@ -998,12 +1004,12 @@ namespace BioCore
                 if (timeEnabled)
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + (tBar.Value + 1) + "/" + (tBar.Maximum + 1) + ", " +
-                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
+                        mousePoint + mouseColor + ", " + SelectedImage.Buffers[0].PixelFormat.ToString() + ", " + origin + ", " + location + " " + res;
                 }
                 else
                 {
                     statusLabel.Text = (zBar.Value + 1) + "/" + (zBar.Maximum + 1) + ", " + (cBar.Value + 1) + "/" + (cBar.Maximum + 1) + ", " + mousePoint + mouseColor + ", " +
-                        SelectedImage.Buffers[0].PixelFormat.ToString() + ", (" + -Origin.X + ", " + -Origin.Y + "), (" + SelectedImage.Volume.Location.X + ", " + SelectedImage.Volume.Location.Y + ") " + res;
+                        SelectedImage.Buffers[0].PixelFormat.ToString() + ", " + origin + ", " + location + " " + res;
                 }
             }
         }
@@ -1315,29 +1321,73 @@ namespace BioCore
                 {
                     slideRenderer = new SlideRenderer(gl);
                 }
-                await slideRenderer.UpdateViewAsync(
-                    PyramidalOrigin,
-                    gl.Width,
-                    gl.Height,
-                    Resolution,
-                    GetCoordinate(),
-                    Mode == ViewMode.RGBImage && SelectedImage.IsZarrSource ? SelectedImage : null,
-                    Mode == ViewMode.RGBImage ? SelectedRgbChannels(SelectedImage) : null
-                );
+                try
+                {
+                    BioImage? directZarr = null;
+                    int[]? directZarrChannels = null;
+                    if (SelectedImage.IsZarrSource)
+                    {
+                        if (Mode == ViewMode.RGBImage)
+                        {
+                            directZarr = SelectedImage;
+                            directZarrChannels = SelectedRgbChannels(SelectedImage);
+                        }
+                        else if (Mode == ViewMode.Filtered)
+                        {
+                            // Use the same direct, coordinate-aware Zarr reader as
+                            // RGB mode. Repeating the selected channel produces the
+                            // expected grayscale Filtered view and avoids the legacy
+                            // buffered plane path that could remain stuck on Z=0.
+                            int channel = Math.Clamp(GetCoordinate().C, 0,
+                                Math.Max(0, SelectedImage.SizeC - 1));
+                            directZarr = SelectedImage;
+                            directZarrChannels = new[] { channel, channel, channel };
+                        }
+                    }
+
+                    await slideRenderer.UpdateViewAsync(
+                        PyramidalOrigin,
+                        gl.Width,
+                        gl.Height,
+                        Resolution,
+                        GetCoordinate(),
+                        directZarr,
+                        directZarrChannels
+                    );
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Could not update slide view: {ex}");
+                }
                 // Pyramidal images are drawn from tiles, not the full-plane buffers below.
                 return;
             }
 
-            if (SelectedImage.IsZarrSource && Mode == ViewMode.RGBImage && Images.Count == 1 && SelectedImage.levels?.Count > 0)
+            if (SelectedImage.IsZarrSource &&
+                (Mode == ViewMode.RGBImage || Mode == ViewMode.Filtered) &&
+                Images.Count == 1 && SelectedImage.levels?.Count > 0)
             {
                 var image = SelectedImage;
+                var requestedMode = Mode;
                 int request = ++zarrRgbRequest;
                 int width = image.Buffers[0].SizeX, height = image.Buffers[0].SizeY;
                 try
                 {
+                    int[] channels;
+                    if (requestedMode == ViewMode.RGBImage)
+                    {
+                        channels = SelectedRgbChannels(image);
+                    }
+                    else
+                    {
+                        int channel = Math.Clamp(GetCoordinate().C, 0,
+                            Math.Max(0, image.SizeC - 1));
+                        channels = new[] { channel, channel, channel };
+                    }
+
                     byte[] rgba = await ZarrChannelView.ReadRgbTileAsync(image, 0, 0, 0, width, height,
-                        GetCoordinate(), SelectedRgbChannels(image));
-                    if (request != zarrRgbRequest || SelectedImage != image || Mode != ViewMode.RGBImage)
+                        GetCoordinate(), channels);
+                    if (request != zarrRgbRequest || SelectedImage != image || Mode != requestedMode)
                         return;
                     var frame = new System.Drawing.Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                     var data = frame.LockBits(new System.Drawing.Rectangle(0, 0, width, height),
@@ -2428,7 +2478,7 @@ namespace BioCore
             if (SelectedImage != null)
             {
                 PointD ip = SelectedImage.ToImageSpace(p);
-                mousePoint = "(" + (p.X) + ", " + (p.Y) + ")";
+                mousePoint = $"({p.X:0.##}, {p.Y:0.##})";
             }
             if (e.Button == MouseButtons.XButton1 && !x1State && !Ctrl && Mode != ViewMode.RGBImage)
             {

@@ -1,5 +1,6 @@
 using AForge;
 using BioLib;
+using ZarrNET.Core.OmeZarr.Metadata;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 
@@ -79,6 +80,15 @@ namespace BioCore
                 BioImage image = await BioImage.OpenURL(source, new ZCT(0, 0, 0), 0, 0, 800, 600);
                 if (Directory.Exists(source))
                     image.Annotations.AddRange(Zarr.LoadROIs(source));
+                // A scene is a relationship between child volumes rather than a
+                // single plane. When it has no declared display Z, start near the
+                // centre instead of on an often-empty boundary slice.
+                if (image.zarrReader?.RootNodeType == OmeAttributesParser.OmeNodeType.Scene &&
+                    image.SizeZ > 1)
+                {
+                    int middleZ = image.SizeZ / 2;
+                    image.Coordinate = new ZCT(middleZ, image.Coordinate.C, image.Coordinate.T);
+                }
                 AddTab(image);
                 // Avoid persisting potentially sensitive signed URL query parameters.
                 bool hasCredentials = Uri.TryCreate(source, UriKind.Absolute, out var uri) &&

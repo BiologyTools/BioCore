@@ -21,6 +21,12 @@ namespace BioCore
         private HashSet<TileIndex> _uploadedTiles = new();
         private int _currentLevel = -1;
         private int _renderVersion;
+        private bool _hasContentKey;
+        private int _contentZ;
+        private int _contentC;
+        private int _contentT;
+        private BioImage? _contentRgbZarr;
+        private int[]? _contentRgbSelection;
 
         public SlideRenderer(SlideGLArea glArea)
         {
@@ -51,6 +57,9 @@ namespace BioCore
             _glArea.ClearTextureCache();
             _uploadedTiles.Clear();
             _currentLevel = -1;
+            _hasContentKey = false;
+            _contentRgbZarr = null;
+            _contentRgbSelection = null;
         }
 
         public async Task UpdateViewAsync(
@@ -59,10 +68,9 @@ namespace BioCore
             int viewportHeight,
             double resolution,
             ZCT coordinate,
-            BioImage rgbZarr = null,
-            int[] rgbSelection = null)
+            BioImage? rgbZarr = null,
+            int[]? rgbSelection = null)
         {
-            int renderVersion = _renderVersion;
             if (_openSlideBase == null && _slideBase == null)
                 return;
             if (viewportWidth <= 1 && viewportHeight <= 1)
@@ -73,11 +81,33 @@ namespace BioCore
             var levelRes = schema.Resolutions[level];
             double levelUnitsPerPixel = levelRes.UnitsPerPixel;
 
-            if (level != _currentLevel)
+            int[]? requestedRgbSelection = rgbSelection?.ToArray();
+            if (rgbZarr != null && requestedRgbSelection == null)
+                requestedRgbSelection = new[] { 0, 1, 2 };
+            bool contentChanged = !_hasContentKey
+                || coordinate.Z != _contentZ
+                || coordinate.C != _contentC
+                || coordinate.T != _contentT
+                || !ReferenceEquals(rgbZarr, _contentRgbZarr)
+                || !SelectionsEqual(requestedRgbSelection, _contentRgbSelection);
+
+            // Every invocation supersedes an older asynchronous viewport request.
+            // A content or pyramid-level change also invalidates GPU textures because
+            // their cache key is only TileIndex and does not include Z/C/T or RGB state.
+            int renderVersion = ++_renderVersion;
+            if (contentChanged || level != _currentLevel)
             {
-                _glArea.ReleaseLevelTextures(_currentLevel);
+                _glArea.ClearTextureCache();
+                _uploadedTiles.Clear();
                 _currentLevel = level;
             }
+
+            _hasContentKey = true;
+            _contentZ = coordinate.Z;
+            _contentC = coordinate.C;
+            _contentT = coordinate.T;
+            _contentRgbZarr = rgbZarr;
+            _contentRgbSelection = requestedRgbSelection;
 
             // Calculate world extent for the viewport
             double minX = pyramidalOrigin.X * resolution;
@@ -95,14 +125,12 @@ namespace BioCore
                 tileInfos = schema.GetTileInfos(pixelExtent, level).ToList();
             }
 
-            int[] rgbChannels = rgbSelection?.ToArray();
-            if (rgbZarr == null)
-            {
-                if (_openSlideBase != null)
-                    await _openSlideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate);
-                else
-                    await _slideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate, pyramidalOrigin, new AForge.Size(viewportWidth, viewportHeight));
-            }
+            int[]? rgbChannels = requestedRgbSelection;
+            // OpenSlide tiles are fetched below through GetTileAsync. Its bulk
+            // prefetch uses separate stitch state that this renderer never reads,
+            // and fetching both ways can fail or duplicate the work.
+            if (rgbZarr == null && !_useOpenSlide)
+                await _slideBase.FetchTilesAsync(tileInfos.ToList(), level, coordinate, pyramidalOrigin, new AForge.Size(viewportWidth, viewportHeight));
             if (renderVersion != _renderVersion)
                 return;
 
@@ -120,7 +148,7 @@ namespace BioCore
                         int tilePixelHeight = (int)Math.Round(tileInfo.Extent.Height / levelUnitsPerPixel);
                         tileData = await ZarrChannelView.ReadRgbTileAsync(rgbZarr, level,
                             tileInfo.Index.Col * tileWidth, tileInfo.Index.Row * tileHeight,
-                            tilePixelWidth, tilePixelHeight, coordinate, rgbChannels);
+                            tilePixelWidth, tilePixelHeight, coordinate, rgbChannels!);
                     }
                     else if (_useOpenSlide)
                         tileData = await _openSlideBase.GetTileAsync(tileInfo);
@@ -137,10 +165,29 @@ namespace BioCore
                     }
                     if (tileData != null)
                     {
-                        // Fix: Calculate actual tile dimensions from extent, do not hardcode 256.
-                        // This handles edge tiles that might be smaller.
                         int tW = (int)Math.Round(tileInfo.Extent.Width / levelUnitsPerPixel);
                         int tH = (int)Math.Round(tileInfo.Extent.Height / levelUnitsPerPixel);
+
+                        // BioLib/OpenSlide return schema-sized buffers with black
+                        // padding at image edges, while TileInfo exposes the clipped
+                        // edge extent. Repack a padded edge tile before uploading it;
+                        // otherwise OpenGL treats the clipped width as the source row
+                        // stride and the lower rows come from unrelated buffer offsets.
+                        if (rgbZarr == null)
+                        {
+                            int sourceWidth = schema.GetTileWidth(level);
+                            int sourceHeight = schema.GetTileHeight(level);
+                            if ((tW != sourceWidth || tH != sourceHeight) &&
+                                tileData.Length >= sourceWidth * sourceHeight * 4)
+                            {
+                                byte[] clipped = new byte[tW * tH * 4];
+                                int copyBytes = tW * 4;
+                                for (int row = 0; row < tH; row++)
+                                    Buffer.BlockCopy(tileData, row * sourceWidth * 4,
+                                        clipped, row * copyBytes, copyBytes);
+                                tileData = clipped;
+                            }
+                        }
 
                         _glArea.UploadTileTexture(tileInfo.Index, tileData, tW, tH);
                         _uploadedTiles.Add(tileInfo.Index);
@@ -161,6 +208,20 @@ namespace BioCore
 
             _glArea.SetTilesToRender(renderInfos);
             _glArea.RequestRedraw();
+        }
+
+        private static bool SelectionsEqual(int[]? left, int[]? right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (left == null || right == null || left.Length != right.Length)
+                return false;
+
+            for (int i = 0; i < left.Length; i++)
+                if (left[i] != right[i])
+                    return false;
+
+            return true;
         }
 
         private async Task<byte[]> FetchTileAsync(TileInfo tileInfo, int level, ZCT coordinate)

@@ -99,7 +99,7 @@ namespace BioCore
                 throw new ArgumentNullException(nameof(b), "The image loader returned no image to display.");
             if (b.filename.Contains('/') || b.filename.Contains('\\'))
                 b.filename = Path.GetFileName(b.filename);
-            TabPage t = new TabPage(b.filename);
+            TabPage t = new TabPage(GetAvailableTabTitle(b.filename));
             ImageView v = new ImageView(b);
             v.Dock = DockStyle.Fill;
             t.Controls.Add(v);
@@ -118,6 +118,26 @@ namespace BioCore
             if (WindowState == FormWindowState.Minimized)
                 WindowState = FormWindowState.Normal;
             Activate();
+        }
+
+        private string GetAvailableTabTitle(string filename)
+        {
+            var titles = new HashSet<string>(tabControl.TabPages.Cast<TabPage>().Select(page => page.Text), StringComparer.OrdinalIgnoreCase);
+            if (!titles.Contains(filename))
+                return filename;
+
+            // Keep the compound OME extension together when numbering copies.
+            string extension = filename.EndsWith(".ome.zarr", StringComparison.OrdinalIgnoreCase) ? filename.Substring(filename.Length - 9)
+                : filename.EndsWith(".ome.tiff", StringComparison.OrdinalIgnoreCase) ? filename.Substring(filename.Length - 9)
+                : filename.EndsWith(".ome.tif", StringComparison.OrdinalIgnoreCase) ? filename.Substring(filename.Length - 8)
+                : Path.GetExtension(filename);
+            string stem = filename.Substring(0, filename.Length - extension.Length);
+            for (int number = 2; ; number++)
+            {
+                string title = $"{stem}-{number}{extension}";
+                if (!titles.Contains(title))
+                    return title;
+            }
         }
 
         /// This function removes a tab from the tab control
@@ -175,21 +195,7 @@ namespace BioCore
             InitializeZarrMenu();
             Plugins.Initialize();
             filters = new Filter();
-            string a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            foreach (char c in a)
-            {
-                ToolStripMenuItem me = new ToolStripMenuItem(c.ToString());
-                foreach (Fiji.Macro.Command command in Fiji.Macro.Commands.Values)
-                {
-                    if (command.Name.StartsWith(c))
-                    {
-                        ToolStripMenuItem menuItem = new ToolStripMenuItem(command.Name.ToString());
-                        menuItem.Click += MenuItem_Click;
-                        me.DropDownItems.Add(menuItem);
-                    }
-                }
-                commandToolStripMenuItem.DropDownItems.Add(me);
-            }
+            InitializeCommandMenu();
             foreach (Scripting.Script s in Scripting.Scripts.Values)
             {
                 ToolStripMenuItem mi = new ToolStripMenuItem(s.name);
@@ -243,17 +249,52 @@ namespace BioCore
         {
             viewers.Add(v);
         }
-        private void MenuItem_Click(object? sender, EventArgs e)
+        private async void MenuItem_Click(object? sender, EventArgs e)
         {
-            if (ImageView.SelectedImage == null) return;
+            BioImage source = Image;
+            if (source == null) return;
             ToolStripMenuItem m = (ToolStripMenuItem)sender;
-            Fiji.RunOnImage(ImageView.SelectedImage, "run(\"" + m.Text + "\");", BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+            string command = m.Tag as string ?? m.Text;
+            string escaped = command.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            try
+            {
+                BioImage result = await Fiji.RunOnImage(source, "run(\"" + escaped + "\");", BioConsole.headless, BioConsole.onTab, BioConsole.useBioformats, BioConsole.newTab);
+                if (result == null)
+                {
+                    MessageBox.Show(this, $"'{command}' did not return an image. It may have produced another type of result or failed in Fiji.",
+                        "Fiji Command", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                if (ReferenceEquals(result, source))
+                {
+                    ImageView? sourceViewer = viewers.FirstOrDefault(viewer => viewer.Images.Contains(source));
+                    if (sourceViewer != null && !sourceViewer.IsDisposed)
+                    {
+                        TabPage? sourceTab = tabControl.TabPages.Cast<TabPage>()
+                            .FirstOrDefault(page => page.Controls.Contains(sourceViewer));
+                        if (sourceTab != null)
+                            tabControl.SelectedTab = sourceTab;
+                        App.viewer = sourceViewer;
+                        sourceViewer.SelectedIndex = sourceViewer.Images.IndexOf(source);
+                        sourceViewer.UpdateView();
+                    }
+                }
+                else
+                    AddTab(result);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.ToString());
+                MessageBox.Show(this, $"Could not run '{command}':\n\n{ex}", "Fiji Command", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             ToolStripMenuItem mi = new ToolStripMenuItem(m.Text);
+            mi.Tag = command;
             mi.Click += MenuItem_Click;
             bool con = false;
             foreach (ToolStripMenuItem item in recentToolStripMenuItem.DropDownItems)
             {
-                if (item.Text == m.Text)
+                if ((item.Tag as string ?? item.Text) == command)
                     con = true;
             }
             if (!con)

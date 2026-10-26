@@ -1,7 +1,6 @@
 ﻿using AForge;
 using BioCore;
 using SkiaSharp;
-using SkiaSharp.Views.Desktop;
 using System;
 using System.Collections.Generic;
 using System.IO;
