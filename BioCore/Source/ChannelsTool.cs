@@ -5,6 +5,13 @@ namespace BioCore
     public partial class ChannelsTool : Form
     {
         private HistogramControl hist = null;
+        private bool initializing;
+        private int histogramRequestVersion;
+        private BioImage histogramLoadingImage;
+        private Task histogramLoadingTask;
+        private BioImage histogramImage;
+        private ZCT histogramCoordinate;
+        private ZCT histogramLoadingCoordinate;
         /* A property that returns a list of channels. */
         public List<Channel> Channels
         {
@@ -40,28 +47,62 @@ namespace BioCore
         /// It clears the listbox and then adds all the items in the Channels list to the listbox.
         public void UpdateItems()
         {
+            int selectedIndex = channelsBox.SelectedIndex;
+            initializing = true;
             channelsBox.Items.Clear();
             foreach (Channel item in Channels)
             {
                 channelsBox.Items.Add(item);
             }
+            channelsBox.SelectedIndex = Channels.Count == 0
+                ? -1
+                : Math.Clamp(selectedIndex, 0, Channels.Count - 1);
+            initializing = false;
         }
         /* Creating a new instance of the ChannelsTool class. */
         public ChannelsTool(List<Channel> Channels)
         {
+            initializing = true;
             InitializeComponent();
             foreach (Channel item in Channels)
             {
                 channelsBox.Items.Add(item);
             }
-            channelsBox.SelectedIndex = 0;
-            minBox.Value = (int)Channels[0].stats[0].StackMin;
-            maxBox.Value = (int)Channels[0].stats[0].StackMax;
-            hist = new HistogramControl(Channels[channelsBox.SelectedIndex]);
-            hist.GraphMax = (int)maxBox.Value;
-            maxGraphBox.Value = (int)maxBox.Value;
             MouseWheel += new System.Windows.Forms.MouseEventHandler(ChannelsTool_MouseWheel);
+
+            if (Channels.Count == 0)
+            {
+                channelsBox.Enabled = false;
+                sampleBox.Enabled = false;
+                statsPanel.Controls.Add(new Label
+                {
+                    Dock = DockStyle.Fill,
+                    Text = "No channel metadata is available for this image.",
+                    TextAlign = ContentAlignment.MiddleCenter
+                });
+                initializing = false;
+                return;
+            }
+
+            channelsBox.SelectedIndex = 0;
+            Channel channel = Channels[0];
+            int sample = channel.range?.Length > 0 ? 0 : -1;
+            int defaultMax = channel.BitsPerPixel <= 8 ? byte.MaxValue : ushort.MaxValue;
+            int minimum = sample >= 0 ? channel.range[sample].Min : 0;
+            int maximum = sample >= 0 ? channel.range[sample].Max : defaultMax;
+            if (channel.stats?.Length > 0)
+            {
+                minimum = (int)channel.stats[0].StackMin;
+                maximum = (int)channel.stats[0].StackMax;
+            }
+            minBox.Value = Math.Clamp(minimum, (int)minBox.Minimum, (int)minBox.Maximum);
+            maxBox.Value = Math.Clamp(maximum, (int)maxBox.Minimum, (int)maxBox.Maximum);
+            hist = new HistogramControl(channel);
+            hist.GraphMax = Math.Max(1, (int)maxBox.Value);
+            maxGraphBox.Value = Math.Clamp(maxBox.Value, maxGraphBox.Minimum, maxGraphBox.Maximum);
             statsPanel.Controls.Add(hist);
+            initializing = false;
+            Shown += async (_, _) => await EnsureHistogramAsync();
         }
 
         /// When the user changes the minimum value of the histogram, the histogram is updated, the
@@ -73,7 +114,7 @@ namespace BioCore
         /// @return The value of the minBox.Value
         private void minBox_ValueChanged(object sender, EventArgs e)
         {
-            if (channelsBox.SelectedIndex == -1)
+            if (initializing || channelsBox.SelectedIndex == -1)
                 return;
             if (hist != null)
             {
@@ -81,7 +122,7 @@ namespace BioCore
                 hist.Invalidate();
                 hist.Min = (int)minBox.Value;
             }
-            App.Channels[channelsBox.SelectedIndex].range[(int)sampleBox.Value].Min = (int)minBox.Value;
+            App.Channels[channelsBox.SelectedIndex].range[(int)sampleBox.Value].Max = (int)maxBox.Value;
             App.viewer.UpdateImage();
             App.viewer.UpdateView();
         }
@@ -94,7 +135,7 @@ namespace BioCore
         /// @return The value of the maxBox.Value
         private void maxBox_ValueChanged(object sender, EventArgs e)
         {
-            if (channelsBox.SelectedIndex == -1)
+            if (initializing || channelsBox.SelectedIndex == -1)
                 return;
             if (hist != null)
             {
@@ -115,10 +156,13 @@ namespace BioCore
         /// @return The selected item in the channelsBox.
         private void channelsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (channelsBox.SelectedIndex == -1)
+            if (initializing || channelsBox.SelectedIndex == -1)
+                return;
+            Channel channel = Channels[channelsBox.SelectedIndex];
+            if (channel.range == null || channel.range.Length == 0)
                 return;
             sampleBox.Value = 0;
-            sampleBox.Maximum = ((Channel)channelsBox.SelectedItem).range.Length - 1;
+            sampleBox.Maximum = channel.range.Length - 1;
             if (minBox.Maximum < Channels[channelsBox.SelectedIndex].range[(int)sampleBox.Value].Min || maxBox.Maximum < Channels[channelsBox.SelectedIndex].range[(int)sampleBox.Value].Max)
             {
                 minBox.Value = 0;
@@ -204,17 +248,114 @@ namespace BioCore
         /// @param EventArgs System.EventArgs
         private void ChannelsTool_Activated(object sender, EventArgs e)
         {
-            sampleBox.Maximum = SelectedChannel.SamplesPerPixel - 1;
-            for (int i = 0; i < SelectedChannel.range.Length; i++)
-            {
-                SelectedChannel.range[i].Min = (int)minBox.Value;
-            }
-            minBox.Value = SelectedChannel.range[(int)sampleBox.Value].Min;
-            maxBox.Value = SelectedChannel.range[(int)sampleBox.Value].Max;
             UpdateItems();
+            if (Channels.Count == 0 || channelsBox.SelectedIndex < 0 || hist == null)
+                return;
+            Channel channel = SelectedChannel;
+            if (channel.range == null || channel.range.Length == 0)
+                return;
+            initializing = true;
+            sampleBox.Maximum = channel.range.Length - 1;
+            sampleBox.Value = Math.Min(sampleBox.Value, sampleBox.Maximum);
+            minBox.Value = Math.Clamp(channel.range[(int)sampleBox.Value].Min,
+                (int)minBox.Minimum, (int)minBox.Maximum);
+            maxBox.Value = Math.Clamp(channel.range[(int)sampleBox.Value].Max,
+                (int)maxBox.Minimum, (int)maxBox.Maximum);
+            initializing = false;
+            hist.UpdateChannel(channel);
             hist.UpdateView();
+            _ = EnsureHistogramAsync();
 
         }
+
+        private async Task EnsureHistogramAsync()
+        {
+            BioImage image = ImageView.SelectedImage;
+            if (image == null || hist == null)
+                return;
+
+            ZCT coordinate = image.Coordinate;
+            int requestVersion = ++histogramRequestVersion;
+            if (ReferenceEquals(histogramImage, image) && SameCoordinate(histogramCoordinate, coordinate) &&
+                ZarrChannelView.HasHistogramStatistics(image))
+            {
+                hist.StatusMessage = "";
+                ApplyFrameRange();
+                hist.Invalidate();
+                return;
+            }
+
+            hist.StatusMessage = "Loading histogram…";
+            hist.Invalidate();
+            try
+            {
+                if (!ReferenceEquals(histogramLoadingImage, image) ||
+                    !SameCoordinate(histogramLoadingCoordinate, coordinate) ||
+                    histogramLoadingTask == null || histogramLoadingTask.IsCompleted)
+                {
+                    histogramLoadingImage = image;
+                    histogramLoadingCoordinate = coordinate;
+                    histogramLoadingTask = ZarrChannelView.EnsureHistogramStatisticsAsync(
+                        image, coordinate);
+                }
+                await histogramLoadingTask;
+                if (requestVersion != histogramRequestVersion || image != ImageView.SelectedImage)
+                    return;
+                histogramImage = image;
+                histogramCoordinate = coordinate;
+                hist.StatusMessage = ZarrChannelView.HasHistogramStatistics(image)
+                    ? ""
+                    : "Histogram data is unavailable for this image.";
+                hist.UpdateChannel(SelectedChannel);
+                ApplyFrameRange();
+                hist.Invalidate();
+            }
+            catch (Exception ex)
+            {
+                if (requestVersion != histogramRequestVersion)
+                    return;
+                hist.StatusMessage = $"Could not load histogram: {ex.Message}";
+                hist.Invalidate();
+            }
+        }
+
+        public void RefreshHistogram()
+        {
+            if (Visible)
+                _ = EnsureHistogramAsync();
+        }
+
+        private void ApplyFrameRange()
+        {
+            if (channelsBox.SelectedIndex < 0 || SelectedChannel.stats == null ||
+                SelectedChannel.stats.Length == 0)
+                return;
+
+            int sample = Math.Clamp((int)sampleBox.Value, 0, SelectedChannel.stats.Length - 1);
+            Statistics statistics = SelectedChannel.stats[sample];
+            int minimum = Math.Clamp((int)statistics.StackMin, (int)minBox.Minimum, (int)minBox.Maximum);
+            int maximum = Math.Clamp((int)statistics.StackMax, minimum, (int)maxBox.Maximum);
+            int graphMaximum = Math.Max(1, maximum);
+            int graphMinimum = Math.Min(minimum, graphMaximum);
+            int histogramBin = Math.Max(1, (graphMaximum - graphMinimum + 255) / 256);
+
+            initializing = true;
+            minBox.Value = minimum;
+            maxBox.Value = maximum;
+            minGraphBox.Value = Math.Clamp(graphMinimum,
+                (int)minGraphBox.Minimum, (int)minGraphBox.Maximum);
+            maxGraphBox.Value = Math.Clamp(graphMaximum,
+                (int)maxGraphBox.Minimum, (int)maxGraphBox.Maximum);
+            binBox.Value = Math.Clamp(histogramBin, (int)binBox.Minimum, (int)binBox.Maximum);
+            initializing = false;
+
+            hist.GraphMin = graphMinimum;
+            hist.GraphMax = graphMaximum;
+            hist.Bin = histogramBin;
+        }
+
+        private static bool SameCoordinate(ZCT left, ZCT right) =>
+            left.Z == right.Z && left.C == right.C && left.T == right.T;
 
         /// When the user resizes the window, the histogram is updated
         /// 
@@ -222,7 +363,7 @@ namespace BioCore
         /// @param EventArgs 
         private void ChannelsTool_ResizeEnd(object sender, EventArgs e)
         {
-            hist.UpdateView();
+            hist?.UpdateView();
         }
 
         /// If the user selects a value in the dropdown box, then the value of the numeric up/down box
@@ -515,6 +656,8 @@ namespace BioCore
         /// @param EventArgs e
         private void sampleBox_ValueChanged(object sender, EventArgs e)
         {
+            if (initializing || Channels.Count == 0)
+                return;
             if (channelsBox.SelectedIndex == -1)
                 channelsBox.SelectedIndex = 0;
             minBox.Value = Channels[channelsBox.SelectedIndex].range[(int)sampleBox.Value].Min;

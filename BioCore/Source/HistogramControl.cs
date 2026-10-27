@@ -162,17 +162,37 @@ namespace BioCore
         {
             this.Invalidate();
         }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string StatusMessage { get; set; } = "Loading histogram…";
         /// It draws a histogram of the image
         /// 
         /// @param sender The object that raised the event.
         /// @param PaintEventArgs e
         private void HistogramControl_Paint(object sender, PaintEventArgs e)
         {
+            if (g == null || bm == null)
+                InitGraphics();
+            if (g == null || bm == null)
+                return;
+
             if (graphMax == 0)
                 graphMax = ushort.MaxValue;
             g.Clear(System.Drawing.Color.LightGray);
             g.ResetTransform();
             g.TranslateTransform(-graphMin, 0);
+
+            bool hasStatistics = ImageView.SelectedImage != null &&
+                ZarrChannelView.HasHistogramStatistics(ImageView.SelectedImage);
+            if (!hasStatistics)
+            {
+                g.ResetTransform();
+                var textSize = g.MeasureString(StatusMessage, SystemFonts.DefaultFont);
+                g.DrawString(StatusMessage, SystemFonts.DefaultFont, Brushes.DimGray,
+                    Math.Max(4, (Width - textSize.Width) / 2),
+                    Math.Max(4, (Height - textSize.Height) / 2));
+                e.Graphics.DrawImage(bm, 0, 0);
+                return;
+            }
             string st = "";
             fx = ((float)this.Width) / ((float)graphMax);
             float maxmedian = 0;
@@ -189,6 +209,8 @@ namespace BioCore
                     }
                 }
             }
+            if (maxmedian <= 0)
+                maxmedian = 1;
             fy = ((float)this.Height) / maxmedian;
             for (int c = 0; c < ImageView.SelectedImage.Channels.Count; c++)
             {

@@ -1,4 +1,6 @@
-﻿namespace BioCore
+﻿using System.ComponentModel;
+
+namespace BioCore
 {
     public partial class CodeView : UserControl
     {
@@ -34,6 +36,7 @@
         }
 
         /* A property of the textbox. */
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool WordWrap
         {
             get

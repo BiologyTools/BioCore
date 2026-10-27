@@ -35,6 +35,11 @@ namespace BioCore
 
         public void SetSource(OpenSlideBase source)
         {
+            // Viewport updates reuse the source; only switching images should
+            // discard the textures currently being displayed.
+            if (_useOpenSlide && ReferenceEquals(_openSlideBase, source))
+                return;
+
             _openSlideBase = source;
             _slideBase = null;
             _useOpenSlide = true;
@@ -44,6 +49,9 @@ namespace BioCore
 
         public void SetSource(SlideBase source)
         {
+            if (!_useOpenSlide && ReferenceEquals(_slideBase, source))
+                return;
+
             _slideBase = source;
             _openSlideBase = null;
             _useOpenSlide = false;

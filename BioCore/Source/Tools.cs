@@ -663,7 +663,6 @@ namespace BioCore
                     if (ImageView.mouseDown.X - e.X != 0 || ImageView.mouseDown.Y - e.Y != 0)
                     {
                         App.viewer.PyramidalOriginTransformed = new PointD(App.viewer.PyramidalOriginTransformed.X + (ImageView.mouseDown.X - e.X), App.viewer.PyramidalOriginTransformed.Y + (ImageView.mouseDown.Y - e.Y));
-                        App.viewer.UpdateImages(true);
                     }
                 }
                 else

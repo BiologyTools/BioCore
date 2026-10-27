@@ -1306,6 +1306,7 @@ namespace BioCore
         {
             if (SelectedImage == null)
                 return;
+            App.channelsTool?.RefreshHistogram();
             UpdateImageSurface();
             if (SelectedImage.isPyramidal)
             {

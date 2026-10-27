@@ -1,6 +1,7 @@
 ﻿using BioCore;
 using Newtonsoft.Json;
 using WindowsInput;
+using System.ComponentModel;
 
 namespace BioCore
 {
@@ -9,6 +10,7 @@ namespace BioCore
         public static InputSimulator input = new InputSimulator();
         private Function func;
         /* A property. */
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Function Func
         {
             get
